@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAULT — Collection</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .toolbar .count{font-size:12px;color:var(--muted);letter-spacing:.05em;}
+  select{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:8px 12px;border-radius:3px;font-size:12px;}
+  .coll-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+  .coll-card{
+    border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;
+    min-height:180px;justify-content:space-between;cursor:pointer;
+  }
+  .coll-card .glyph{font-size:32px;text-align:center;}
+  .coll-card .name{font-size:13px;font-weight:800;text-transform:uppercase;line-height:1.1;}
+  .coll-card .tier{font-size:9px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.85;}
+  .coll-card .foot{display:flex;justify-content:space-between;align-items:center;}
+  .coll-card .value{font-size:10px;opacity:.8;}
+  .sell-btn{
+    background:transparent;border:1px solid currentColor;color:inherit;padding:5px 9px;border-radius:3px;
+    cursor:pointer;font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;opacity:.85;
+  }
+  .sell-btn:hover{opacity:1;}
+  .modal-actions{display:flex;gap:10px;}
+</style>
+</head>
+<body>
+<div id="hud" class="hud"></div>
+
+<main class="page">
+  <div class="toolbar">
+    <div class="count" id="collSummary"></div>
+    <select id="sortSelect">
+      <option value="rarity">Sort: Rarity (high→low)</option>
+      <option value="value">Sort: Value (high→low)</option>
+      <option value="recent">Sort: Most recent</option>
+    </select>
+  </div>
+  <div class="coll-grid" id="collGrid"></div>
+</main>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal-card" id="modalCard">
+    <button class="modal-close" id="modalClose">&times;</button>
+    <div class="tier" id="mTier"></div>
+    <div class="glyph" id="mGlyph"></div>
+    <div>
+      <div class="name" id="mName"></div>
+      <div class="value mono" id="mValue"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="mSellBtn">Sell card</button>
+    </div>
+  </div>
+</div>
+
+<script src="shared.js"></script>
+<script>
+  let state = loadState();
+  renderHud(state, "collection");
+
+  function renderCollection(){
+    const grid = document.getElementById("collGrid");
+    const summary = document.getElementById("collSummary");
+
+    if (!state.collection.length){
+      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+        <div class="glyph">◇</div>
+        Nothing kept yet — rip a pack and choose "Keep card".
+        <div style="margin-top:16px;"><a class="btn btn-brass" href="shop.html">Go to Pack Shop</a></div>
+      </div>`;
+      summary.textContent = "0 cards collected";
+      return;
+    }
+
+    const sortMode = document.getElementById("sortSelect").value;
+    let sorted = [...state.collection];
+    if (sortMode === "rarity") sorted.sort((a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity));
+    else if (sortMode === "value") sorted.sort((a,b)=>b.value-a.value);
+    else sorted.sort((a,b)=>b.ts-a.ts);
+
+    const totalValue = state.collection.reduce((s,c)=>s+c.value,0);
+    summary.textContent = state.collection.length + " cards collected · worth " + fmt(totalValue) + " chips";
+
+    grid.innerHTML = sorted.map(card=>`
+      <div class="coll-card rar-${card.rarity}" data-uid="${card.uid}">
+        <div class="tier">${rarityMeta(card.rarity).label}</div>
+        <div class="glyph">${card.glyph}</div>
+        <div class="name">${card.name}</div>
+        <div class="foot">
+          <span class="value mono">${fmt(card.value)}</span>
+          <button class="sell-btn" data-sell="${card.uid}">Sell</button>
+        </div>
+      </div>
+    `).join("");
+
+    grid.querySelectorAll(".coll-card").forEach(el=>{
+      el.addEventListener("click", (e)=>{
+        if (e.target.closest("[data-sell]")) return;
+        openModal(el.dataset.uid);
+      });
+    });
+    grid.querySelectorAll("[data-sell]").forEach(btn=>{
+      btn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        sellCard(btn.dataset.sell);
+      });
+    });
+  }
+
+  function sellCard(cardUid){
+    const idx = state.collection.findIndex(c=>c.uid===cardUid);
+    if (idx === -1) return;
+    const card = state.collection[idx];
+    if (!confirm("Sell " + card.name + " for " + fmt(card.value) + " chips? This can't be undone.")) return;
+    state.collection.splice(idx,1);
+    state.balance += card.value;
+    saveState(state);
+    renderHud(state, "collection");
+    toast("Sold " + card.name + " for " + fmt(card.value) + " chips.");
+    renderCollection();
+    closeModal();
+  }
+
+  function openModal(cardUid){
+    const card = state.collection.find(c=>c.uid===cardUid);
+    if (!card) return;
+    const modalCard = document.getElementById("modalCard");
+    modalCard.className = "modal-card rar-"+card.rarity;
+    document.getElementById("mTier").textContent = rarityMeta(card.rarity).label.toUpperCase();
+    document.getElementById("mGlyph").textContent = card.glyph;
+    document.getElementById("mName").textContent = card.name;
+    document.getElementById("mValue").textContent = "Value: " + fmt(card.value) + " chips";
+    document.getElementById("mSellBtn").onclick = ()=>sellCard(card.uid);
+    document.getElementById("modalBackdrop").classList.add("show");
+  }
+  function closeModal(){ document.getElementById("modalBackdrop").classList.remove("show"); }
+
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  document.getElementById("modalBackdrop").addEventListener("click", (e)=>{
+    if (e.target.id === "modalBackdrop") closeModal();
+  });
+  document.getElementById("sortSelect").addEventListener("change", renderCollection);
+
+  renderCollection();
+</script>
+</body>
+</html>

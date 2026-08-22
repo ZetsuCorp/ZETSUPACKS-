@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAULT — Start</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .start-stage{
+    min-height:calc(100vh - 64px);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:26px;padding:20px;
+  }
+  .title-mark{font-size:11px;letter-spacing:.4em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+  .title-word{
+    font-size:clamp(56px,14vw,120px);font-weight:900;letter-spacing:.01em;
+    text-transform:uppercase;line-height:.9;margin:0;
+  }
+  .title-word span{color:var(--brass);}
+  .title-sub{color:var(--muted);font-size:14px;max-width:420px;line-height:1.5;}
+  .enter-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .glyph-drift{
+    position:absolute;font-size:20px;color:var(--brass-dim);opacity:.35;
+    animation:drift 6s ease-in-out infinite;
+  }
+  @keyframes drift{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-14px);}
+  }
+  .status-line{font-size:11px;color:var(--muted);letter-spacing:.08em;}
+</style>
+</head>
+<body>
+<div id="hud" class="hud"></div>
+
+<main class="start-stage">
+  <div class="title-mark">Zetsumetsu Arcade</div>
+  <h1 class="title-word">VAULT<span>.</span></h1>
+  <p class="title-sub">Buy a pack. Rip it open. Chase the pull. Every card in your collection is worth something — spend it or stack it.</p>
+  <div class="enter-row">
+    <a class="btn btn-brass" href="shop.html" id="enterBtn">Enter the Vault</a>
+    <button class="btn btn-ghost" id="resetBtn">Reset progress</button>
+  </div>
+  <div class="status-line" id="statusLine"></div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+  const state = loadState();
+  renderHud(state, "start");
+
+  const statusLine = document.getElementById("statusLine");
+  const enterBtn = document.getElementById("enterBtn");
+  if (state.firstVisit && state.collection.length === 0 && state.balance === 1000 && state.unopened.length === 0){
+    statusLine.textContent = "New vault — you're starting with " + fmt(state.balance) + " chips.";
+    enterBtn.textContent = "Enter the Vault";
+  } else {
+    statusLine.textContent = "Welcome back — " + fmt(state.balance) + " chips, " + state.collection.length + " cards collected.";
+    enterBtn.textContent = "Continue";
+  }
+
+  document.getElementById("resetBtn").addEventListener("click", ()=>{
+    if (!confirm("Reset your chips and collection back to the start? This can't be undone.")) return;
+    saveState(defaultState());
+    toast("Vault reset.");
+    setTimeout(()=>location.reload(), 400);
+  });
+
+  // mark that the player has now seen the start screen at least once
+  if (state.firstVisit){
+    state.firstVisit = false;
+    saveState(state);
+  }
+</script>
+</body>
+</html>

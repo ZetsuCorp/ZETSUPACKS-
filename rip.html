@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAULT — Rip Pack</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .stage{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:60vh;position:relative;
+  }
+  .pack-object{
+    width:220px;height:300px;border-radius:10px;
+    background:linear-gradient(150deg,var(--panel-2),#2B2145 55%,var(--panel-2));
+    border:1px solid var(--brass-dim);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+    cursor:pointer;position:relative;box-shadow:0 20px 50px -20px rgba(0,0,0,.6);
+    transition:transform .18s ease;
+  }
+  .pack-object:hover{transform:translateY(-4px);}
+  .pack-object.ripping{animation:shake .5s ease;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0) rotate(0);}
+    20%{transform:translateX(-6px) rotate(-1.5deg);}
+    40%{transform:translateX(6px) rotate(1.5deg);}
+    60%{transform:translateX(-4px) rotate(-1deg);}
+    80%{transform:translateX(4px) rotate(1deg);}
+  }
+  .pack-object .perf{
+    position:absolute;left:0;right:0;top:50%;height:1px;
+    background-image:repeating-linear-gradient(90deg, var(--brass-dim) 0 6px, transparent 6px 12px);
+  }
+  .pack-object .glyph{font-size:44px;}
+  .pack-object .label{font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--brass);font-weight:700;}
+  .pack-object .instruction{font-size:10px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+
+  .foil-sweep{
+    position:absolute;inset:0;pointer-events:none;opacity:0;
+    background:linear-gradient(100deg, transparent 30%, rgba(255,255,255,.55) 48%, transparent 66%);
+    background-size:220% 100%;background-position:120% 0;
+  }
+  .foil-sweep.sweeping{opacity:1;animation:sweep .55s ease forwards;}
+  @keyframes sweep{
+    0%{background-position:130% 0;opacity:1;}
+    100%{background-position:-30% 0;opacity:0;}
+  }
+
+  .reveal-card{
+    width:240px;height:330px;border-radius:12px;position:relative;
+    display:none;flex-direction:column;justify-content:space-between;padding:18px;overflow:hidden;
+    transform:scale(.4) rotateY(90deg);opacity:0;
+  }
+  .reveal-card.showing{display:flex;animation:cardIn .5s cubic-bezier(.2,.9,.25,1.15) forwards;}
+  @keyframes cardIn{
+    0%{transform:scale(.4) rotateY(90deg);opacity:0;}
+    60%{transform:scale(1.06) rotateY(0deg);opacity:1;}
+    100%{transform:scale(1) rotateY(0deg);opacity:1;}
+  }
+  .reveal-card .tier{font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;opacity:.85;}
+  .reveal-card .glyph{font-size:64px;text-align:center;filter:drop-shadow(0 6px 14px rgba(0,0,0,.4));}
+  .reveal-card .name{font-size:19px;font-weight:900;text-transform:uppercase;line-height:1.05;}
+  .reveal-card .value{font-size:12px;opacity:.85;}
+  .burst{position:absolute;inset:-40%;pointer-events:none;opacity:0;}
+  .burst.bursting{animation:burstAnim .7s ease-out forwards;}
+  @keyframes burstAnim{
+    0%{opacity:.9;transform:scale(.2);}
+    100%{opacity:0;transform:scale(1.6);}
+  }
+
+  .post-reveal{margin-top:20px;display:flex;gap:10px;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+  .post-reveal.show{opacity:1;pointer-events:auto;}
+</style>
+</head>
+<body>
+<div id="hud" class="hud"></div>
+
+<main class="page">
+  <div class="stage" id="stage"></div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+  let state = loadState();
+  renderHud(state, "rip");
+
+  const params = new URLSearchParams(location.search);
+  const requestedUid = params.get("pack");
+  let pending = requestedUid
+    ? state.unopened.find(u=>u.uid===requestedUid)
+    : state.unopened[0];
+
+  const stage = document.getElementById("stage");
+  let currentResult = null;
+
+  function renderEmpty(){
+    stage.innerHTML = `
+      <div class="empty-state" style="width:100%;">
+        <div class="glyph">◇</div>
+        No unopened packs. Head to the Pack Shop to buy one.
+        <div style="margin-top:16px;"><a class="btn btn-brass" href="shop.html">Go to Pack Shop</a></div>
+      </div>`;
+  }
+
+  function renderPackObject(){
+    const pack = PACKS.find(p=>p.id===pending.packId);
+    stage.innerHTML = `
+      <div class="pack-object" id="packObject">
+        <div class="perf"></div>
+        <div class="glyph">◆</div>
+        <div class="label">${pack.name.toUpperCase()}</div>
+        <div class="instruction">Click to rip</div>
+        <div class="foil-sweep" id="foilSweep"></div>
+      </div>
+      <div class="reveal-card" id="revealCard">
+        <div class="burst" id="burst"></div>
+        <div class="tier" id="rTier"></div>
+        <div class="glyph" id="rGlyph"></div>
+        <div>
+          <div class="name" id="rName"></div>
+          <div class="value mono" id="rValue"></div>
+        </div>
+      </div>
+      <div class="post-reveal" id="postReveal">
+        <button class="btn btn-ghost" id="sellNowBtn">Sell for <span id="sellAmt"></span></button>
+        <button class="btn btn-brass" id="keepBtn">Keep card</button>
+        <a class="btn btn-ghost" href="shop.html">Back to Shop</a>
+      </div>
+    `;
+    document.getElementById("packObject").addEventListener("click", ()=>ripPack(pack));
+  }
+
+  function ripPack(pack){
+    const packObj = document.getElementById("packObject");
+    packObj.classList.add("ripping");
+    document.getElementById("foilSweep").classList.add("sweeping");
+    packObj.style.pointerEvents = "none";
+
+    setTimeout(()=>{
+      packObj.style.display = "none";
+      currentResult = pullCard(pack);
+      showReveal(currentResult);
+
+      // remove this pack from the unopened tray now that it's ripped
+      state.unopened = state.unopened.filter(u=>u.uid!==pending.uid);
+      saveState(state);
+    }, 480);
+  }
+
+  function showReveal(result){
+    const reveal = document.getElementById("revealCard");
+    const burst = document.getElementById("burst");
+    reveal.className = "reveal-card rar-"+result.rarity;
+    document.getElementById("rTier").textContent = rarityMeta(result.rarity).label.toUpperCase();
+    document.getElementById("rGlyph").textContent = result.glyph;
+    document.getElementById("rName").textContent = result.name;
+    document.getElementById("rValue").textContent = "Value: " + fmt(result.value) + " chips";
+
+    burst.style.background = result.rarity === "mythic"
+      ? "radial-gradient(circle, rgba(199,125,255,.5) 0%, transparent 65%)"
+      : `radial-gradient(circle, var(--${result.rarity}) 0%, transparent 65%)`;
+
+    requestAnimationFrame(()=>{
+      reveal.classList.add("showing");
+      burst.classList.add("bursting");
+    });
+
+    document.getElementById("sellAmt").textContent = fmt(result.value) + " chips";
+    setTimeout(()=>{ document.getElementById("postReveal").classList.add("show"); }, 500);
+
+    document.getElementById("sellNowBtn").addEventListener("click", ()=>{
+      state.balance += currentResult.value;
+      saveState(state);
+      renderHud(state, "rip");
+      toast("Sold " + currentResult.name + " for " + fmt(currentResult.value) + " chips.");
+      goNext();
+    });
+    document.getElementById("keepBtn").addEventListener("click", ()=>{
+      state.collection.push(currentResult);
+      saveState(state);
+      toast("Added " + currentResult.name + " to your collection.");
+      goNext();
+    });
+  }
+
+  function goNext(){
+    pending = state.unopened[0];
+    if (pending){ renderPackObject(); } else { renderEmpty(); }
+  }
+
+  if (!pending){ renderEmpty(); } else { renderPackObject(); }
+</script>
+</body>
+</html>

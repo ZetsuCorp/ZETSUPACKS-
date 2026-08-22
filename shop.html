@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAULT — Pack Shop</title>
+<link rel="stylesheet" href="shared.css">
+<style>
+  .section-label{
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;
+    margin:0 0 14px;
+  }
+  .tray{
+    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:34px;
+    padding-bottom:24px;border-bottom:1px solid var(--line);
+  }
+  .tray-empty{color:var(--muted);font-size:13px;}
+  .tray-pack{
+    background:var(--panel-2);border:1px solid var(--brass-dim);border-radius:6px;
+    padding:12px 16px;display:flex;align-items:center;gap:10px;
+  }
+  .tray-pack .glyph{font-size:20px;color:var(--brass);}
+  .tray-pack .name{font-size:12px;font-weight:700;text-transform:uppercase;}
+  .tray-pack a{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--brass);font-weight:700;}
+
+  .pack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;}
+  .pack-card{
+    background:linear-gradient(160deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line);border-radius:6px;padding:22px 18px 18px;
+    position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px;
+  }
+  .pack-card::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(115deg, rgba(212,175,106,.035) 0px, rgba(212,175,106,.035) 1px, transparent 1px, transparent 14px);
+  }
+  .pack-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
+  .pack-name{font-size:22px;font-weight:900;text-transform:uppercase;line-height:1;}
+  .pack-ceiling{font-size:12px;color:var(--muted);}
+  .pack-ceiling b{color:var(--legendary);font-weight:700;}
+  .odds-list{
+    display:flex;flex-direction:column;gap:4px;font-size:11px;
+    border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:10px 0;margin:2px 0;
+  }
+  .odds-row{display:flex;justify-content:space-between;color:var(--muted);}
+</style>
+</head>
+<body>
+<div id="hud" class="hud"></div>
+
+<main class="page">
+  <p class="section-label">Unopened Packs</p>
+  <div class="tray" id="tray"></div>
+
+  <p class="section-label">Pack Shop</p>
+  <div class="pack-grid" id="packGrid"></div>
+</main>
+
+<script src="shared.js"></script>
+<script>
+  let state = loadState();
+  renderHud(state, "shop");
+
+  function renderTray(){
+    const tray = document.getElementById("tray");
+    if (!state.unopened.length){
+      tray.innerHTML = `<div class="tray-empty">Nothing waiting to be ripped. Buy a pack below.</div>`;
+      return;
+    }
+    tray.innerHTML = state.unopened.map(u=>{
+      const pack = PACKS.find(p=>p.id===u.packId);
+      return `<div class="tray-pack">
+        <span class="glyph">◆</span>
+        <span class="name">${pack.name}</span>
+        <a href="rip.html?pack=${u.uid}">Rip it →</a>
+      </div>`;
+    }).join("");
+  }
+
+  function renderShop(){
+    const grid = document.getElementById("packGrid");
+    grid.innerHTML = PACKS.map(pack=>{
+      const oddsHtml = RARITIES.map(r=>{
+        return `<div class="odds-row"><span><span class="swatch s-${r.id}"></span>${r.label}</span><span>${pack.odds[r.id]}%</span></div>`;
+      }).join("");
+      const affordable = state.balance >= pack.price;
+      return `
+        <div class="pack-card">
+          <div class="pack-tier">${pack.tier}</div>
+          <div class="pack-name">${pack.name}</div>
+          <div class="pack-ceiling">Max pull worth up to <b>${fmt(pack.ceiling)}</b> chips</div>
+          <div class="odds-list">${oddsHtml}</div>
+          <button class="btn btn-brass" data-pack="${pack.id}" ${affordable?'':'disabled'}>
+            Buy — ${fmt(pack.price)} chips
+          </button>
+        </div>`;
+    }).join("");
+
+    grid.querySelectorAll("[data-pack]").forEach(btn=>{
+      btn.addEventListener("click", ()=>buyPack(btn.dataset.pack));
+    });
+  }
+
+  function buyPack(packId){
+    const pack = PACKS.find(p=>p.id===packId);
+    if (state.balance < pack.price){ toast("Not enough chips."); return; }
+    state.balance -= pack.price;
+    state.unopened.push({ uid: uid(), packId: pack.id });
+    saveState(state);
+    renderHud(state, "shop");
+    renderTray();
+    renderShop();
+    toast(pack.name + " added to your unopened packs.");
+  }
+
+  renderTray();
+  renderShop();
+</script>
+</body>
+</html>
