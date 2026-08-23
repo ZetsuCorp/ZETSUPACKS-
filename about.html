@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZETSU PACKZ — About</title>
+<style>
+  :root{
+    --bg:#140F1F;
+    --panel:#1D1730;
+    --panel-2:#251D3B;
+    --line:#352A50;
+    --ink:#EDE6DC;
+    --muted:#9C93AE;
+    --brass:#D4AF6A;
+    --brass-dim:#8A7245;
+    --common:#8A8698;
+    --rare:#4FB6A8;
+    --epic:#9B6BD6;
+    --legendary:#E8A23D;
+    --mythic-a:#FF6B9D;
+    --mythic-b:#C77DFF;
+    --mythic-c:#4FD1E5;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, #241C3C 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+  }
+  .mono{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;}
+
+  header{
+    padding:36px 20px 26px;border-bottom:1px solid var(--line);
+    text-align:center;
+  }
+  header .mark{font-size:11px;letter-spacing:.4em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+  header h1{margin:8px 0 10px;font-size:clamp(32px,7vw,48px);font-weight:900;text-transform:uppercase;letter-spacing:.02em;}
+  header h1 span{color:var(--brass);}
+  header .tagline{font-size:14px;color:var(--muted);max-width:480px;margin:0 auto;line-height:1.6;}
+
+  main{max-width:760px;margin:0 auto;padding:40px 18px 70px;display:flex;flex-direction:column;gap:44px;}
+
+  .eyebrow{
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--brass);
+    font-weight:800;margin:0 0 10px;
+  }
+  section h2{
+    font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:.01em;
+    margin:0 0 12px;line-height:1.1;
+  }
+  section p{font-size:14px;color:var(--muted);line-height:1.7;margin:0 0 12px;}
+  section p b{color:var(--ink);}
+
+  /* ---------- Loop steps ---------- */
+  .loop{display:flex;flex-direction:column;gap:12px;}
+  .loop-step{
+    display:flex;gap:16px;align-items:flex-start;
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:16px 18px;
+  }
+  .loop-step .num{
+    flex:none;width:30px;height:30px;border-radius:50%;
+    background:var(--panel-2);border:1px solid var(--brass-dim);color:var(--brass);
+    display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;
+  }
+  .loop-step .txt h3{margin:0 0 4px;font-size:14px;font-weight:800;text-transform:uppercase;}
+  .loop-step .txt p{margin:0;font-size:13px;color:var(--muted);line-height:1.6;}
+
+  /* ---------- Tier chips ---------- */
+  .tier-row{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0;}
+  .tier-chip{
+    display:flex;align-items:center;gap:6px;
+    background:var(--panel-2);border:1px solid var(--line);border-radius:20px;
+    padding:6px 12px;font-size:11px;font-weight:700;text-transform:uppercase;
+  }
+  .tier-dot{width:8px;height:8px;border-radius:50%;}
+  .tier-dot.mythic{background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
+  .tier-dot.legendary{background:var(--legendary);}
+  .tier-dot.epic{background:var(--epic);}
+  .tier-dot.rare{background:var(--rare);}
+  .tier-dot.common{background:var(--common);}
+
+  /* ---------- Ledger callout ---------- */
+  .ledger-box{
+    background:linear-gradient(160deg,var(--panel-2),var(--panel));
+    border:1px solid var(--brass-dim);border-radius:10px;padding:20px 22px;
+  }
+  .ledger-box h3{margin:0 0 8px;font-size:14px;font-weight:800;text-transform:uppercase;color:var(--brass);}
+  .ledger-box p{font-size:13px;color:var(--muted);line-height:1.7;margin:0 0 10px;}
+  .ledger-box p:last-child{margin-bottom:0;}
+  .ledger-box b{color:var(--ink);}
+
+  /* ---------- Simple stat pair ---------- */
+  .stat-pair{display:flex;gap:14px;margin:14px 0;}
+  .stat-box{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;text-align:center;}
+  .stat-box .lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .stat-box .val{font-size:18px;font-weight:800;color:var(--brass);margin-top:4px;}
+
+  footer{
+    text-align:center;padding:24px 20px 40px;
+    font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mark">Zetsumetsu</div>
+  <h1>ZETSU PACKZ<span>.</span></h1>
+  <div class="tagline">A TCG collector's app, built ahead of the full Zetsumetsu trading card game launch. Collect cards, watch the community decide what's rare, and cash in what you've earned.</div>
+</header>
+
+<main>
+
+  <section>
+    <div class="eyebrow">What This Is</div>
+    <h2>A Collector's App, Not a Marketplace</h2>
+    <p>Zetsu Packz is a <b>pre-launch collecting experience</b> for the Zetsumetsu trading card game. It's a place to open packs, build a personal collection, and watch a card's standing shift as the whole community collects around it.</p>
+    <p>It works more like a <b>card shop</b> than a vending machine &mdash; you're not trading a commodity for cash, you're building something and getting to know the cards before the full TCG releases.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">How It Works</div>
+    <h2>Buy. Rip. Collect.</h2>
+    <div class="loop">
+      <div class="loop-step">
+        <div class="num">1</div>
+        <div class="txt">
+          <h3>Buy a Tier</h3>
+          <p>Pick a rarity tier in the Card Shop &mdash; Common through Mythic. The price you pay <b>is</b> that tier's value. No hidden odds on rarity &mdash; buying a tier guarantees it.</p>
+        </div>
+      </div>
+      <div class="loop-step">
+        <div class="num">2</div>
+        <div class="txt">
+          <h3>Rip It Open</h3>
+          <p>Head to Rip Pack to reveal which specific card design you pulled from within that tier.</p>
+        </div>
+      </div>
+      <div class="loop-step">
+        <div class="num">3</div>
+        <div class="txt">
+          <h3>Keep It or Redeem It</h3>
+          <p>Hold the card in your Collection, or redeem it for its current tier value, added straight to your Redemption Balance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">The Tiers</div>
+    <h2>Five Rarities, One Honest Price</h2>
+    <p>Every card sits in a tier, and every tier has a fixed buy price and redemption value &mdash; they're always the same number. No markup, no surprise fee buried in the purchase.</p>
+    <div class="tier-row">
+      <div class="tier-chip"><span class="tier-dot mythic"></span>Mythic &middot; $150</div>
+      <div class="tier-chip"><span class="tier-dot legendary"></span>Legendary &middot; $100</div>
+      <div class="tier-chip"><span class="tier-dot epic"></span>Epic &middot; $25</div>
+      <div class="tier-chip"><span class="tier-dot rare"></span>Rare &middot; $10</div>
+      <div class="tier-chip"><span class="tier-dot common"></span>Common &middot; $5</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">The Popularity Ledger</div>
+    <h2>The Community Decides What's Rare</h2>
+    <div class="ledger-box">
+      <h3>Every card starts at Common.</h3>
+      <p>Every card design begins life worth <b>$5</b> &mdash; except a small handful of preset Mythics seeded into the deck at launch.</p>
+      <p>From there, a card's tier isn't fixed forever. Once a quarter, the Popularity Ledger reviews how much each card has actually been bought across the whole community. Cards that get bought enough <b>ascend</b> to the next tier up. Cards that cool off can <b>descend</b> back down. Common is the floor, Mythic is the ceiling &mdash; nothing falls below or climbs past either end.</p>
+      <p>That means the cards worth the most aren't the ones you were told were rare &mdash; they're the ones the whole community made rare, together.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Redemption</div>
+    <h2>Turning a Collection Into Something Real</h2>
+    <p>Redeeming a card adds its current tier value to your <b>Redemption Balance</b>. Once that balance builds up enough, it converts into a real gift card.</p>
+    <div class="stat-pair">
+      <div class="stat-box">
+        <div class="lbl">Redeem Threshold</div>
+        <div class="val mono">150 chips</div>
+      </div>
+      <div class="stat-box">
+        <div class="lbl">Gift Card Payout</div>
+        <div class="val mono">$100</div>
+      </div>
+    </div>
+    <p>The gap between what's redeemed and what's paid out is a <b>service fee</b> &mdash; it's what keeps Zetsu Packz running: funding new card decks, supporting the community, and holding the Popularity Ledger together.</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Why Now</div>
+    <h2>Get to Know the Cards Before the Game Drops</h2>
+    <p>Zetsu Packz exists to let people meet the Zetsumetsu card roster, build history with it, and shape which designs rise to the top &mdash; all before the full TCG launches. By the time the real game arrives, the community will have already decided what's legendary.</p>
+  </section>
+
+</main>
+
+<footer>Zetsu Packz &middot; About</footer>
+
+</body>
+</html>
