@@ -222,21 +222,6 @@ a{color:inherit;text-decoration:none;}
 .stat .stat-value.min{color:var(--ink);}
 .stat .stat-value.max{color:var(--legendary);}
 
-.info-toggle{
-  width:100%;background:transparent;border:1px solid var(--line);color:var(--muted);
-  padding:9px;border-radius:20px;cursor:pointer;font-size:11px;letter-spacing:.1em;
-  text-transform:uppercase;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;
-}
-.info-toggle:hover{border-color:var(--brass-dim);color:var(--ink);}
-.info-toggle .caret{transition:transform .2s ease;display:inline-block;}
-.info-toggle.open .caret{transform:rotate(180deg);}
-
-.odds-accordion{
-  width:100%;overflow:hidden;max-height:0;transition:max-height .25s ease;
-}
-.odds-accordion.open{max-height:220px;}
-.odds-accordion .odds-list{margin:8px 0 0;padding:10px 0 0;border-top:1px dashed var(--line);}
-
 .page{padding-bottom:110px;} /* leave room for the fixed bottom hud */
 
 /* ============================================================
@@ -268,7 +253,7 @@ a{color:inherit;text-decoration:none;}
        MAIN > INFO
        ============================================================ -->
   <section id="info">
-    <p class="section-label">Pack Shop</p>
+    <p class="section-label">Card Shop</p>
     <div class="info-strip" id="infoStrip"></div>
   </section>
 
@@ -320,17 +305,19 @@ function makeCardPool(){
 }
 const CARD_POOL = makeCardPool();
 
-// 5 tiers so the carousel has a true center pack (index 2 = Premium).
-// Prices/odds on the two new tiers (Bronze, Mythic) are placeholders —
-// economics pass comes next.
+// The 5 rarity tiers, per the locked Popularity Ledger economics.
+// Buy Price = Redemption Value at every tier — no separate pack odds,
+// no separate pack pricing. Buying a tier guarantees that rarity;
+// which specific card design you get is randomized at rip time.
+// Chips are pegged at 100 chips = $1 (matches the rest of the app).
 const PACKS = [
-  { id:"bronze",   name:"Bronze Pack",   tier:"Starter",     price:25,  minValue:5,   ceiling:30,   odds:{common:80,rare:16,epic:3.5,legendary:0.4,mythic:0.1} },
-  { id:"standard", name:"Standard Pack", tier:"Entry",       price:50,  minValue:8,   ceiling:60,   odds:{common:70,rare:23,epic:6,  legendary:0.9,mythic:0.1} },
-  { id:"premium",  name:"Premium Pack",  tier:"Mid-Tier",    price:150, minValue:25,  ceiling:450,  odds:{common:45,rare:35,epic:16, legendary:3.5,mythic:0.5} },
-  { id:"elite",    name:"Elite Pack",    tier:"High Roller", price:400, minValue:70,  ceiling:1500, odds:{common:20,rare:35,epic:32, legendary:11, mythic:2}   },
-  { id:"mythic",   name:"Mythic Pack",   tier:"Top Shelf",   price:800, minValue:150, ceiling:3000, odds:{common:8, rare:27,epic:38, legendary:22, mythic:5}   }
+  { id:"common",    name:"Common",    price:500   }, // $5
+  { id:"rare",      name:"Rare",      price:1000  }, // $10
+  { id:"epic",      name:"Epic",      price:2500  }, // $25
+  { id:"legendary", name:"Legendary", price:10000 }, // $100
+  { id:"mythic",    name:"Mythic",    price:15000 }  // $150
 ];
-const CENTER_PACK_INDEX = 2; // Premium — default starting/centered pack
+const CENTER_PACK_INDEX = 2; // Epic — default starting/centered tier
 
 /* ==========================================================
    STATE — persisted to localStorage, shared across all pages
@@ -370,28 +357,7 @@ function saveState(state){
 
 function fmt(n){ return n.toLocaleString(); }
 function rarityMeta(id){ return RARITIES.find(r=>r.id===id); }
-function randRange([a,b]){ return Math.floor(a + Math.random()*(b-a)); }
 function uid(){ return Date.now()+"-"+Math.random().toString(36).slice(2,7); }
-
-function pullCard(pack){
-  const roll = Math.random()*100;
-  let acc = 0, chosenRarity = "common";
-  for (const r of RARITIES){
-    acc += pack.odds[r.id];
-    if (roll <= acc){ chosenRarity = r.id; break; }
-  }
-  const candidates = CARD_POOL.filter(c=>c.rarity===chosenRarity);
-  const base = candidates[Math.floor(Math.random()*candidates.length)];
-  const meta = rarityMeta(chosenRarity);
-  return {
-    uid: uid(),
-    name: base.name,
-    rarity: chosenRarity,
-    glyph: base.glyph,
-    value: randRange(meta.valueRange),
-    ts: Date.now()
-  };
-}
 
 function toast(msg){
   let t = document.getElementById("toast");
@@ -451,7 +417,6 @@ function renderHud(state, currentPage){
 let state = loadState();
 renderHud(state, "shop");
 
-let oddsOpenId = null;                          // which pack's odds accordion is expanded, if any
 let activePackId = PACKS[CENTER_PACK_INDEX].id; // single source of truth —
                                                  // carousel scroll drives this,
                                                  // Info strip + Hud/Footer both just read it
@@ -461,43 +426,27 @@ let activePackId = PACKS[CENTER_PACK_INDEX].id; // single source of truth —
 function renderCarousel(){
   const carousel = document.getElementById("carousel");
   carousel.innerHTML = PACKS.map(pack=>{
-    const isOpen = oddsOpenId === pack.id;
-    const rarClass = pack.odds.mythic >= 2 ? 'mythic' : pack.odds.legendary >= 3 ? 'legendary' : 'rare';
-    const oddsHtml = RARITIES.map(r=>{
-      return `<div class="odds-row"><span><span class="swatch s-${r.id}"></span>${r.label}</span><span>${pack.odds[r.id]}%</span></div>`;
-    }).join("");
+    // the tier IS the rarity now — no more weighted odds across rarities,
+    // buying a tier guarantees that rarity
+    const rarClass = pack.id;
 
     return `
       <div class="pack-stage ${pack.id===activePackId?'is-active':''}" data-pack="${pack.id}">
-        <div class="stage-tier">${pack.tier}</div>
+        <div class="stage-tier">${pack.name} Tier</div>
         <div class="stage-art rar-${rarClass}">&#9670;</div>
         <div class="stage-name">${pack.name}</div>
         <div class="stat-row">
           <div class="stat">
-            <div class="stat-label">Min Value</div>
-            <div class="stat-value min">${fmt(pack.minValue)}</div>
+            <div class="stat-label">Buy Price</div>
+            <div class="stat-value min">${fmt(pack.price)}</div>
           </div>
           <div class="stat">
-            <div class="stat-label">Max Pull</div>
-            <div class="stat-value max">${fmt(pack.ceiling)}</div>
+            <div class="stat-label">Redemption Value</div>
+            <div class="stat-value max">${fmt(pack.price)}</div>
           </div>
-        </div>
-        <button class="info-toggle ${isOpen?'open':''}" data-toggle="${pack.id}">
-          Pack Info <span class="caret">&#9662;</span>
-        </button>
-        <div class="odds-accordion ${isOpen?'open':''}">
-          <div class="odds-list">${oddsHtml}</div>
         </div>
       </div>`;
   }).join("");
-
-  carousel.querySelectorAll("[data-toggle]").forEach(btn=>{
-    btn.addEventListener("click", ()=>{
-      const id = btn.dataset.toggle;
-      oddsOpenId = (oddsOpenId === id) ? null : id;
-      renderCarousel();
-    });
-  });
 }
 
 // whichever card is nearest the carousel's center becomes "active" —
