@@ -3,70 +3,116 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VAULT — Start</title>
-<link rel="stylesheet" href="shared.css">
+<title>ZETSU PACKZ</title>
 <style>
-  .start-stage{
-    min-height:calc(100vh - 64px);
+  :root{
+    --brass:#D4AF6A;
+    --brass-dim:#8A7245;
+    --ink:#EDE6DC;
+    --muted:#6B6478;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#000;
+    color:var(--ink);
+    min-height:100vh;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;gap:26px;padding:20px;
+    gap:34px;padding:40px 20px;
   }
-  .title-mark{font-size:11px;letter-spacing:.4em;color:var(--brass);text-transform:uppercase;font-weight:700;}
-  .title-word{
-    font-size:clamp(56px,14vw,120px);font-weight:900;letter-spacing:.01em;
-    text-transform:uppercase;line-height:.9;margin:0;
+  a{text-decoration:none;color:inherit;}
+
+  .mark{
+    font-size:12px;letter-spacing:.5em;text-transform:uppercase;
+    color:var(--muted);font-weight:700;
   }
-  .title-word span{color:var(--brass);}
-  .title-sub{color:var(--muted);font-size:14px;max-width:420px;line-height:1.5;}
-  .enter-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
-  .glyph-drift{
-    position:absolute;font-size:20px;color:var(--brass-dim);opacity:.35;
-    animation:drift 6s ease-in-out infinite;
+  .title{
+    margin:0;font-size:clamp(38px,8vw,64px);font-weight:900;
+    letter-spacing:.06em;text-transform:uppercase;line-height:1;
+    color:var(--brass);text-align:center;
   }
-  @keyframes drift{
-    0%,100%{transform:translateY(0);}
-    50%{transform:translateY(-14px);}
+
+  /* ---------- CSS pack, centered ---------- */
+  .pack{
+    width:220px;height:300px;border-radius:10px;
+    background:linear-gradient(150deg,#141018,#241a30 55%,#141018);
+    border:1px solid var(--brass-dim);
+    position:relative;overflow:hidden;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    cursor:pointer;
+    box-shadow:0 30px 70px -25px rgba(0,0,0,.9);
+    transition:transform .2s ease, box-shadow .2s ease;
   }
-  .status-line{font-size:11px;color:var(--muted);letter-spacing:.08em;}
+  .pack:hover{transform:translateY(-6px);box-shadow:0 40px 80px -25px rgba(0,0,0,.95);}
+  .pack::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:repeating-linear-gradient(115deg, rgba(212,175,106,.05) 0px, rgba(212,175,106,.05) 1px, transparent 1px, transparent 14px);
+  }
+  .pack .perf{
+    position:absolute;left:0;right:0;top:50%;height:1px;
+    background-image:repeating-linear-gradient(90deg, var(--brass-dim) 0 6px, transparent 6px 12px);
+  }
+  .pack .glyph{font-size:46px;color:var(--brass);}
+  .pack .pack-label{
+    font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--brass);font-weight:700;
+  }
+  .pack .sheen{
+    position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(100deg, transparent 35%, rgba(255,255,255,.12) 50%, transparent 65%);
+    background-size:220% 100%;background-position:120% 0;
+    animation:idle-sheen 4.5s ease-in-out infinite;
+  }
+  @keyframes idle-sheen{
+    0%,80%{background-position:120% 0;}
+    100%{background-position:-40% 0;}
+  }
+
+  .enter-hint{
+    font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.01ms !important;}
+  }
 </style>
 </head>
 <body>
-<div id="hud" class="hud"></div>
+  <div class="mark">Zetsumetsu</div>
+  <h1 class="title">ZETSU PACKZ</h1>
 
-<main class="start-stage">
-  <div class="title-mark">Zetsumetsu Arcade</div>
-  <h1 class="title-word">VAULT<span>.</span></h1>
-  <p class="title-sub">Buy a pack. Rip it open. Chase the pull. Every card in your collection is worth something — spend it or stack it.</p>
-  <div class="enter-row">
-    <a class="btn btn-brass" href="shop.html" id="enterBtn">Enter the Vault</a>
-    <button class="btn btn-ghost" id="resetBtn">Reset progress</button>
-  </div>
-  <div class="status-line" id="statusLine"></div>
-</main>
+  <a class="pack" id="enterPack" href="shop.html" aria-label="Enter Zetsu Packz">
+    <div class="perf"></div>
+    <div class="sheen"></div>
+    <div class="glyph">&#9670;</div>
+    <div class="pack-label">Tap to Enter</div>
+  </a>
 
-<script src="shared.js"></script>
+  <div class="enter-hint" id="hint"></div>
+
 <script>
-  const state = loadState();
-  renderHud(state, "start");
-
-  const statusLine = document.getElementById("statusLine");
-  const enterBtn = document.getElementById("enterBtn");
-  if (state.firstVisit && state.collection.length === 0 && state.balance === 1000 && state.unopened.length === 0){
-    statusLine.textContent = "New vault — you're starting with " + fmt(state.balance) + " chips.";
-    enterBtn.textContent = "Enter the Vault";
-  } else {
-    statusLine.textContent = "Welcome back — " + fmt(state.balance) + " chips, " + state.collection.length + " cards collected.";
-    enterBtn.textContent = "Continue";
+  // self-contained state logic -- this page doesn't depend on any other file
+  const STORAGE_KEY = "vault_state_v1";
+  function defaultState(){
+    return { balance: 1000, collection: [], unopened: [], firstVisit: true };
   }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      return Object.assign(defaultState(), JSON.parse(raw));
+    } catch(e){ return defaultState(); }
+  }
+  function saveState(state){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+  }
+  function fmt(n){ return n.toLocaleString(); }
 
-  document.getElementById("resetBtn").addEventListener("click", ()=>{
-    if (!confirm("Reset your chips and collection back to the start? This can't be undone.")) return;
-    saveState(defaultState());
-    toast("Vault reset.");
-    setTimeout(()=>location.reload(), 400);
-  });
-
-  // mark that the player has now seen the start screen at least once
+  const state = loadState();
+  const hint = document.getElementById("hint");
+  if (!(state.firstVisit && state.collection.length === 0 && state.balance === 1000 && state.unopened.length === 0)){
+    hint.textContent = fmt(state.balance) + " chips - " + state.collection.length + " cards collected";
+  }
   if (state.firstVisit){
     state.firstVisit = false;
     saveState(state);
