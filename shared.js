@@ -114,7 +114,7 @@ function renderHud(state, currentPage){
   const pages = [
     {id:"start", href:"start.html", label:"Start"},
     {id:"shop", href:"shop.html", label:"Pack Shop"},
-    {id:"rip", href:"rip.html", label:"Rip Pack"},
+    {id:"rip", href:"index.html", label:"Rip Pack"},
     {id:"collection", href:"collection.html", label:"Collection"}
   ];
   mount.innerHTML = `
