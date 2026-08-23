@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZETSU PACKZ — Pack Shop</title>
 <style>
+/* ============================================================
+   TOKENS — shared design variables, base reset
+   ============================================================ */
 :root{
   --bg:#140F1F;
   --panel:#1D1730;
@@ -36,7 +39,9 @@ body{
 a{color:inherit;text-decoration:none;}
 .mono{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;}
 
-/* ---------- HUD ---------- */
+/* ============================================================
+   SECTION: HEADER — top brand / nav / packs counter / balance
+   ============================================================ */
 .hud{
   position:sticky;top:0;z-index:50;
   background:rgba(20,15,31,.92);backdrop-filter:blur(6px);
@@ -55,13 +60,25 @@ a{color:inherit;text-decoration:none;}
 }
 .hud .navlink:hover{color:var(--ink);}
 .hud .navlink.current{background:var(--brass);color:#1A1425;}
+.hud .hud-stats{display:flex;align-items:center;gap:18px;}
 .hud .balance{text-align:right;}
 .hud .balance .label{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;}
 .hud .balance .amt{font-size:20px;font-weight:700;color:var(--brass);}
+.hud .packs-count{
+  display:flex;align-items:center;gap:6px;
+  color:var(--ink);border:1px solid var(--line);border-radius:20px;
+  padding:6px 12px;
+}
+.hud .packs-count .icon{font-size:14px;color:var(--brass);}
+.hud .packs-count .num{font-size:14px;font-weight:800;}
+.hud .packs-count:hover{border-color:var(--brass-dim);}
 
+/* ============================================================
+   SHARED — buttons, empty state, rarity theming, toast, modal
+   (used across Main/Info/Packs, not section-specific)
+   ============================================================ */
 .page{max-width:1080px;margin:0 auto;padding:28px 16px 60px;}
 
-/* ---------- Buttons ---------- */
 .btn{
   border:none;border-radius:3px;padding:12px 20px;font-size:13px;font-weight:800;
   letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:filter .15s ease, transform .1s ease;
@@ -73,11 +90,9 @@ a{color:inherit;text-decoration:none;}
 .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
 .btn-ghost:hover{border-color:var(--brass-dim);}
 
-/* ---------- Empty state ---------- */
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;}
 .empty-state .glyph{font-size:32px;margin-bottom:10px;}
 
-/* ---------- Rarity swatches / theming (shared by shop odds + collection cards) ---------- */
 .swatch{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
 .swatch.s-common{background:var(--common);}
 .swatch.s-rare{background:var(--rare);}
@@ -101,7 +116,6 @@ a{color:inherit;text-decoration:none;}
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 
-/* ---------- Toast ---------- */
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--panel-2);border:1px solid var(--brass-dim);color:var(--ink);
@@ -110,7 +124,6 @@ a{color:inherit;text-decoration:none;}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ---------- Modal (card detail) ---------- */
 .modal-backdrop{
   position:fixed;inset:0;background:rgba(10,7,16,.75);backdrop-filter:blur(3px);
   display:none;align-items:center;justify-content:center;z-index:200;padding:20px;
@@ -133,63 +146,149 @@ a{color:inherit;text-decoration:none;}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
 }
-
 </style>
-<style>
-  .section-label{
-    font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;
-    margin:0 0 14px;
-  }
-  .tray{
-    display:flex;gap:10px;flex-wrap:wrap;margin-bottom:34px;
-    padding-bottom:24px;border-bottom:1px solid var(--line);
-  }
-  .tray-empty{color:var(--muted);font-size:13px;}
-  .tray-pack{
-    background:var(--panel-2);border:1px solid var(--brass-dim);border-radius:6px;
-    padding:12px 16px;display:flex;align-items:center;gap:10px;
-  }
-  .tray-pack .glyph{font-size:20px;color:var(--brass);}
-  .tray-pack .name{font-size:12px;font-weight:700;text-transform:uppercase;}
-  .tray-pack a{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--brass);font-weight:700;}
 
-  .pack-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;}
-  .pack-card{
-    background:linear-gradient(160deg,var(--panel-2),var(--panel));
-    border:1px solid var(--line);border-radius:6px;padding:22px 18px 18px;
-    position:relative;overflow:hidden;display:flex;flex-direction:column;gap:14px;
-  }
-  .pack-card::before{
-    content:"";position:absolute;inset:0;pointer-events:none;
-    background:repeating-linear-gradient(115deg, rgba(212,175,106,.035) 0px, rgba(212,175,106,.035) 1px, transparent 1px, transparent 14px);
-  }
-  .pack-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
-  .pack-name{font-size:22px;font-weight:900;text-transform:uppercase;line-height:1;}
-  .pack-ceiling{font-size:12px;color:var(--muted);}
-  .pack-ceiling b{color:var(--legendary);font-weight:700;}
-  .odds-list{
-    display:flex;flex-direction:column;gap:4px;font-size:11px;
-    border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);padding:10px 0;margin:2px 0;
-  }
-  .odds-row{display:flex;justify-content:space-between;color:var(--muted);}
+<style>
+.section-label{
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;
+  margin:0 0 14px;
+}
+
+/* ============================================================
+   SECTION: MAIN > INFO — strip showing the currently active pack
+   ============================================================ */
+#info{margin-bottom:6px;}
+.info-strip{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
+  padding:12px 16px;margin-top:4px;
+}
+.info-strip .info-name{font-size:13px;font-weight:800;text-transform:uppercase;}
+.info-strip .info-price{font-size:12px;color:var(--brass);}
+
+/* ============================================================
+   SECTION: MAIN > PACKS — the pack carousel + individual cards
+   ============================================================ */
+.pack-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
+.pack-name{font-size:22px;font-weight:900;text-transform:uppercase;line-height:1;}
+.odds-list{
+  display:flex;flex-direction:column;gap:4px;font-size:11px;
+}
+.odds-row{display:flex;justify-content:space-between;color:var(--muted);}
+
+.carousel{
+  display:flex;gap:16px;overflow-x:auto;
+  padding:10px calc(50% - min(120px, 38vw)) 22px;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+}
+.carousel::-webkit-scrollbar{display:none;}
+
+.pack-stage{
+  flex:0 0 auto;
+  width:min(240px, 76vw);
+  scroll-snap-align:center;
+  background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);border-radius:10px;
+  padding:22px 18px 18px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  box-shadow:0 20px 45px -25px rgba(0,0,0,.6);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.pack-stage.is-active{
+  border-color:var(--brass-dim);
+  box-shadow:0 20px 45px -25px rgba(0,0,0,.6), 0 0 0 1px rgba(212,175,106,.15);
+}
+.pack-stage::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(115deg, rgba(212,175,106,.04) 0px, rgba(212,175,106,.04) 1px, transparent 1px, transparent 14px);
+}
+.stage-art{
+  width:120px;height:164px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:46px;
+  border:1px solid var(--line);position:relative;
+}
+.stage-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
+.stage-name{font-size:19px;font-weight:900;text-transform:uppercase;line-height:1;text-align:center;}
+
+.stat-row{
+  display:flex;width:100%;justify-content:space-between;
+  border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
+  padding:12px 0;margin-top:2px;
+}
+.stat{text-align:center;flex:1;}
+.stat .stat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.stat .stat-value{font-size:13px;font-weight:800;}
+.stat .stat-value.min{color:var(--ink);}
+.stat .stat-value.max{color:var(--legendary);}
+
+.info-toggle{
+  width:100%;background:transparent;border:1px solid var(--line);color:var(--muted);
+  padding:9px;border-radius:20px;cursor:pointer;font-size:11px;letter-spacing:.1em;
+  text-transform:uppercase;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.info-toggle:hover{border-color:var(--brass-dim);color:var(--ink);}
+.info-toggle .caret{transition:transform .2s ease;display:inline-block;}
+.info-toggle.open .caret{transform:rotate(180deg);}
+
+.odds-accordion{
+  width:100%;overflow:hidden;max-height:0;transition:max-height .25s ease;
+}
+.odds-accordion.open{max-height:220px;}
+.odds-accordion .odds-list{margin:8px 0 0;padding:10px 0 0;border-top:1px dashed var(--line);}
+
+.page{padding-bottom:110px;} /* leave room for the fixed bottom hud */
+
+/* ============================================================
+   SECTION: HUD / FOOTER — fixed bottom bar, buys the active pack
+   ============================================================ */
+.buy-hud{
+  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  background:rgba(20,15,31,.96);backdrop-filter:blur(6px);
+  border-top:1px solid var(--line);
+  padding:14px 20px;
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+}
+.buy-hud .buy-hud-info{display:flex;flex-direction:column;gap:2px;}
+.buy-hud .buy-hud-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+.buy-hud .buy-hud-name{font-size:15px;font-weight:900;text-transform:uppercase;}
+.buy-hud .buy-hud-buy{flex:none;padding:12px 22px;}
 </style>
 </head>
 <body>
-<div id="hud" class="hud"></div>
+
+<!-- ============================================================
+     HEADER
+     ============================================================ -->
+<header id="hud" class="hud"></header>
 
 <main class="page">
-  <p class="section-label">Unopened Packs</p>
-  <div class="tray" id="tray"></div>
 
-  <p class="section-label">Pack Shop</p>
-  <div class="pack-grid" id="packGrid"></div>
+  <!-- ============================================================
+       MAIN > INFO
+       ============================================================ -->
+  <section id="info">
+    <p class="section-label">Pack Shop</p>
+    <div class="info-strip" id="infoStrip"></div>
+  </section>
+
+  <!-- ============================================================
+       MAIN > PACKS
+       ============================================================ -->
+  <section id="packs">
+    <div class="carousel" id="carousel"></div>
+  </section>
+
 </main>
+
+<!-- ============================================================
+     HUD / FOOTER
+     ============================================================ -->
+<footer class="buy-hud" id="buyHud"></footer>
 
 <script>
 /* ==========================================================
-   VAULT — shared data, state, and helpers
-   Loaded by every page. State persists across pages via
-   localStorage so Shop -> Rip -> Collection stays in sync.
+   DATA — rarities, card names, pack tiers
    ========================================================== */
 
 const RARITIES = [
@@ -221,13 +320,22 @@ function makeCardPool(){
 }
 const CARD_POOL = makeCardPool();
 
+// 5 tiers so the carousel has a true center pack (index 2 = Premium).
+// Prices/odds on the two new tiers (Bronze, Mythic) are placeholders —
+// economics pass comes next.
 const PACKS = [
-  { id:"standard", name:"Standard Pack", tier:"Entry",      price:50,  ceiling:60,   odds:{common:70,rare:23,epic:6,legendary:0.9,mythic:0.1} },
-  { id:"premium",  name:"Premium Pack",  tier:"Mid-Tier",   price:150, ceiling:450,  odds:{common:45,rare:35,epic:16,legendary:3.5,mythic:0.5} },
-  { id:"elite",    name:"Elite Pack",    tier:"High Roller",price:400, ceiling:1500, odds:{common:20,rare:35,epic:32,legendary:11,mythic:2} }
+  { id:"bronze",   name:"Bronze Pack",   tier:"Starter",     price:25,  minValue:5,   ceiling:30,   odds:{common:80,rare:16,epic:3.5,legendary:0.4,mythic:0.1} },
+  { id:"standard", name:"Standard Pack", tier:"Entry",       price:50,  minValue:8,   ceiling:60,   odds:{common:70,rare:23,epic:6,  legendary:0.9,mythic:0.1} },
+  { id:"premium",  name:"Premium Pack",  tier:"Mid-Tier",    price:150, minValue:25,  ceiling:450,  odds:{common:45,rare:35,epic:16, legendary:3.5,mythic:0.5} },
+  { id:"elite",    name:"Elite Pack",    tier:"High Roller", price:400, minValue:70,  ceiling:1500, odds:{common:20,rare:35,epic:32, legendary:11, mythic:2}   },
+  { id:"mythic",   name:"Mythic Pack",   tier:"Top Shelf",   price:800, minValue:150, ceiling:3000, odds:{common:8, rare:27,epic:38, legendary:22, mythic:5}   }
 ];
+const CENTER_PACK_INDEX = 2; // Premium — default starting/centered pack
 
-/* ---------------- State persistence ---------------- */
+/* ==========================================================
+   STATE — persisted to localStorage, shared across all pages
+   ========================================================== */
+
 const STORAGE_KEY = "vault_state_v1";
 
 function defaultState(){
@@ -256,7 +364,10 @@ function saveState(state){
   } catch(e){ /* storage unavailable — state just won't persist */ }
 }
 
-/* ---------------- Helpers ---------------- */
+/* ==========================================================
+   HELPERS
+   ========================================================== */
+
 function fmt(n){ return n.toLocaleString(); }
 function rarityMeta(id){ return RARITIES.find(r=>r.id===id); }
 function randRange([a,b]){ return Math.floor(a + Math.random()*(b-a)); }
@@ -294,8 +405,13 @@ function toast(msg){
   clearTimeout(toast._h);
   toast._h = setTimeout(()=>t.classList.remove("show"), 1800);
 }
+</script>
 
-/* ---------------- HUD (shared header, injected on every page) ---------------- */
+<script>
+/* ==========================================================
+   SECTION: HEADER — render function
+   ========================================================== */
+
 function renderHud(state, currentPage){
   const mount = document.getElementById("hud");
   if (!mount) return;
@@ -313,72 +429,171 @@ function renderHud(state, currentPage){
     <nav>
       ${pages.map(p=>`<a class="navlink ${p.id===currentPage?'current':''}" href="${p.href}">${p.label}</a>`).join("")}
     </nav>
-    <div class="balance">
-      <div class="label">Chips</div>
-      <div class="amt mono">${fmt(state.balance)}</div>
+    <div class="hud-stats">
+      <a class="packs-count" href="index.html" title="Unopened packs">
+        <span class="icon">&#9670;</span>
+        <span class="num mono">${state.unopened.length}</span>
+      </a>
+      <div class="balance">
+        <div class="label">Chips</div>
+        <div class="amt mono">${fmt(state.balance)}</div>
+      </div>
     </div>
   `;
 }
-
 </script>
+
 <script>
-  let state = loadState();
-  renderHud(state, "shop");
+/* ==========================================================
+   PAGE CONTROLLER — wires INFO, PACKS, and HUD/FOOTER together
+   ========================================================== */
 
-  function renderTray(){
-    const tray = document.getElementById("tray");
-    if (!state.unopened.length){
-      tray.innerHTML = `<div class="tray-empty">Nothing waiting to be ripped. Buy a pack below.</div>`;
-      return;
-    }
-    tray.innerHTML = state.unopened.map(u=>{
-      const pack = PACKS.find(p=>p.id===u.packId);
-      return `<div class="tray-pack">
-        <span class="glyph">◆</span>
-        <span class="name">${pack.name}</span>
-        <a href="index.html?pack=${u.uid}">Rip it →</a>
-      </div>`;
+let state = loadState();
+renderHud(state, "shop");
+
+let oddsOpenId = null;                          // which pack's odds accordion is expanded, if any
+let activePackId = PACKS[CENTER_PACK_INDEX].id; // single source of truth —
+                                                 // carousel scroll drives this,
+                                                 // Info strip + Hud/Footer both just read it
+
+/* ---------------- MAIN > PACKS ---------------- */
+
+function renderCarousel(){
+  const carousel = document.getElementById("carousel");
+  carousel.innerHTML = PACKS.map(pack=>{
+    const isOpen = oddsOpenId === pack.id;
+    const rarClass = pack.odds.mythic >= 2 ? 'mythic' : pack.odds.legendary >= 3 ? 'legendary' : 'rare';
+    const oddsHtml = RARITIES.map(r=>{
+      return `<div class="odds-row"><span><span class="swatch s-${r.id}"></span>${r.label}</span><span>${pack.odds[r.id]}%</span></div>`;
     }).join("");
-  }
 
-  function renderShop(){
-    const grid = document.getElementById("packGrid");
-    grid.innerHTML = PACKS.map(pack=>{
-      const oddsHtml = RARITIES.map(r=>{
-        return `<div class="odds-row"><span><span class="swatch s-${r.id}"></span>${r.label}</span><span>${pack.odds[r.id]}%</span></div>`;
-      }).join("");
-      const affordable = state.balance >= pack.price;
-      return `
-        <div class="pack-card">
-          <div class="pack-tier">${pack.tier}</div>
-          <div class="pack-name">${pack.name}</div>
-          <div class="pack-ceiling">Max pull worth up to <b>${fmt(pack.ceiling)}</b> chips</div>
+    return `
+      <div class="pack-stage ${pack.id===activePackId?'is-active':''}" data-pack="${pack.id}">
+        <div class="stage-tier">${pack.tier}</div>
+        <div class="stage-art rar-${rarClass}">&#9670;</div>
+        <div class="stage-name">${pack.name}</div>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-label">Min Value</div>
+            <div class="stat-value min">${fmt(pack.minValue)}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Max Pull</div>
+            <div class="stat-value max">${fmt(pack.ceiling)}</div>
+          </div>
+        </div>
+        <button class="info-toggle ${isOpen?'open':''}" data-toggle="${pack.id}">
+          Pack Info <span class="caret">&#9662;</span>
+        </button>
+        <div class="odds-accordion ${isOpen?'open':''}">
           <div class="odds-list">${oddsHtml}</div>
-          <button class="btn btn-brass" data-pack="${pack.id}" ${affordable?'':'disabled'}>
-            Buy — ${fmt(pack.price)} chips
-          </button>
-        </div>`;
-    }).join("");
+        </div>
+      </div>`;
+  }).join("");
 
-    grid.querySelectorAll("[data-pack]").forEach(btn=>{
-      btn.addEventListener("click", ()=>buyPack(btn.dataset.pack));
+  carousel.querySelectorAll("[data-toggle]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const id = btn.dataset.toggle;
+      oddsOpenId = (oddsOpenId === id) ? null : id;
+      renderCarousel();
     });
-  }
+  });
+}
 
-  function buyPack(packId){
-    const pack = PACKS.find(p=>p.id===packId);
-    if (state.balance < pack.price){ toast("Not enough chips."); return; }
-    state.balance -= pack.price;
-    state.unopened.push({ uid: uid(), packId: pack.id });
-    saveState(state);
-    renderHud(state, "shop");
-    renderTray();
-    renderShop();
-    toast(pack.name + " added to your unopened packs.");
-  }
+// whichever card is nearest the carousel's center becomes "active" —
+// this is the link between PACKS, INFO, and the HUD/FOOTER
+function computeActivePack(){
+  const carousel = document.getElementById("carousel");
+  const carouselRect = carousel.getBoundingClientRect();
+  const carouselCenter = carouselRect.left + carouselRect.width / 2;
 
-  renderTray();
-  renderShop();
+  let closestId = activePackId;
+  let closestDist = Infinity;
+  carousel.querySelectorAll(".pack-stage").forEach(card=>{
+    const rect = card.getBoundingClientRect();
+    const cardCenter = rect.left + rect.width / 2;
+    const dist = Math.abs(cardCenter - carouselCenter);
+    if (dist < closestDist){
+      closestDist = dist;
+      closestId = card.dataset.pack;
+    }
+  });
+
+  if (closestId !== activePackId){
+    activePackId = closestId;
+    // just flip the active highlight, no full re-render (keeps scroll position stable)
+    carousel.querySelectorAll(".pack-stage").forEach(card=>{
+      card.classList.toggle("is-active", card.dataset.pack === activePackId);
+    });
+    renderInfoStrip();
+    renderBuyHud();
+  }
+}
+
+function centerOnActivePack(){
+  const carousel = document.getElementById("carousel");
+  const activeCard = carousel.querySelector(`[data-pack="${activePackId}"]`);
+  if (activeCard){
+    activeCard.scrollIntoView({ inline: "center", block: "nearest" });
+  }
+}
+
+/* ---------------- MAIN > INFO ---------------- */
+
+function renderInfoStrip(){
+  const pack = PACKS.find(p=>p.id===activePackId);
+  document.getElementById("infoStrip").innerHTML = `
+    <span class="info-name">${pack.name}</span>
+    <span class="info-price mono">${fmt(pack.price)} chips</span>
+  `;
+}
+
+/* ---------------- HUD / FOOTER ---------------- */
+
+function renderBuyHud(){
+  const pack = PACKS.find(p=>p.id===activePackId);
+  const affordable = state.balance >= pack.price;
+  document.getElementById("buyHud").innerHTML = `
+    <div class="buy-hud-info">
+      <div class="buy-hud-label">Selected Pack</div>
+      <div class="buy-hud-name">${pack.name}</div>
+    </div>
+    <button class="btn btn-brass buy-hud-buy" id="buyHudBtn" ${affordable?'':'disabled'}>
+      Buy for ${fmt(pack.price)} chips
+    </button>
+  `;
+  document.getElementById("buyHudBtn").addEventListener("click", ()=>buyPack(activePackId));
+}
+
+function buyPack(packId){
+  const pack = PACKS.find(p=>p.id===packId);
+  if (state.balance < pack.price){ toast("Not enough chips."); return; }
+  state.balance -= pack.price;
+  state.unopened.push({ uid: uid(), packId: pack.id });
+  saveState(state);
+  renderHud(state, "shop"); // updates the HEADER's packs-count + balance
+  renderBuyHud();
+  toast(pack.name + " added to your unopened packs.");
+}
+
+/* ---------------- Scroll wiring ---------------- */
+
+let scrollTick = false;
+document.getElementById("carousel").addEventListener("scroll", ()=>{
+  if (scrollTick) return;
+  scrollTick = true;
+  requestAnimationFrame(()=>{
+    computeActivePack();
+    scrollTick = false;
+  });
+}, {passive:true});
+
+/* ---------------- Init ---------------- */
+
+renderCarousel();
+renderInfoStrip();
+renderBuyHud();
+centerOnActivePack();
 </script>
 </body>
 </html>
