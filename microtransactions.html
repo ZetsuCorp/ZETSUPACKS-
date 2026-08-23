@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZETSU PACKZ — Chip Sinks</title>
+<style>
+  :root{
+    --bg:#140F1F;
+    --panel:#1D1730;
+    --panel-2:#251D3B;
+    --line:#352A50;
+    --ink:#EDE6DC;
+    --muted:#9C93AE;
+    --brass:#D4AF6A;
+    --brass-dim:#8A7245;
+    --common:#8A8698;
+    --rare:#4FB6A8;
+    --epic:#9B6BD6;
+    --legendary:#E8A23D;
+    --mythic-a:#FF6B9D;
+    --mythic-b:#C77DFF;
+    --mythic-c:#4FD1E5;
+    --green:#5FD98A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, #241C3C 0%, transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+  }
+  .mono{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;}
+
+  header{
+    padding:28px 20px 20px;border-bottom:1px solid var(--line);
+    text-align:center;
+  }
+  header .mark{font-size:11px;letter-spacing:.4em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+  header h1{margin:6px 0 4px;font-size:clamp(26px,5vw,36px);font-weight:900;text-transform:uppercase;letter-spacing:.02em;}
+  header h1 span{color:var(--brass);}
+  header .sub{font-size:12px;color:var(--muted);letter-spacing:.05em;}
+  header .subtitle{
+    margin-top:10px;font-size:14px;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:800;color:var(--brass);
+  }
+
+  main{max-width:820px;margin:0 auto;padding:32px 18px 70px;display:flex;flex-direction:column;gap:36px;}
+
+  section h2{
+    font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);
+    font-weight:800;margin:0 0 6px;
+  }
+  section .section-note{font-size:12px;color:var(--muted);margin:0 0 16px;line-height:1.5;}
+
+  .item-list{display:flex;flex-direction:column;gap:12px;}
+  .item{
+    background:var(--panel);border:1px solid var(--line);border-radius:8px;
+    padding:16px 18px;display:flex;flex-direction:column;gap:6px;
+  }
+  .item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .item-name{font-size:15px;font-weight:800;text-transform:uppercase;}
+  .item-tag{
+    flex:none;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;
+    padding:4px 10px;border-radius:20px;white-space:nowrap;
+  }
+  .tag-paid{background:rgba(212,175,106,.15);color:var(--brass);border:1px solid var(--brass-dim);}
+  .tag-free{background:rgba(95,217,138,.12);color:var(--green);border:1px solid rgba(95,217,138,.4);}
+  .tag-open{background:rgba(156,147,174,.12);color:var(--muted);border:1px solid var(--line);}
+
+  .item-desc{font-size:13px;color:var(--muted);line-height:1.5;}
+  .item-meta{font-size:11px;color:var(--muted);margin-top:4px;}
+  .item-meta b{color:var(--ink);}
+
+  .thesis{
+    background:linear-gradient(160deg,var(--panel-2),var(--panel));
+    border:1px solid var(--brass-dim);border-radius:10px;
+    padding:22px;text-align:center;
+  }
+  .thesis .loop{
+    font-size:16px;font-weight:800;color:var(--brass);letter-spacing:.02em;
+    margin-bottom:8px;
+  }
+  .thesis .loop-note{font-size:12px;color:var(--muted);line-height:1.5;}
+
+  footer{
+    text-align:center;padding:24px 20px 40px;
+    font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="mark">Zetsumetsu</div>
+  <h1>ZETSU PACKZ <span>Chip Sinks</span></h1>
+  <div class="sub">Other ways to spend chips beyond buying and redeeming cards</div>
+  <div class="subtitle">Gathering Parts — Not Yet in Production</div>
+</header>
+
+<main>
+
+  <section>
+    <div class="thesis">
+      <div class="loop">Buy cards &rarr; sell cards &rarr; spend chips to morph cards</div>
+      <div class="loop-note">More reasons for chips to keep moving instead of draining one direction. Less likely to leave the app, more app and TCG growth.</div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Chip-Spend Ideas</h2>
+    <p class="section-note">Gathering stage — no pricing locked yet on most of these. Nothing here is in production.</p>
+    <div class="item-list">
+
+      <div class="item">
+        <div class="item-top">
+          <div class="item-name">Fusion</div>
+          <div class="item-tag tag-paid">Paid &middot; Chips</div>
+        </div>
+        <div class="item-desc">Spend chips to morph a card's finish &mdash; Normal &rarr; Holographic &rarr; Holo Foil. Changes look only, never tier or redemption value. Tier and finish are fully separate axes, so this can never touch the locked economics.</div>
+        <div class="item-meta">Chip cost: <b>not yet priced</b></div>
+      </div>
+
+      <div class="item">
+        <div class="item-top">
+          <div class="item-name">Kickstart the Next Deck</div>
+          <div class="item-tag tag-paid">Paid &middot; Chips</div>
+        </div>
+        <div class="item-desc">Chips go directly toward funding the next deck's release. Makes the "fee funds new decks" framing interactive and visible instead of just copy on the Redemption page.</div>
+        <div class="item-meta">Ties to real deck cost: <b>$555+ per deck</b></div>
+      </div>
+
+      <div class="item">
+        <div class="item-top">
+          <div class="item-name">Raffles</div>
+          <div class="item-tag tag-paid">Paid &middot; Chips</div>
+        </div>
+        <div class="item-desc">Main pull-back mechanic. Chips buy raffle entries, prizes are cards and/or cosmetics. This is what keeps chips cycling back into the economy instead of only draining outward.</div>
+        <div class="item-meta">Entry cost / prize pool: <b>not yet priced</b></div>
+      </div>
+
+      <div class="item">
+        <div class="item-top">
+          <div class="item-name">Sleeve / Frame</div>
+          <div class="item-tag tag-paid">Paid &middot; Chips</div>
+        </div>
+        <div class="item-desc">Cosmetic border/sleeve upgrade for a card. Pure flex spend, no effect on tier or value.</div>
+        <div class="item-meta">Chip cost: <b>not yet priced</b></div>
+      </div>
+
+      <div class="item">
+        <div class="item-top">
+          <div class="item-name">Showcase</div>
+          <div class="item-tag tag-paid">Paid &middot; Chips</div>
+        </div>
+        <div class="item-desc">Featured display slot for a player's best pulls on their profile.</div>
+        <div class="item-meta">Chip cost: <b>not yet priced</b></div>
+      </div>
+
+      <div class="item">
+        <div class="item-top">
+          <div class="item-name">Share the App &rarr; Get a Pack</div>
+          <div class="item-tag tag-free">Free &middot; Growth</div>
+        </div>
+        <div class="item-desc">Sharing the app earns a free pack. Not a chip sink &mdash; this is a growth/acquisition lever, not a spend.</div>
+        <div class="item-meta">Reward: <b>1 free pack</b></div>
+      </div>
+
+    </div>
+  </section>
+
+</main>
+
+<footer>Zetsu Packz &middot; Chip Sinks Reference &middot; Internal</footer>
+
+</body>
+</html>
