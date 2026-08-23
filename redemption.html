@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZETSU PACKZ — Redemption</title>
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root{
+  --bg:#140F1F;
+  --panel:#1D1730;
+  --panel-2:#251D3B;
+  --line:#352A50;
+  --ink:#EDE6DC;
+  --muted:#9C93AE;
+  --brass:#D4AF6A;
+  --brass-dim:#8A7245;
+  --common:#8A8698;
+  --rare:#4FB6A8;
+  --epic:#9B6BD6;
+  --legendary:#E8A23D;
+  --mythic-a:#FF6B9D;
+  --mythic-b:#C77DFF;
+  --mythic-c:#4FD1E5;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, #241C3C 0%, transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  min-height:100vh;
+}
+a{color:inherit;text-decoration:none;}
+.mono{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.hud{
+  position:sticky;top:0;z-index:50;
+  background:rgba(20,15,31,.92);backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--line);
+  padding:14px 20px;
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+}
+.hud .brand{display:flex;align-items:baseline;gap:8px;}
+.hud .brand .mark{font-size:10px;letter-spacing:.28em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+.hud .brand h1{margin:0;font-size:20px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;}
+.hud nav{display:flex;gap:4px;}
+.hud .navlink{
+  padding:8px 14px;border-radius:3px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:700;color:var(--muted);border:1px solid transparent;
+}
+.hud .navlink:hover{color:var(--ink);}
+.hud .navlink.current{background:var(--brass);color:#1A1425;}
+.hud .balance{text-align:right;}
+.hud .balance .label{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;}
+.hud .balance .amt{font-size:20px;font-weight:700;color:var(--brass);}
+
+.page{max-width:720px;margin:0 auto;padding:28px 16px 60px;}
+
+.btn{
+  border:none;border-radius:3px;padding:12px 20px;font-size:13px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:filter .15s ease, transform .1s ease;
+}
+.btn:active{transform:scale(.98);}
+.btn-brass{background:var(--brass);color:#1A1425;}
+.btn-brass:hover{filter:brightness(1.08);}
+.btn-brass:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
+.btn-ghost:hover{border-color:var(--brass-dim);}
+
+.section-label{
+  font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;
+  margin:0 0 14px;
+}
+
+/* ============================================================
+   WALLET — the account's two live numbers
+   ============================================================ */
+.wallet-row{
+  display:flex;gap:14px;margin-bottom:16px;
+}
+.wallet-stat{
+  flex:1;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+  padding:16px;text-align:center;
+}
+.wallet-stat .label{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.wallet-stat .amt{font-size:24px;font-weight:800;color:var(--brass);margin-top:6px;}
+.wallet-stat .amt-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ============================================================
+   REDEMPTION — progress toward the gift card
+   ============================================================ */
+.redemption-card{
+  background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  border:1px solid var(--brass-dim);border-radius:10px;
+  padding:26px 22px;margin-bottom:32px;
+  text-align:center;
+}
+.redemption-card .label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.redemption-card .amt{font-size:44px;font-weight:900;color:var(--brass);margin:8px 0 4px;}
+.redemption-card .goal{font-size:12px;color:var(--muted);margin-bottom:18px;}
+.redemption-card .goal b{color:var(--ink);}
+
+.progress-track{
+  width:100%;height:10px;border-radius:6px;background:var(--line);overflow:hidden;margin-bottom:18px;
+}
+.progress-fill{
+  height:100%;border-radius:6px;
+  background:linear-gradient(90deg,var(--brass-dim),var(--brass));
+  transition:width .3s ease;
+}
+
+.cashout-note{font-size:15px;color:var(--ink);font-weight:700;margin-top:14px;line-height:1.5;}
+.cashout-note b{color:var(--brass);}
+
+/* ============================================================
+   LEDGER — history of cash-outs and redemption activity
+   ============================================================ */
+.ledger{display:flex;flex-direction:column;gap:8px;}
+.ledger-row{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  background:var(--panel-2);border:1px solid var(--line);border-radius:8px;
+  padding:12px 16px;
+}
+.ledger-row .ledger-info{display:flex;flex-direction:column;gap:2px;}
+.ledger-row .ledger-type{font-size:12px;font-weight:800;text-transform:uppercase;}
+.ledger-row .ledger-ts{font-size:10px;color:var(--muted);}
+.ledger-row .ledger-amt{font-size:13px;font-weight:800;font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;}
+.ledger-row .ledger-amt.negative{color:var(--muted);}
+.ledger-row .ledger-amt.positive{color:var(--brass);}
+.ledger-empty{
+  text-align:center;padding:24px 20px;color:var(--muted);font-size:12px;
+  border:1px dashed var(--line);border-radius:8px;
+}
+
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--panel-2);border:1px solid var(--brass-dim);color:var(--ink);
+  padding:12px 20px;border-radius:6px;font-size:13px;
+  opacity:0;pointer-events:none;transition:all .25s ease;z-index:100;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition-duration:.01ms !important;}
+}
+</style>
+</head>
+<body>
+
+<header id="hud" class="hud"></header>
+
+<main class="page">
+
+  <div class="wallet-row">
+    <div class="wallet-stat">
+      <div class="label">Chips</div>
+      <div class="amt mono" id="chipsAmt">0</div>
+      <div class="amt-sub mono" id="chipsUsd">= $0.00</div>
+    </div>
+    <div class="wallet-stat">
+      <div class="label">Redemption Balance</div>
+      <div class="amt mono" id="redemptionAmt">$0</div>
+      <div class="amt-sub mono" id="redemptionChips">= 0 chips</div>
+    </div>
+  </div>
+
+  <div class="redemption-card">
+    <div class="goal">Goal: <b id="goalAmt">$100</b> gift card &middot; cashes out at <b id="thresholdChips"></b> chips</div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+    <button class="btn btn-brass" id="cashOutBtn" disabled style="width:100%;">
+      Cash Out for $100 Gift Card
+    </button>
+    <div class="cashout-note"><b>150 chips</b> of accumulated redemption value converts to a <b>$100 gift card</b>. The <b>50-chip service fee</b> is what keeps the tiers real &mdash; it funds new card drops, community support, and the popularity ledger itself.</div>
+  </div>
+
+  <p class="section-label">Ledger</p>
+  <div class="ledger" id="ledger"></div>
+
+</main>
+
+<script>
+/* ==========================================================
+   DATA — locked economics: Price to Buy = Redemption Value
+   ========================================================== */
+
+// Per the locked doc: 150 [redemption units] -> $100 gift card,
+// 50-unit gap is the service fee. This demo tracks the redemption
+// balance in the same units as the doc's table (dollars of
+// redemption value), separate from the shop's spendable chips.
+const CASHOUT_THRESHOLD = 150;
+const CASHOUT_PAYOUT = 100;
+
+// Matches the peg used across the rest of the app: 100 chips = $1.
+const CHIPS_PER_DOLLAR = 100;
+
+/* ==========================================================
+   STATE
+   ========================================================== */
+const STORAGE_KEY = "vault_state_v1";
+
+function defaultState(){
+  return {
+    balance: 1000,
+    collection: [],
+    unopened: [],
+    firstVisit: true,
+    redemptionBalance: 0, // accumulated toward the gift card threshold
+    ledger: []            // history of cash-outs / redemption activity
+  };
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return defaultState();
+    return Object.assign(defaultState(), JSON.parse(raw));
+  } catch(e){ return defaultState(); }
+}
+
+function saveState(state){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+}
+
+function fmt(n){ return n.toLocaleString(); }
+
+function toast(msg){
+  let t = document.getElementById("toast");
+  if (!t){ t = document.createElement("div"); t.id="toast"; t.className="toast"; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._h);
+  toast._h = setTimeout(()=>t.classList.remove("show"), 1800);
+}
+
+/* ==========================================================
+   HEADER
+   ========================================================== */
+function renderHud(state, currentPage){
+  const mount = document.getElementById("hud");
+  if (!mount) return;
+  const pages = [
+    {id:"start", href:"start.html", label:"Start"},
+    {id:"shop", href:"shop.html", label:"Pack Shop"},
+    {id:"rip", href:"index.html", label:"Rip Pack"},
+    {id:"collection", href:"collection.html", label:"Collection"},
+    {id:"redemption", href:"redemption.html", label:"Redemption"}
+  ];
+  mount.innerHTML = `
+    <a class="brand" href="start.html">
+      <span class="mark">Zetsumetsu</span>
+      <h1>ZETSU PACKZ</h1>
+    </a>
+    <nav>
+      ${pages.map(p=>`<a class="navlink ${p.id===currentPage?'current':''}" href="${p.href}">${p.label}</a>`).join("")}
+    </nav>
+    <div class="balance">
+      <div class="label">Chips</div>
+      <div class="amt mono">${fmt(state.balance)}</div>
+    </div>
+  `;
+}
+
+/* ==========================================================
+   PAGE LOGIC
+   ========================================================== */
+let state = loadState();
+
+// --- TEMP DEMO SEED: fake activity so the ledger has something to show.
+// Remove this block once real redemption events are wired in from Collection.
+if (!state.ledger.length){
+  const now = Date.now();
+  const day = 24 * 60 * 60 * 1000;
+  state.ledger = [
+    { type:"Gift Card Cash-Out", amount:100, fee:50, ts: now - (2 * day) },
+    { type:"Gift Card Cash-Out", amount:100, fee:50, ts: now - (9 * day) }
+  ];
+  state.redemptionBalance = 85; // partway toward the next 150 threshold
+  saveState(state);
+}
+// --- END TEMP DEMO SEED
+
+renderHud(state, "redemption");
+
+document.getElementById("thresholdChips").textContent = CASHOUT_THRESHOLD;
+
+function renderBalance(){
+  document.getElementById("chipsAmt").textContent = fmt(state.balance);
+  document.getElementById("chipsUsd").textContent = "= $" + (state.balance / CHIPS_PER_DOLLAR).toFixed(2);
+
+  const bal = state.redemptionBalance;
+  document.getElementById("redemptionAmt").textContent = "$" + fmt(bal);
+  // per the locked doc, redemption balance is already tracked in the same
+  // units as the 150-chips-to-$100-payout ratio, so chips = the same number
+  document.getElementById("redemptionChips").textContent = "= " + fmt(bal) + " chips";
+
+  const pct = Math.min(100, (bal / CASHOUT_THRESHOLD) * 100);
+  document.getElementById("progressFill").style.width = pct + "%";
+
+  const cashOutBtn = document.getElementById("cashOutBtn");
+  const canCashOut = bal >= CASHOUT_THRESHOLD;
+  cashOutBtn.disabled = !canCashOut;
+  cashOutBtn.textContent = `Cash Out for $${CASHOUT_PAYOUT} Gift Card`;
+}
+
+document.getElementById("cashOutBtn").addEventListener("click", ()=>{
+  if (state.redemptionBalance < CASHOUT_THRESHOLD) return;
+  state.redemptionBalance -= CASHOUT_THRESHOLD;
+  state.ledger.unshift({
+    type: "Gift Card Cash-Out",
+    amount: CASHOUT_PAYOUT,
+    fee: CASHOUT_THRESHOLD - CASHOUT_PAYOUT,
+    ts: Date.now()
+  });
+  saveState(state);
+  toast(`$${CASHOUT_PAYOUT} gift card issued. ${CASHOUT_THRESHOLD - CASHOUT_PAYOUT} chips kept as the service fee.`);
+  renderBalance();
+  renderLedger();
+});
+
+function renderLedger(){
+  const ledgerEl = document.getElementById("ledger");
+  if (!state.ledger.length){
+    ledgerEl.innerHTML = `<div class="ledger-empty">No activity yet &mdash; cash-outs will show up here.</div>`;
+    return;
+  }
+  ledgerEl.innerHTML = state.ledger.map(entry=>{
+    const date = new Date(entry.ts);
+    const dateStr = date.toLocaleDateString(undefined, { month:"short", day:"numeric" }) + " \u00b7 " +
+                    date.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" });
+    return `
+      <div class="ledger-row">
+        <div class="ledger-info">
+          <div class="ledger-type">${entry.type}</div>
+          <div class="ledger-ts">${dateStr}</div>
+        </div>
+        <div class="ledger-amt positive">+$${fmt(entry.amount)}</div>
+      </div>`;
+  }).join("");
+}
+
+renderBalance();
+renderLedger();
+</script>
+</body>
+</html>
