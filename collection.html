@@ -5,6 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZETSU PACKZ — Collection</title>
 <style>
+@property --k {
+  syntax: '<number>';
+  initial-value: -1;
+  inherits: true;
+}
+@property --ang {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
 :root{
   --bg:#140F1F;
   --panel:#1D1730;
@@ -23,8 +34,8 @@
   --mythic-c:#4FD1E5;
   --danger:#E8636B;
 }
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+*{box-sizing:border-box;margin:0;}
+html,body{padding:0;}
 body{
   background:
     radial-gradient(ellipse 80% 60% at 50% -10%, #241C3C 0%, transparent 60%),
@@ -32,13 +43,14 @@ body{
   color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   min-height:100vh;
+  display:flex;flex-direction:column;
 }
 a{color:inherit;text-decoration:none;}
 .mono{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;}
 
 /* ---------- HUD ---------- */
 .hud{
-  position:sticky;top:0;z-index:50;
+  position:relative;z-index:50;flex:none;
   background:rgba(20,15,31,.92);backdrop-filter:blur(6px);
   border-bottom:1px solid var(--line);
   padding:14px 20px;
@@ -47,7 +59,6 @@ a{color:inherit;text-decoration:none;}
 .hud .brand{display:flex;align-items:baseline;gap:8px;}
 .hud .brand .mark{font-size:10px;letter-spacing:.28em;color:var(--brass);text-transform:uppercase;font-weight:700;}
 .hud .brand h1{margin:0;font-size:20px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;}
-.hud .brand h1 span{color:var(--brass);}
 .hud nav{display:flex;gap:4px;}
 .hud .navlink{
   padding:8px 14px;border-radius:3px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
@@ -59,8 +70,6 @@ a{color:inherit;text-decoration:none;}
 .hud .balance .label{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;}
 .hud .balance .amt{font-size:20px;font-weight:700;color:var(--brass);}
 
-.page{max-width:1080px;margin:0 auto;padding:28px 16px 60px;}
-
 /* ---------- Buttons ---------- */
 .btn{
   border:none;border-radius:3px;padding:12px 20px;font-size:13px;font-weight:800;
@@ -69,36 +78,140 @@ a{color:inherit;text-decoration:none;}
 .btn:active{transform:scale(.98);}
 .btn-brass{background:var(--brass);color:#1A1425;}
 .btn-brass:hover{filter:brightness(1.08);}
-.btn-brass:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;}
 .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
 .btn-ghost:hover{border-color:var(--brass-dim);}
 
-/* ---------- Empty state ---------- */
-.empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;margin:40px auto;max-width:420px;}
 .empty-state .glyph{font-size:32px;margin-bottom:10px;}
 
-/* ---------- Rarity swatches / theming (shared by shop odds + collection cards) ---------- */
-.swatch{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
-.swatch.s-common{background:var(--common);}
-.swatch.s-rare{background:var(--rare);}
-.swatch.s-epic{background:var(--epic);}
-.swatch.s-legendary{background:var(--legendary);}
-.swatch.s-mythic{background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
+.rar-common{background:linear-gradient(160deg,#2A2836,#1D1B27);}
+.rar-rare{background:linear-gradient(160deg,#173330,#12201F);}
+.rar-epic{background:linear-gradient(160deg,#2B1F42,#1D1530);}
+.rar-legendary{background:linear-gradient(160deg,#3A2A12,#241A0C);}
+.rar-mythic{background:linear-gradient(160deg,#241830,#1A1424);}
 
-.rar-common{background:linear-gradient(160deg,#2A2836,#1D1B27);border:1px solid var(--common);}
-.rar-common .tier,.rar-common .name{color:var(--common);}
-.rar-rare{background:linear-gradient(160deg,#173330,#12201F);border:1px solid var(--rare);}
-.rar-rare .tier,.rar-rare .name{color:var(--rare);}
-.rar-epic{background:linear-gradient(160deg,#2B1F42,#1D1530);border:1px solid var(--epic);}
-.rar-epic .tier,.rar-epic .name{color:var(--epic);}
-.rar-legendary{background:linear-gradient(160deg,#3A2A12,#241A0C);border:1px solid var(--legendary);}
-.rar-legendary .tier,.rar-legendary .name{color:var(--legendary);}
-.rar-mythic{background:linear-gradient(160deg,#241830,#1A1424);border:1px solid transparent;position:relative;}
-.rar-mythic::after{content:"";position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
-  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
-.rar-mythic .tier,.rar-mythic .name{
-  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));
-  -webkit-background-clip:text;background-clip:text;color:transparent;
+/* ---------- Toolbar ---------- */
+.toolbar{
+  flex:none;display:flex;justify-content:space-between;align-items:center;
+  padding:12px 20px;flex-wrap:wrap;gap:10px;
+  border-bottom:1px solid var(--line);
+}
+.toolbar .count{font-size:12px;color:var(--muted);letter-spacing:.05em;}
+.toolbar .hint{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+
+/* ---------- Circular scroll gallery ---------- */
+.gallery-scroll{
+  flex:1 1 auto;
+  overflow-y:scroll;
+  scrollbar-width:none;
+  position:relative;
+}
+.gallery-scroll::-webkit-scrollbar{display:none;}
+.gallery-track{
+  height:calc(var(--n, 1)*100%);
+}
+.scene{
+  position:sticky;top:0;
+  height:100%;
+  overflow:hidden;
+  perspective:50em;
+  display:grid;
+  place-items:center;
+  animation:k 1s linear;
+  animation-timeline:scroll();
+}
+@keyframes k{ to{ --k:1; } }
+
+.assembly{
+  --dir:0;
+  --r:calc(2 + var(--dir))/3;
+  --w:clamp(4em, min(50vh, 25vw), 15em);
+  --z:calc(-.5*var(--w)/tan(.5turn/var(--n, 1)));
+  display:grid;
+  transform-style:preserve-3d;
+  place-self:center;
+  translate:0 0 var(--z);
+  rotate:var(--dir) calc(1 - var(--dir)) 0 calc((var(--k) + .5)*-1turn);
+}
+@media (max-aspect-ratio: 2/3){ .assembly{ --dir:1; } }
+
+.card-node{
+  grid-area:1/1;
+  --j:calc(var(--i, 0)/var(--n, 1));
+  --dif-lin:calc(var(--j) - mod(var(--k) + 1, 1));
+  --abs-lin:abs(var(--dif-lin));
+  --dif-mid:calc(.5 - var(--abs-lin));
+  --abs-mid:abs(var(--dif-mid));
+  --dif-arc:calc(2*(.5 - var(--abs-mid)));
+  --lim:.35;
+  --sel:max(0, calc((var(--lim) - var(--dif-arc))/var(--lim)));
+  --out:calc(1 - var(--sel));
+  width:var(--w);
+  aspect-ratio:var(--r);
+  transform:
+    rotate3d(var(--dir), calc(1 - var(--dir)), 0, calc(var(--j)*1turn))
+    translatez(var(--z));
+  transform-style:preserve-3d;
+  cursor:pointer;
+}
+
+.card-face{
+  --ang:calc(-45deg + 0deg);
+  grid-area:1/1;
+  width:100%;height:100%;
+  overflow:hidden;
+  position:relative;
+  border-radius:.6em;
+  border:solid 2px #0000;
+  box-shadow:5px 5px 18px rgba(0,0,0,.55);
+  background:
+    linear-gradient(#0000 0 0) padding-box,
+    repeating-conic-gradient(from var(--ang),
+      #0000 0% 15%,
+      color-mix(in srgb, var(--brass) calc(var(--sel)*100%), #333) 20% 30%,
+      #0000 35% 50%)
+    border-box;
+  display:grid;grid-template-rows:1fr auto;
+  padding:16px;gap:8px;
+  transition:.35s ease-out;
+  isolation:isolate;
+}
+.card-face::before{
+  content:"";position:absolute;inset:0;z-index:-1;
+}
+.card-face.rar-common::before{background:linear-gradient(160deg,#2A2836,#1D1B27);}
+.card-face.rar-rare::before{background:linear-gradient(160deg,#173330,#12201F);}
+.card-face.rar-epic::before{background:linear-gradient(160deg,#2B1F42,#1D1530);}
+.card-face.rar-legendary::before{background:linear-gradient(160deg,#3A2A12,#241A0C);}
+.card-face.rar-mythic::before{background:linear-gradient(160deg,#241830,#1A1424);}
+.card-face::after{
+  content:"";position:absolute;inset:0;
+  opacity:var(--out);
+  background:#03071e;mix-blend-mode:color;
+  pointer-events:none;
+}
+
+.c-glyph{
+  align-self:center;justify-self:center;font-size:3em;
+  filter:drop-shadow(0 6px 12px rgba(0,0,0,.4));
+}
+.c-info{opacity:round(up, var(--sel));text-shadow:1px 1px 1px #0006;}
+.c-tier{font-size:.6em;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--brass);}
+.c-name{font-size:.85em;font-weight:900;text-transform:uppercase;line-height:1.1;}
+.c-foot{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+.c-value{font-size:.7em;opacity:.85;}
+.c-sell{
+  background:transparent;border:1px solid var(--brass);color:var(--brass);
+  padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.6em;
+  letter-spacing:.08em;text-transform:uppercase;font-weight:700;
+  pointer-events:auto;
+}
+.c-sell:hover{background:var(--brass);color:#1A1425;}
+
+.gallery-hint{
+  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
+  font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);
+  pointer-events:none;
 }
 
 /* ---------- Toast ---------- */
@@ -110,88 +223,35 @@ a{color:inherit;text-decoration:none;}
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
-/* ---------- Modal (card detail) ---------- */
-.modal-backdrop{
-  position:fixed;inset:0;background:rgba(10,7,16,.75);backdrop-filter:blur(3px);
-  display:none;align-items:center;justify-content:center;z-index:200;padding:20px;
-}
-.modal-backdrop.show{display:flex;}
-.modal-card{
-  width:260px;border-radius:14px;padding:22px;position:relative;
-  display:flex;flex-direction:column;gap:14px;
-}
-.modal-card .tier{font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;}
-.modal-card .glyph{font-size:72px;text-align:center;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4));}
-.modal-card .name{font-size:20px;font-weight:900;text-transform:uppercase;line-height:1.05;}
-.modal-card .value{font-size:12px;opacity:.85;}
-.modal-close{
-  position:absolute;top:10px;right:12px;background:none;border:none;color:inherit;
-  font-size:20px;cursor:pointer;opacity:.7;
-}
-.modal-close:hover{opacity:1;}
-
 @media (prefers-reduced-motion: reduce){
-  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+  .scene{animation:none;}
 }
-
-</style>
-<style>
-  .toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
-  .toolbar .count{font-size:12px;color:var(--muted);letter-spacing:.05em;}
-  select{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:8px 12px;border-radius:3px;font-size:12px;}
-  .coll-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
-  .coll-card{
-    border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px;
-    min-height:180px;justify-content:space-between;cursor:pointer;
-  }
-  .coll-card .glyph{font-size:32px;text-align:center;}
-  .coll-card .name{font-size:13px;font-weight:800;text-transform:uppercase;line-height:1.1;}
-  .coll-card .tier{font-size:9px;letter-spacing:.18em;text-transform:uppercase;font-weight:700;opacity:.85;}
-  .coll-card .foot{display:flex;justify-content:space-between;align-items:center;}
-  .coll-card .value{font-size:10px;opacity:.8;}
-  .sell-btn{
-    background:transparent;border:1px solid currentColor;color:inherit;padding:5px 9px;border-radius:3px;
-    cursor:pointer;font-size:9px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;opacity:.85;
-  }
-  .sell-btn:hover{opacity:1;}
-  .modal-actions{display:flex;gap:10px;}
+@supports not (animation-timeline: scroll()){
+  .fallback-warning{display:block !important;}
+}
+.fallback-warning{
+  display:none;margin:16px 20px;padding:12px 16px;border-left:3px solid var(--brass-dim);
+  background:var(--panel-2);font-size:12px;color:var(--muted);border-radius:3px;
+}
 </style>
 </head>
 <body>
 <div id="hud" class="hud"></div>
 
-<main class="page">
-  <div class="toolbar">
-    <div class="count" id="collSummary"></div>
-    <select id="sortSelect">
-      <option value="rarity">Sort: Rarity (high→low)</option>
-      <option value="value">Sort: Value (high→low)</option>
-      <option value="recent">Sort: Most recent</option>
-    </select>
-  </div>
-  <div class="coll-grid" id="collGrid"></div>
-</main>
+<div class="toolbar">
+  <div class="count" id="collSummary"></div>
+  <div class="hint">Scroll, or use ↑ / ↓, to rotate the collection</div>
+</div>
 
-<div class="modal-backdrop" id="modalBackdrop">
-  <div class="modal-card" id="modalCard">
-    <button class="modal-close" id="modalClose">&times;</button>
-    <div class="tier" id="mTier"></div>
-    <div class="glyph" id="mGlyph"></div>
-    <div>
-      <div class="name" id="mName"></div>
-      <div class="value mono" id="mValue"></div>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="mSellBtn">Sell card</button>
-    </div>
-  </div>
+<div class="fallback-warning">Your browser doesn't support CSS scroll-driven animation yet, so this rotating view may not animate smoothly. Try a recent Chrome or Firefox (with the scroll-driven-animation flag) build.</div>
+
+<div id="galleryWrap" style="flex:1 1 auto;display:flex;flex-direction:column;min-height:0;">
+  <!-- filled by JS: either the gallery, or an empty state -->
 </div>
 
 <script>
 /* ==========================================================
    VAULT — shared data, state, and helpers
-   Loaded by every page. State persists across pages via
-   localStorage so Shop -> Rip -> Collection stays in sync.
    ========================================================== */
 
 const RARITIES = [
@@ -229,75 +289,33 @@ const PACKS = [
   { id:"elite",    name:"Elite Pack",    tier:"High Roller",price:400, ceiling:1500, odds:{common:20,rare:35,epic:32,legendary:11,mythic:2} }
 ];
 
-/* ---------------- State persistence ---------------- */
 const STORAGE_KEY = "vault_state_v1";
 
 function defaultState(){
-  return {
-    balance: 1000,
-    collection: [],   // [{uid,name,rarity,glyph,value,ts}]
-    unopened: [],     // [{uid,packId}]
-    firstVisit: true
-  };
+  return { balance: 1000, collection: [], unopened: [], firstVisit: true };
 }
-
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
-    const parsed = JSON.parse(raw);
-    return Object.assign(defaultState(), parsed);
-  } catch(e){
-    return defaultState();
-  }
+    return Object.assign(defaultState(), JSON.parse(raw));
+  } catch(e){ return defaultState(); }
 }
-
 function saveState(state){
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch(e){ /* storage unavailable — state just won't persist */ }
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
 }
-
-/* ---------------- Helpers ---------------- */
 function fmt(n){ return n.toLocaleString(); }
 function rarityMeta(id){ return RARITIES.find(r=>r.id===id); }
-function randRange([a,b]){ return Math.floor(a + Math.random()*(b-a)); }
-function uid(){ return Date.now()+"-"+Math.random().toString(36).slice(2,7); }
-
-function pullCard(pack){
-  const roll = Math.random()*100;
-  let acc = 0, chosenRarity = "common";
-  for (const r of RARITIES){
-    acc += pack.odds[r.id];
-    if (roll <= acc){ chosenRarity = r.id; break; }
-  }
-  const candidates = CARD_POOL.filter(c=>c.rarity===chosenRarity);
-  const base = candidates[Math.floor(Math.random()*candidates.length)];
-  const meta = rarityMeta(chosenRarity);
-  return {
-    uid: uid(),
-    name: base.name,
-    rarity: chosenRarity,
-    glyph: base.glyph,
-    value: randRange(meta.valueRange),
-    ts: Date.now()
-  };
-}
 
 function toast(msg){
   let t = document.getElementById("toast");
-  if (!t){
-    t = document.createElement("div");
-    t.id = "toast"; t.className = "toast";
-    document.body.appendChild(t);
-  }
+  if (!t){ t = document.createElement("div"); t.id="toast"; t.className="toast"; document.body.appendChild(t); }
   t.textContent = msg;
   t.classList.add("show");
   clearTimeout(toast._h);
   toast._h = setTimeout(()=>t.classList.remove("show"), 1800);
 }
 
-/* ---------------- HUD (shared header, injected on every page) ---------------- */
 function renderHud(state, currentPage){
   const mount = document.getElementById("hud");
   if (!mount) return;
@@ -322,95 +340,109 @@ function renderHud(state, currentPage){
   `;
 }
 
-</script>
-<script>
-  let state = loadState();
-  renderHud(state, "collection");
+/* ==========================================================
+   Collection page — circular scroll gallery
+   ========================================================== */
 
-  function renderCollection(){
-    const grid = document.getElementById("collGrid");
-    const summary = document.getElementById("collSummary");
+let state = loadState();
+renderHud(state, "collection");
 
-    if (!state.collection.length){
-      grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
-        <div class="glyph">◇</div>
-        Nothing kept yet — rip a pack and choose "Keep card".
-        <div style="margin-top:16px;"><a class="btn btn-brass" href="shop.html">Go to Pack Shop</a></div>
-      </div>`;
-      summary.textContent = "0 cards collected";
-      return;
-    }
+const wrap = document.getElementById("galleryWrap");
+const summary = document.getElementById("collSummary");
 
-    const sortMode = document.getElementById("sortSelect").value;
-    let sorted = [...state.collection];
-    if (sortMode === "rarity") sorted.sort((a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity));
-    else if (sortMode === "value") sorted.sort((a,b)=>b.value-a.value);
-    else sorted.sort((a,b)=>b.ts-a.ts);
+function buildGallery(){
+  if (!state.collection.length){
+    wrap.innerHTML = `<div class="empty-state">
+      <div class="glyph">◇</div>
+      Nothing kept yet — rip a pack and choose "Keep card".
+      <div style="margin-top:16px;"><a class="btn btn-brass" href="shop.html">Go to Pack Shop</a></div>
+    </div>`;
+    summary.textContent = "0 cards collected";
+    return;
+  }
 
-    const totalValue = state.collection.reduce((s,c)=>s+c.value,0);
-    summary.textContent = state.collection.length + " cards collected · worth " + fmt(totalValue) + " chips";
+  const sorted = [...state.collection].sort(
+    (a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity)
+  );
+  const n = sorted.length;
+  const totalValue = state.collection.reduce((s,c)=>s+c.value,0);
+  summary.textContent = n + " card" + (n===1?"":"s") + " collected · worth " + fmt(totalValue) + " chips";
 
-    grid.innerHTML = sorted.map(card=>`
-      <div class="coll-card rar-${card.rarity}" data-uid="${card.uid}">
-        <div class="tier">${rarityMeta(card.rarity).label}</div>
-        <div class="glyph">${card.glyph}</div>
-        <div class="name">${card.name}</div>
-        <div class="foot">
-          <span class="value mono">${fmt(card.value)}</span>
-          <button class="sell-btn" data-sell="${card.uid}">Sell</button>
+  wrap.innerHTML = `
+    <div class="gallery-scroll" id="galleryScroll" style="--n:${n};">
+      <div class="gallery-track" style="--n:${n};">
+        <div class="scene">
+          <div class="assembly" style="--n:${n};">
+            ${sorted.map((card,i)=>`
+              <div class="card-node" style="--i:${i};--n:${n};" data-uid="${card.uid}">
+                <div class="card-face rar-${card.rarity}">
+                  <div class="c-glyph">${card.glyph}</div>
+                  <div class="c-info">
+                    <div class="c-tier">${rarityMeta(card.rarity).label}</div>
+                    <div class="c-name">${card.name}</div>
+                    <div class="c-foot">
+                      <span class="c-value mono">${fmt(card.value)}</span>
+                      <button class="c-sell" data-sell="${card.uid}">Sell</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `).join("")}
+          </div>
         </div>
       </div>
-    `).join("");
+      <div class="gallery-hint">↑ / ↓ to browse</div>
+    </div>
+  `;
 
-    grid.querySelectorAll(".coll-card").forEach(el=>{
-      el.addEventListener("click", (e)=>{
-        if (e.target.closest("[data-sell]")) return;
-        openModal(el.dataset.uid);
-      });
-    });
-    grid.querySelectorAll("[data-sell]").forEach(btn=>{
-      btn.addEventListener("click", (e)=>{
-        e.stopPropagation();
-        sellCard(btn.dataset.sell);
-      });
-    });
+  const galleryScroll = document.getElementById("galleryScroll");
+  const scene = wrap.querySelector(".scene");
+
+  // infinite-loop snap-back, adapted from the scroll-driven-animation source
+  function snapIfNeeded(k){
+    if (Math.abs(k) > .5){
+      galleryScroll.scrollTo(
+        0,
+        .5*(k - Math.sign(k) + 1)*(galleryScroll.scrollHeight - galleryScroll.clientHeight)
+      );
+    }
   }
-
-  function sellCard(cardUid){
-    const idx = state.collection.findIndex(c=>c.uid===cardUid);
-    if (idx === -1) return;
-    const card = state.collection[idx];
-    if (!confirm("Sell " + card.name + " for " + fmt(card.value) + " chips? This can't be undone.")) return;
-    state.collection.splice(idx,1);
-    state.balance += card.value;
-    saveState(state);
-    renderHud(state, "collection");
-    toast("Sold " + card.name + " for " + fmt(card.value) + " chips.");
-    renderCollection();
-    closeModal();
-  }
-
-  function openModal(cardUid){
-    const card = state.collection.find(c=>c.uid===cardUid);
-    if (!card) return;
-    const modalCard = document.getElementById("modalCard");
-    modalCard.className = "modal-card rar-"+card.rarity;
-    document.getElementById("mTier").textContent = rarityMeta(card.rarity).label.toUpperCase();
-    document.getElementById("mGlyph").textContent = card.glyph;
-    document.getElementById("mName").textContent = card.name;
-    document.getElementById("mValue").textContent = "Value: " + fmt(card.value) + " chips";
-    document.getElementById("mSellBtn").onclick = ()=>sellCard(card.uid);
-    document.getElementById("modalBackdrop").classList.add("show");
-  }
-  function closeModal(){ document.getElementById("modalBackdrop").classList.remove("show"); }
-
-  document.getElementById("modalClose").addEventListener("click", closeModal);
-  document.getElementById("modalBackdrop").addEventListener("click", (e)=>{
-    if (e.target.id === "modalBackdrop") closeModal();
+  snapIfNeeded(-1);
+  galleryScroll.addEventListener("scroll", ()=>{
+    const k = parseFloat(getComputedStyle(scene).getPropertyValue("--k")) || 0;
+    snapIfNeeded(k);
   });
-  document.getElementById("sortSelect").addEventListener("change", renderCollection);
 
-  renderCollection();
+  // keyboard support
+  galleryScroll.tabIndex = 0;
+  galleryScroll.addEventListener("keydown", (e)=>{
+    const step = galleryScroll.clientHeight / n;
+    if (e.key === "ArrowDown"){ galleryScroll.scrollBy({top:step, behavior:"smooth"}); e.preventDefault(); }
+    if (e.key === "ArrowUp"){ galleryScroll.scrollBy({top:-step, behavior:"smooth"}); e.preventDefault(); }
+  });
+
+  wrap.querySelectorAll("[data-sell]").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      sellCard(btn.dataset.sell);
+    });
+  });
+}
+
+function sellCard(cardUid){
+  const idx = state.collection.findIndex(c=>c.uid===cardUid);
+  if (idx === -1) return;
+  const card = state.collection[idx];
+  if (!confirm("Sell " + card.name + " for " + fmt(card.value) + " chips? This can't be undone.")) return;
+  state.collection.splice(idx,1);
+  state.balance += card.value;
+  saveState(state);
+  renderHud(state, "collection");
+  toast("Sold " + card.name + " for " + fmt(card.value) + " chips.");
+  buildGallery();
+}
+
+buildGallery();
 </script>
 </body>
 </html>
