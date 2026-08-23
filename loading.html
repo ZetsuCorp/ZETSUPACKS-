@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZETSU PACKZ — Loading</title>
+<style>
+  *, *::before, *::after{
+    padding:0;margin:0;box-sizing:border-box;
+  }
+  :root{
+    --n1:#FF2BD6; /* neon magenta */
+    --n2:#00F0FF; /* neon cyan */
+    --n3:#FFE600; /* neon yellow */
+    --n4:#B026FF; /* neon purple */
+    --n5:#39FF14; /* neon green */
+    --n6:#FF6B00; /* neon orange */
+    --ink:#F5F0FF;
+  }
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(circle at 50% 45%, rgba(255,255,255,.05) 0%, transparent 55%),
+      repeating-radial-gradient(circle at 20% 30%, rgba(255,255,255,.035) 0 1.5px, transparent 1.5px 7px),
+      #050006;
+    color:var(--ink);
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    perspective:60px;
+    overflow:hidden;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    *{ transform-style:preserve-3d; }
+  }
+
+  .wordmark{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    z-index:5;pointer-events:none;
+    text-align:center;
+  }
+  .wordmark .mark{
+    font-size:11px;letter-spacing:.5em;text-transform:uppercase;
+    color:var(--n2);text-shadow:0 0 10px var(--n2);
+    font-weight:800;margin-bottom:6px;
+  }
+  .wordmark h1{
+    font-size:clamp(30px,6vw,52px);font-weight:900;letter-spacing:.04em;
+    text-transform:uppercase;line-height:1;
+    color:#fff;
+    -webkit-text-stroke:2px #000;
+    text-shadow:
+      0 0 6px var(--n1),
+      0 0 18px var(--n1),
+      3px 3px 0 var(--n4),
+      6px 6px 0 rgba(0,0,0,.5);
+  }
+  .wordmark .loading{
+    margin-top:14px;font-size:11px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--n3);text-shadow:0 0 8px var(--n3);
+    font-weight:700;
+  }
+  .wordmark .loading .dots span{
+    animation:blink 1.2s infinite;
+    animation-fill-mode:both;
+  }
+  .wordmark .loading .dots span:nth-child(2){animation-delay:.2s;}
+  .wordmark .loading .dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{
+    0%,80%,100%{opacity:0;}
+    40%{opacity:1;}
+  }
+
+  .scene{
+    position:relative;
+    * { position:absolute; }
+  }
+
+  .sqrs{
+    --sqrSize:30px;
+    --sqrCount:15;
+
+    position:relative;
+    width:calc(var(--sqrSize) * var(--sqrCount));
+    aspect-ratio:1;
+    background-image:
+      linear-gradient(0deg, #ffffff14, transparent 3px),
+      linear-gradient(90deg, #ffffff14, transparent 3px),
+      linear-gradient(180deg, #ffffff14, transparent 3px),
+      linear-gradient(270deg, #ffffff14, transparent 3px);
+    background-size:var(--sqrSize) var(--sqrSize);
+
+    &::after{
+      content:'';
+      position:absolute;
+      inset:0%;
+      background-image:radial-gradient(closest-side, transparent, #050006ee 55%);
+      transform:translateZ(calc(var(--sqrSize) * 1.1));
+    }
+  }
+
+  .sqr{
+    position:absolute;
+    left:calc(var(--x) * var(--sqrSize));
+    top:calc(var(--y) * var(--sqrSize));
+    width:var(--sqrSize);
+    aspect-ratio:1;
+    rotate:calc(var(--a) * 90deg);
+
+    div{
+      position:absolute;
+      inset:0;
+      border:3px solid hsl(var(--hue), 100%, 58%);
+      box-shadow:
+        0 0 6px hsl(var(--hue), 100%, 58%),
+        0 0 14px hsl(var(--hue), 100%, 45%);
+      display:grid;
+      place-items:center;
+      transform-origin:bottom;
+      animation:sqr var(--duration) linear;
+      background:hsl(var(--hue), 100%, 8%);
+    }
+
+    .z-mark{
+      font-family:Impact,"Arial Black",-apple-system,sans-serif;
+      font-weight:900;
+      font-style:italic;
+      font-size:calc(var(--sqrSize) * .62);
+      color:hsl(var(--hue), 100%, 62%);
+      text-shadow:
+        0 0 4px hsl(var(--hue), 100%, 60%),
+        0 0 10px hsl(var(--hue), 100%, 50%),
+        1px 1px 0 #000;
+      -webkit-text-stroke:1px #000;
+      line-height:1;
+      user-select:none;
+    }
+  }
+
+  @keyframes sqr{
+    to{ transform:rotateX(-180deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .sqr div{animation-duration:.01ms !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wordmark">
+  <div class="mark">Zetsumetsu</div>
+  <h1>ZETSU PACKZ</h1>
+  <div class="loading">Loading<span class="dots"><span>.</span><span>.</span><span>.</span></span></div>
+</div>
+
+<div class="scene">
+  <div class="sqrs"></div>
+</div>
+
+<script>
+  const boardSize = 15;
+  const sqrCount = 60;
+
+  const sqrsDiv = document.querySelector('.sqrs');
+  const sqrs = [];
+
+  for (let i = 0; i < sqrCount; i++){
+    setTimeout(() => newSqr(i), i * 60);
+  }
+
+  function newSqr(ix){
+    let sqr;
+
+    if (sqrs[ix]){
+      sqr = sqrs[ix];
+
+      switch (sqr.a){
+        case 0: sqr.y++; break;
+        case 1: sqr.x--; break;
+        case 2: sqr.y--; break;
+        case 3: sqr.x++; break;
+      }
+
+      if (sqr.x < 0 || sqr.x >= boardSize || sqr.y < 0 || sqr.y >= boardSize){
+        sqr.x = Math.floor(boardSize / 2);
+        sqr.y = Math.floor(boardSize / 2);
+        sqr.a = Math.floor(Math.random() * 4);
+      } else {
+        sqr.a = (sqr.a + 3 + Math.floor(Math.random() * 3)) % 4;
+      }
+
+    } else {
+
+      const div = document.createElement('div');
+      div.className = 'sqr';
+      div.addEventListener("animationend", () => { newSqr(ix); });
+
+      // neon comic palette instead of a smooth hue wheel
+      const neonHues = [320, 190, 55, 275, 130, 25]; // magenta, cyan, yellow, purple, green, orange
+      div.style.setProperty('--hue', neonHues[ix % neonHues.length]);
+      div.style.setProperty('--duration', `${Math.floor(Math.random() * 400) + 800}ms`);
+
+      sqr = {
+        div: div,
+        x: Math.floor(boardSize / 2),
+        y: Math.floor(boardSize / 2),
+        a: Math.floor(Math.random() * 4)
+      };
+
+      sqrsDiv.appendChild(div);
+      sqrs[ix] = sqr;
+    }
+
+    sqr.div.style.setProperty('--x', sqr.x);
+    sqr.div.style.setProperty('--y', sqr.y);
+    sqr.div.style.setProperty('--a', sqr.a);
+    sqr.div.innerHTML = '<div><span class="z-mark">Z</span></div>';
+  }
+</script>
+</body>
+</html>
