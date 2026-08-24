@@ -245,7 +245,7 @@ a{color:inherit;text-decoration:none;}
 }
 </style>
 
-
+<div id="packsSectionMount"></div>
 
 </main>
 
@@ -547,6 +547,22 @@ if (carouselEl) renderCarousel();
 if (typeof renderInfoStrip === "function") renderInfoStrip();
 if (typeof renderBuyHud === "function") renderBuyHud();
 if (carouselEl) centerOnActivePack();
+</script>
+
+<script>
+fetch("packs-section.html")
+  .then(r => r.text())
+  .then(html => {
+    const mount = document.getElementById("packsSectionMount");
+    mount.innerHTML = html;
+    mount.querySelectorAll("script").forEach(oldScript => {
+      const newScript = document.createElement("script");
+      newScript.textContent = oldScript.textContent;
+      document.body.appendChild(newScript);
+      oldScript.remove();
+    });
+  })
+  .catch(err => console.error("Failed to load packs-section.html:", err));
 </script>
 </body>
 </html>
