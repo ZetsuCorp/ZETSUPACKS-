@@ -1,12 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZETSU PACKZ — Packs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   PACKS SECTION — self-contained styles for the carousel + cards
-   Depends on the host page for: fmt(), renderInfoStrip(), renderBuyHud()
+   PACKS SECTION — fully standalone: opening this file alone
+   shows the pack cards, no host page required.
    ============================================================ */
 :root{
+  --bg:#0A0A0A;
   --panel:#141414;
   --panel-2:#1C1C1C;
   --line:#333333;
+  --ink:#EDE6DC;
   --muted:#9A958E;
   --brass:#D4AF6A;
   --brass-dim:#8A7245;
@@ -17,6 +28,15 @@
   --mythic-a:#FF6B9D;
   --mythic-b:#C77DFF;
   --mythic-c:#4FD1E5;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  min-height:100vh;
+  padding:24px 0;
 }
 
 .carousel{
@@ -82,6 +102,8 @@
   -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 </style>
+</head>
+<body>
 
 <section id="packs">
   <div class="carousel" id="carousel"></div>
@@ -89,10 +111,15 @@
 
 <script>
 /* ==========================================================
-   PACKS SECTION — data, rendering, and scroll-driven selection
-   Owns: PACKS, CENTER_PACK_INDEX, activePackId
-   Calls out to (defined by the host page): fmt(), renderInfoStrip(), renderBuyHud()
+   PACKS SECTION — data, rendering, and scroll-driven selection.
+   Fully self-contained: provides its own fmt() so this file works
+   whether opened alone, or merged into a host page that already
+   defines fmt()/renderInfoStrip()/renderBuyHud().
    ========================================================== */
+
+if (typeof fmt !== "function") {
+  var fmt = function(n){ return n.toLocaleString(); };
+}
 
 // The 5 rarity tiers, per the locked Popularity Ledger economics.
 // Buy Price = Redemption Value at every tier — no separate pack odds,
@@ -140,6 +167,7 @@ function renderCarousel(){
 
 // whichever card is nearest the carousel's center becomes "active" —
 // this is the link between this section and the host page's Info/HUD
+// (if there is one — works fine standalone too)
 function computeActivePack(){
   const carousel = document.getElementById("carousel");
   const carouselRect = carousel.getBoundingClientRect();
@@ -195,3 +223,5 @@ if (typeof renderInfoStrip === "function") renderInfoStrip();
 if (typeof renderBuyHud === "function") renderBuyHud();
 centerOnActivePack();
 </script>
+</body>
+</html>
