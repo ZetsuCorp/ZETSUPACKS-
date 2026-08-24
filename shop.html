@@ -177,73 +177,9 @@ a{color:inherit;text-decoration:none;}
        Kept as its own file for editing; merged here directly so the
        actual page contains it, no runtime fetch required.
        ============================================================ -->
-<style>
-/* ============================================================
-   SECTION: MAIN > PACKS — styles for the carousel + cards.
-   Source of truth is packs-section.html; merged in here directly.
-   ============================================================ */
-.carousel{
-  display:flex;gap:16px;overflow-x:auto;
-  padding:10px calc(50% - min(120px, 38vw)) 22px;
-  scroll-snap-type:x mandatory;
-  scrollbar-width:none;
-}
-.carousel::-webkit-scrollbar{display:none;}
-
-.pack-stage{
-  flex:0 0 auto;
-  width:min(240px, 76vw);
-  scroll-snap-align:center;
-  background:linear-gradient(160deg,var(--panel-2),var(--panel));
-  border:3px solid var(--line);border-radius:10px;
-  padding:22px 18px 18px;position:relative;overflow:hidden;
-  display:flex;flex-direction:column;align-items:center;gap:14px;
-  box-shadow:0 20px 45px -25px rgba(0,0,0,.6);
-  transition:border-color .2s ease, box-shadow .2s ease;
-}
-.pack-stage.is-active{
-  border-color:var(--brass-dim);
-  box-shadow:0 20px 45px -25px rgba(0,0,0,.6), 0 0 0 1px rgba(212,175,106,.15);
-}
-.pack-stage::before{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(115deg, rgba(212,175,106,.04) 0px, rgba(212,175,106,.04) 1px, transparent 1px, transparent 14px);
-}
-.stage-art{
-  width:120px;height:164px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:46px;
-  border:3px solid var(--line);position:relative;
-}
-.stage-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
-.stage-name{font-size:19px;font-weight:900;text-transform:uppercase;line-height:1;text-align:center;}
-
-.stat-row{
-  display:flex;width:100%;justify-content:space-between;
-  border-top:3px dashed var(--line);border-bottom:3px dashed var(--line);
-  padding:12px 0;margin-top:2px;
-}
-.stat{text-align:center;flex:1;}
-.stat .stat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
-.stat .stat-value{font-size:13px;font-weight:800;}
-.stat .stat-value.min{color:var(--ink,#EDE6DC);}
-.stat .stat-value.max{color:var(--legendary);}
-
-.rar-common{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--common);}
-.rar-common .tier,.rar-common .name{color:var(--common);}
-.rar-rare{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--rare);}
-.rar-rare .tier,.rar-rare .name{color:var(--rare);}
-.rar-epic{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--epic);}
-.rar-epic .tier,.rar-epic .name{color:var(--epic);}
-.rar-legendary{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--legendary);}
-.rar-legendary .tier,.rar-legendary .name{color:var(--legendary);}
-.rar-mythic{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid transparent;position:relative;}
-.rar-mythic::after{content:"";position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
-  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
-.rar-mythic .tier,.rar-mythic .name{
-  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-</style>
+<!-- packs-section.html supplies its own <style> for the carousel and
+     the pack containers at runtime (see the fetch/inject script
+     below) — nothing needs to be duplicated here. -->
 
 <div id="packsSectionMount"></div>
 
