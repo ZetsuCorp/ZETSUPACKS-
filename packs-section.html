@@ -30,9 +30,13 @@ body{
 
 .carousel{
   display:flex;gap:28px;overflow-x:auto;overflow-y:visible;
-  padding:30px calc(50% - 115px) 50px;
+  padding:30px calc(50vw - 115px) 50px;
   scroll-snap-type:x mandatory;
   scrollbar-width:none;
+  width:100vw;
+  position:relative;
+  left:50%;
+  margin-left:-50vw;
 }
 .carousel::-webkit-scrollbar{display:none;}
 
