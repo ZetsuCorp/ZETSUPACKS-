@@ -1,0 +1,196 @@
+<style>
+/* ============================================================
+   PACKS SECTION — self-contained styles for the carousel + cards
+   Depends on the host page for: fmt(), renderInfoStrip(), renderBuyHud()
+   ============================================================ */
+:root{
+  --panel:#141414;
+  --panel-2:#1C1C1C;
+  --line:#333333;
+  --muted:#9A958E;
+  --brass:#D4AF6A;
+  --brass-dim:#8A7245;
+  --common:#8C8880;
+  --rare:#4FB6A8;
+  --epic:#9B6BD6;
+  --legendary:#E8A23D;
+  --mythic-a:#FF6B9D;
+  --mythic-b:#C77DFF;
+  --mythic-c:#4FD1E5;
+}
+
+.carousel{
+  display:flex;gap:16px;overflow-x:auto;
+  padding:10px calc(50% - min(120px, 38vw)) 22px;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+}
+.carousel::-webkit-scrollbar{display:none;}
+
+.pack-stage{
+  flex:0 0 auto;
+  width:min(240px, 76vw);
+  scroll-snap-align:center;
+  background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);border-radius:10px;
+  padding:22px 18px 18px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  box-shadow:0 20px 45px -25px rgba(0,0,0,.6);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.pack-stage.is-active{
+  border-color:var(--brass-dim);
+  box-shadow:0 20px 45px -25px rgba(0,0,0,.6), 0 0 0 1px rgba(212,175,106,.15);
+}
+.pack-stage::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(115deg, rgba(212,175,106,.04) 0px, rgba(212,175,106,.04) 1px, transparent 1px, transparent 14px);
+}
+.stage-art{
+  width:120px;height:164px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:46px;
+  border:1px solid var(--line);position:relative;
+}
+.stage-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
+.stage-name{font-size:19px;font-weight:900;text-transform:uppercase;line-height:1;text-align:center;}
+
+.stat-row{
+  display:flex;width:100%;justify-content:space-between;
+  border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
+  padding:12px 0;margin-top:2px;
+}
+.stat{text-align:center;flex:1;}
+.stat .stat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.stat .stat-value{font-size:13px;font-weight:800;}
+.stat .stat-value.min{color:var(--ink,#EDE6DC);}
+.stat .stat-value.max{color:var(--legendary);}
+
+.rar-common{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--common);}
+.rar-common .tier,.rar-common .name{color:var(--common);}
+.rar-rare{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--rare);}
+.rar-rare .tier,.rar-rare .name{color:var(--rare);}
+.rar-epic{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--epic);}
+.rar-epic .tier,.rar-epic .name{color:var(--epic);}
+.rar-legendary{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--legendary);}
+.rar-legendary .tier,.rar-legendary .name{color:var(--legendary);}
+.rar-mythic{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid transparent;position:relative;}
+.rar-mythic::after{content:"";position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
+  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
+.rar-mythic .tier,.rar-mythic .name{
+  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+</style>
+
+<section id="packs">
+  <div class="carousel" id="carousel"></div>
+</section>
+
+<script>
+/* ==========================================================
+   PACKS SECTION — data, rendering, and scroll-driven selection
+   Owns: PACKS, CENTER_PACK_INDEX, activePackId
+   Calls out to (defined by the host page): fmt(), renderInfoStrip(), renderBuyHud()
+   ========================================================== */
+
+// The 5 rarity tiers, per the locked Popularity Ledger economics.
+// Buy Price = Redemption Value at every tier — no separate pack odds,
+// no separate pack pricing. Buying a tier guarantees that rarity;
+// which specific card design you get is randomized at rip time.
+// Chips are pegged at 100 chips = $1 (matches the rest of the app).
+const PACKS = [
+  { id:"common",    name:"Common",    price:500   }, // $5
+  { id:"rare",      name:"Rare",      price:1000  }, // $10
+  { id:"epic",      name:"Epic",      price:2500  }, // $25
+  { id:"legendary", name:"Legendary", price:10000 }, // $100
+  { id:"mythic",    name:"Mythic",    price:15000 }  // $150
+];
+const CENTER_PACK_INDEX = 2; // Epic — default starting/centered tier
+
+let activePackId = PACKS[CENTER_PACK_INDEX].id; // single source of truth —
+                                                 // carousel scroll drives this,
+                                                 // Info strip + Hud/Footer both just read it
+
+function renderCarousel(){
+  const carousel = document.getElementById("carousel");
+  carousel.innerHTML = PACKS.map(pack=>{
+    // the tier IS the rarity now — no more weighted odds across rarities,
+    // buying a tier guarantees that rarity
+    const rarClass = pack.id;
+
+    return `
+      <div class="pack-stage ${pack.id===activePackId?'is-active':''}" data-pack="${pack.id}">
+        <div class="stage-tier">${pack.name} Tier</div>
+        <div class="stage-art rar-${rarClass}">&#9670;</div>
+        <div class="stage-name">${pack.name}</div>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-label">Buy Price</div>
+            <div class="stat-value min">${fmt(pack.price)}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Redemption Value</div>
+            <div class="stat-value max">${fmt(pack.price)}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// whichever card is nearest the carousel's center becomes "active" —
+// this is the link between this section and the host page's Info/HUD
+function computeActivePack(){
+  const carousel = document.getElementById("carousel");
+  const carouselRect = carousel.getBoundingClientRect();
+  const carouselCenter = carouselRect.left + carouselRect.width / 2;
+
+  let closestId = activePackId;
+  let closestDist = Infinity;
+  carousel.querySelectorAll(".pack-stage").forEach(card=>{
+    const rect = card.getBoundingClientRect();
+    const cardCenter = rect.left + rect.width / 2;
+    const dist = Math.abs(cardCenter - carouselCenter);
+    if (dist < closestDist){
+      closestDist = dist;
+      closestId = card.dataset.pack;
+    }
+  });
+
+  if (closestId !== activePackId){
+    activePackId = closestId;
+    // just flip the active highlight, no full re-render (keeps scroll position stable)
+    carousel.querySelectorAll(".pack-stage").forEach(card=>{
+      card.classList.toggle("is-active", card.dataset.pack === activePackId);
+    });
+    if (typeof renderInfoStrip === "function") renderInfoStrip();
+    if (typeof renderBuyHud === "function") renderBuyHud();
+  }
+}
+
+function centerOnActivePack(){
+  const carousel = document.getElementById("carousel");
+  const activeCard = carousel.querySelector(`[data-pack="${activePackId}"]`);
+  if (activeCard){
+    activeCard.scrollIntoView({ inline: "center", block: "nearest" });
+  }
+}
+
+/* ---------------- Scroll wiring (owned entirely by this section) ---------------- */
+
+let packsScrollTick = false;
+document.getElementById("carousel").addEventListener("scroll", ()=>{
+  if (packsScrollTick) return;
+  packsScrollTick = true;
+  requestAnimationFrame(()=>{
+    computeActivePack();
+    packsScrollTick = false;
+  });
+}, {passive:true});
+
+/* ---------------- Init ---------------- */
+
+renderCarousel();
+if (typeof renderInfoStrip === "function") renderInfoStrip();
+if (typeof renderBuyHud === "function") renderBuyHud();
+centerOnActivePack();
+</script>
