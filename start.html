@@ -38,18 +38,23 @@
     color:var(--brass);text-align:center;
   }
 
-  /* ---------- Pack image ---------- */
-  .pack{
+  /* ---------- Pack container — holds/frames the pack image ---------- */
+  .pack-link{display:block;}
+  .pack-container{
     width:220px;
-    display:block;
+    position:relative;
+    border-radius:10px;
+    overflow:hidden;
     cursor:pointer;
     transition:transform .2s ease, filter .2s ease;
     filter:drop-shadow(0 30px 50px rgba(0,0,0,.85));
   }
-  .pack:hover{transform:translateY(-6px);filter:drop-shadow(0 40px 60px rgba(0,0,0,.9));}
-  .pack img{
+  .pack-container:hover{transform:translateY(-6px);filter:drop-shadow(0 40px 60px rgba(0,0,0,.9));}
+  .pack-img{
     width:100%;height:auto;display:block;
   }
+  /* room for future overlays: glow ring, foil sheen, badges, etc.
+     add ::before/::after or extra children inside .pack-container */
 
   .enter-label{
     font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--brass);font-weight:700;
@@ -65,8 +70,10 @@
   <div class="division">Zetsumetsu EOe &middot; TCG Collectors Shop</div>
   <h1 class="title">Zetsu PackZ</h1>
 
-  <a class="pack" id="enterPack" href="shop.html" aria-label="Enter Zetsu Packz">
-    <img src="assets/S1pack.png" alt="Zetsumetsu Series 1 Card Pack">
+  <a class="pack-link" href="shop.html" aria-label="Enter Zetsu Packz">
+    <div class="pack-container" id="enterPack">
+      <img class="pack-img" src="assets/S1pack.png" alt="Zetsumetsu Series 1 Card Pack">
+    </div>
   </a>
 
   <div class="enter-label">Tap to Enter</div>
