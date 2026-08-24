@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZETSU PACKZ — Pack Shop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    TOKENS — shared design variables, base reset
@@ -37,7 +40,11 @@ body{
   min-height:100vh;
 }
 a{color:inherit;text-decoration:none;}
-.mono{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;}
+.mono{font-family:'Fredoka',sans-serif;font-weight:700;}
+.glow-num{
+  color:#FFFFFF;
+  letter-spacing:.02em;
+}
 
 /* ============================================================
    SECTION: HEADER — top brand / nav / packs counter / balance
@@ -45,32 +52,32 @@ a{color:inherit;text-decoration:none;}
 .hud{
   position:sticky;top:0;z-index:50;
   background:rgba(0,0,0,.92);backdrop-filter:blur(6px);
-  border-bottom:1px solid var(--line);
+  border-bottom:3px solid var(--line);
   padding:14px 20px;
   display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
 }
-.hud .brand{display:flex;align-items:baseline;gap:8px;}
+.hud .brand{display:flex;flex-direction:column;align-items:flex-start;gap:0;}
 .hud .brand .mark{font-size:10px;letter-spacing:.28em;color:var(--brass);text-transform:uppercase;font-weight:700;}
 .hud .brand h1{margin:0;font-size:20px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;}
 .hud .brand h1 span{color:var(--brass);}
 .hud nav{display:flex;gap:4px;}
 .hud .navlink{
   padding:8px 14px;border-radius:3px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-  font-weight:700;color:var(--muted);border:1px solid transparent;
+  font-weight:700;color:var(--muted);border:3px solid transparent;
 }
 .hud .navlink:hover{color:var(--ink);}
 .hud .navlink.current{background:var(--brass);color:#141414;}
 .hud .hud-stats{display:flex;align-items:center;gap:18px;}
 .hud .balance{text-align:right;}
-.hud .balance .label{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;}
-.hud .balance .amt{font-size:20px;font-weight:700;color:var(--brass);}
+.hud .balance .label{font-size:9px;letter-spacing:.2em;color:#FFFFFF;text-transform:uppercase;}
+.hud .balance .amt{font-size:26px;font-weight:700;}
 .hud .packs-count{
   display:flex;align-items:center;gap:6px;
-  color:var(--ink);border:1px solid var(--line);border-radius:20px;
+  color:var(--ink);border:3px solid var(--line);border-radius:20px;
   padding:6px 12px;
 }
 .hud .packs-count .icon{font-size:14px;color:var(--brass);}
-.hud .packs-count .num{font-size:14px;font-weight:800;}
+.hud .packs-count .num{font-size:18px;font-weight:800;}
 .hud .packs-count:hover{border-color:var(--brass-dim);}
 
 /* ============================================================
@@ -87,15 +94,15 @@ a{color:inherit;text-decoration:none;}
 .btn-brass{background:var(--brass);color:#141414;}
 .btn-brass:hover{filter:brightness(1.08);}
 .btn-brass:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;}
-.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
+.btn-ghost{background:transparent;border:3px solid var(--line);color:var(--ink);}
 .btn-ghost:hover{border-color:var(--brass-dim);}
 
-.empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:3px dashed var(--line);border-radius:8px;}
 .empty-state .glyph{font-size:32px;margin-bottom:10px;}
 
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--panel-2);border:1px solid var(--brass-dim);color:var(--ink);
+  background:var(--panel-2);border:3px solid var(--brass-dim);color:var(--ink);
   padding:12px 20px;border-radius:6px;font-size:13px;
   opacity:0;pointer-events:none;transition:all .25s ease;z-index:100;
 }
@@ -113,16 +120,16 @@ a{color:inherit;text-decoration:none;}
 }
 
 /* ============================================================
-   SECTION: MAIN > INFO — strip showing the currently active pack
+   SECTION: MAIN > INFO — big rarity/tier header, right under the page header
    ============================================================ */
 #info{margin-bottom:6px;}
 .info-strip{
   display:flex;justify-content:space-between;align-items:center;
-  background:var(--panel-2);border:1px solid var(--line);border-radius:6px;
-  padding:12px 16px;margin-top:4px;
+  background:var(--panel-2);border:3px solid var(--line);border-radius:6px;
+  padding:14px 18px;margin-top:4px;
 }
-.info-strip .info-name{font-size:13px;font-weight:800;text-transform:uppercase;}
-.info-strip .info-price{font-size:12px;color:var(--brass);}
+.info-strip .info-name{font-size:36px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;line-height:1;}
+.info-strip .info-price{font-size:20px;font-weight:700;}
 
 /* ============================================================
    SECTION: MAIN > PACKS — now lives entirely in packs-section.html,
@@ -138,7 +145,7 @@ a{color:inherit;text-decoration:none;}
 .buy-hud{
   position:fixed;left:0;right:0;bottom:0;z-index:60;
   background:rgba(0,0,0,.96);backdrop-filter:blur(6px);
-  border-top:1px solid var(--line);
+  border-top:3px solid var(--line);
   padding:14px 20px;
   display:flex;justify-content:space-between;align-items:center;gap:16px;
 }
@@ -146,6 +153,7 @@ a{color:inherit;text-decoration:none;}
 .buy-hud .buy-hud-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
 .buy-hud .buy-hud-name{font-size:15px;font-weight:900;text-transform:uppercase;}
 .buy-hud .buy-hud-buy{flex:none;padding:12px 22px;}
+.buy-hud-num{font-size:16px;}
 </style>
 </head>
 <body>
@@ -161,14 +169,83 @@ a{color:inherit;text-decoration:none;}
        MAIN > INFO
        ============================================================ -->
   <section id="info">
-    <p class="section-label">Card Shop</p>
     <div class="info-strip" id="infoStrip"></div>
   </section>
 
   <!-- ============================================================
-       MAIN > PACKS — injected at runtime from packs-section.html
+       MAIN > PACKS — content below is the same as packs-section.html.
+       Kept as its own file for editing; merged here directly so the
+       actual page contains it, no runtime fetch required.
        ============================================================ -->
-  <div id="packsSectionMount"></div>
+<style>
+/* ============================================================
+   SECTION: MAIN > PACKS — styles for the carousel + cards.
+   Source of truth is packs-section.html; merged in here directly.
+   ============================================================ */
+.carousel{
+  display:flex;gap:16px;overflow-x:auto;
+  padding:10px calc(50% - min(120px, 38vw)) 22px;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+}
+.carousel::-webkit-scrollbar{display:none;}
+
+.pack-stage{
+  flex:0 0 auto;
+  width:min(240px, 76vw);
+  scroll-snap-align:center;
+  background:linear-gradient(160deg,var(--panel-2),var(--panel));
+  border:3px solid var(--line);border-radius:10px;
+  padding:22px 18px 18px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  box-shadow:0 20px 45px -25px rgba(0,0,0,.6);
+  transition:border-color .2s ease, box-shadow .2s ease;
+}
+.pack-stage.is-active{
+  border-color:var(--brass-dim);
+  box-shadow:0 20px 45px -25px rgba(0,0,0,.6), 0 0 0 1px rgba(212,175,106,.15);
+}
+.pack-stage::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(115deg, rgba(212,175,106,.04) 0px, rgba(212,175,106,.04) 1px, transparent 1px, transparent 14px);
+}
+.stage-art{
+  width:120px;height:164px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:46px;
+  border:3px solid var(--line);position:relative;
+}
+.stage-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
+.stage-name{font-size:19px;font-weight:900;text-transform:uppercase;line-height:1;text-align:center;}
+
+.stat-row{
+  display:flex;width:100%;justify-content:space-between;
+  border-top:3px dashed var(--line);border-bottom:3px dashed var(--line);
+  padding:12px 0;margin-top:2px;
+}
+.stat{text-align:center;flex:1;}
+.stat .stat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.stat .stat-value{font-size:13px;font-weight:800;}
+.stat .stat-value.min{color:var(--ink,#EDE6DC);}
+.stat .stat-value.max{color:var(--legendary);}
+
+.rar-common{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--common);}
+.rar-common .tier,.rar-common .name{color:var(--common);}
+.rar-rare{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--rare);}
+.rar-rare .tier,.rar-rare .name{color:var(--rare);}
+.rar-epic{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--epic);}
+.rar-epic .tier,.rar-epic .name{color:var(--epic);}
+.rar-legendary{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--legendary);}
+.rar-legendary .tier,.rar-legendary .name{color:var(--legendary);}
+.rar-mythic{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid transparent;position:relative;}
+.rar-mythic::after{content:"";position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
+  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
+.rar-mythic .tier,.rar-mythic .name{
+  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+</style>
+
+
 
 </main>
 
@@ -284,7 +361,7 @@ function renderHud(state, currentPage){
   ];
   mount.innerHTML = `
     <a class="brand" href="start.html">
-      <span class="mark">Zetsumetsu</span>
+      <span class="mark">Zetsumetsu EOe</span>
       <h1>ZETSU PACKZ</h1>
     </a>
     <nav>
@@ -293,11 +370,11 @@ function renderHud(state, currentPage){
     <div class="hud-stats">
       <a class="packs-count" href="index.html" title="Unopened packs">
         <span class="icon">&#9670;</span>
-        <span class="num mono">${state.unopened.length}</span>
+        <span class="num mono glow-num">${state.unopened.length}</span>
       </a>
       <div class="balance">
         <div class="label">Chips</div>
-        <div class="amt mono">${fmt(state.balance)}</div>
+        <div class="amt mono glow-num">${fmt(state.balance)}</div>
       </div>
     </div>
   `;
@@ -327,7 +404,7 @@ function renderInfoStrip(){
   const pack = PACKS.find(p=>p.id===activePackId);
   document.getElementById("infoStrip").innerHTML = `
     <span class="info-name">${pack.name}</span>
-    <span class="info-price mono">${fmt(pack.price)} chips</span>
+    <span class="info-price mono glow-num">${fmt(pack.price)} chips</span>
   `;
 }
 
@@ -342,7 +419,7 @@ function renderBuyHud(){
       <div class="buy-hud-name">${pack.name}</div>
     </div>
     <button class="btn btn-brass buy-hud-buy" id="buyHudBtn" ${affordable?'':'disabled'}>
-      Buy for ${fmt(pack.price)} chips
+      Buy for <span class="mono buy-hud-num glow-num">${fmt(pack.price)}</span> chips
     </button>
   `;
   document.getElementById("buyHudBtn").addEventListener("click", ()=>buyPack(activePackId));
@@ -359,28 +436,117 @@ function buyPack(packId){
   toast(pack.name + " added to your unopened packs.");
 }
 
-/* ---------------- Load MAIN > PACKS ----------------
-   Fetches packs-section.html and injects it into the page. Style
-   tags apply automatically on injection; script tags don't execute
-   via innerHTML, so they're pulled out and re-appended manually to
-   run in this same global scope (no iframe, no postMessage). */
+</script>
+<script>
+/* ==========================================================
+   PACKS SECTION — data, rendering, and scroll-driven selection
+   Owns: PACKS, CENTER_PACK_INDEX, activePackId
+   Calls out to (defined by the host page): fmt(), renderInfoStrip(), renderBuyHud()
+   ========================================================== */
 
-fetch("packs-section.html")
-  .then(r => r.text())
-  .then(html => {
-    const mount = document.getElementById("packsSectionMount");
-    mount.innerHTML = html;
-    mount.querySelectorAll("script").forEach(oldScript => {
-      const newScript = document.createElement("script");
-      newScript.textContent = oldScript.textContent;
-      document.body.appendChild(newScript);
-      oldScript.remove();
-    });
-  })
-  .catch(err => {
-    console.error("Failed to load packs-section.html:", err);
-    toast("Couldn't load the Card Shop packs.");
+// The 5 rarity tiers, per the locked Popularity Ledger economics.
+// Buy Price = Redemption Value at every tier — no separate pack odds,
+// no separate pack pricing. Buying a tier guarantees that rarity;
+// which specific card design you get is randomized at rip time.
+// Chips are pegged at 100 chips = $1 (matches the rest of the app).
+const PACKS = [
+  { id:"common",    name:"Common",    price:500   }, // $5
+  { id:"rare",      name:"Rare",      price:1000  }, // $10
+  { id:"epic",      name:"Epic",      price:2500  }, // $25
+  { id:"legendary", name:"Legendary", price:10000 }, // $100
+  { id:"mythic",    name:"Mythic",    price:15000 }  // $150
+];
+const CENTER_PACK_INDEX = 2; // Epic — default starting/centered tier
+
+let activePackId = PACKS[CENTER_PACK_INDEX].id; // single source of truth —
+                                                 // carousel scroll drives this,
+                                                 // Info strip + Hud/Footer both just read it
+
+function renderCarousel(){
+  const carousel = document.getElementById("carousel");
+  carousel.innerHTML = PACKS.map(pack=>{
+    // the tier IS the rarity now — no more weighted odds across rarities,
+    // buying a tier guarantees that rarity
+    const rarClass = pack.id;
+
+    return `
+      <div class="pack-stage ${pack.id===activePackId?'is-active':''}" data-pack="${pack.id}">
+        <div class="stage-tier">${pack.name} Tier</div>
+        <div class="stage-art rar-${rarClass}">&#9670;</div>
+        <div class="stage-name">${pack.name}</div>
+        <div class="stat-row">
+          <div class="stat">
+            <div class="stat-label">Buy Price</div>
+            <div class="stat-value min">${fmt(pack.price)}</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Redemption Value</div>
+            <div class="stat-value max">${fmt(pack.price)}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+// whichever card is nearest the carousel's center becomes "active" —
+// this is the link between this section and the host page's Info/HUD
+function computeActivePack(){
+  const carousel = document.getElementById("carousel");
+  const carouselRect = carousel.getBoundingClientRect();
+  const carouselCenter = carouselRect.left + carouselRect.width / 2;
+
+  let closestId = activePackId;
+  let closestDist = Infinity;
+  carousel.querySelectorAll(".pack-stage").forEach(card=>{
+    const rect = card.getBoundingClientRect();
+    const cardCenter = rect.left + rect.width / 2;
+    const dist = Math.abs(cardCenter - carouselCenter);
+    if (dist < closestDist){
+      closestDist = dist;
+      closestId = card.dataset.pack;
+    }
   });
+
+  if (closestId !== activePackId){
+    activePackId = closestId;
+    // just flip the active highlight, no full re-render (keeps scroll position stable)
+    carousel.querySelectorAll(".pack-stage").forEach(card=>{
+      card.classList.toggle("is-active", card.dataset.pack === activePackId);
+    });
+    if (typeof renderInfoStrip === "function") renderInfoStrip();
+    if (typeof renderBuyHud === "function") renderBuyHud();
+  }
+}
+
+function centerOnActivePack(){
+  const carousel = document.getElementById("carousel");
+  const activeCard = carousel.querySelector(`[data-pack="${activePackId}"]`);
+  if (activeCard){
+    activeCard.scrollIntoView({ inline: "center", block: "nearest" });
+  }
+}
+
+/* ---------------- Scroll wiring (owned entirely by this section) ---------------- */
+
+let packsScrollTick = false;
+const carouselEl = document.getElementById("carousel");
+if (carouselEl){
+  carouselEl.addEventListener("scroll", ()=>{
+    if (packsScrollTick) return;
+    packsScrollTick = true;
+    requestAnimationFrame(()=>{
+      computeActivePack();
+      packsScrollTick = false;
+    });
+  }, {passive:true});
+}
+
+/* ---------------- Init ---------------- */
+
+if (carouselEl) renderCarousel();
+if (typeof renderInfoStrip === "function") renderInfoStrip();
+if (typeof renderBuyHud === "function") renderBuyHud();
+if (carouselEl) centerOnActivePack();
 </script>
 </body>
 </html>
