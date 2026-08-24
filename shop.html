@@ -93,29 +93,6 @@ a{color:inherit;text-decoration:none;}
 .empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;}
 .empty-state .glyph{font-size:32px;margin-bottom:10px;}
 
-.swatch{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
-.swatch.s-common{background:var(--common);}
-.swatch.s-rare{background:var(--rare);}
-.swatch.s-epic{background:var(--epic);}
-.swatch.s-legendary{background:var(--legendary);}
-.swatch.s-mythic{background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
-
-.rar-common{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--common);}
-.rar-common .tier,.rar-common .name{color:var(--common);}
-.rar-rare{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--rare);}
-.rar-rare .tier,.rar-rare .name{color:var(--rare);}
-.rar-epic{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--epic);}
-.rar-epic .tier,.rar-epic .name{color:var(--epic);}
-.rar-legendary{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--legendary);}
-.rar-legendary .tier,.rar-legendary .name{color:var(--legendary);}
-.rar-mythic{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid transparent;position:relative;}
-.rar-mythic::after{content:"";position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
-  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
-.rar-mythic .tier,.rar-mythic .name{
-  background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-
 .toast{
   position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
   background:var(--panel-2);border:1px solid var(--brass-dim);color:var(--ink);
@@ -123,25 +100,6 @@ a{color:inherit;text-decoration:none;}
   opacity:0;pointer-events:none;transition:all .25s ease;z-index:100;
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-
-.modal-backdrop{
-  position:fixed;inset:0;background:rgba(10,7,16,.75);backdrop-filter:blur(3px);
-  display:none;align-items:center;justify-content:center;z-index:200;padding:20px;
-}
-.modal-backdrop.show{display:flex;}
-.modal-card{
-  width:260px;border-radius:14px;padding:22px;position:relative;
-  display:flex;flex-direction:column;gap:14px;
-}
-.modal-card .tier{font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:800;}
-.modal-card .glyph{font-size:72px;text-align:center;filter:drop-shadow(0 8px 16px rgba(0,0,0,.4));}
-.modal-card .name{font-size:20px;font-weight:900;text-transform:uppercase;line-height:1.05;}
-.modal-card .value{font-size:12px;opacity:.85;}
-.modal-close{
-  position:absolute;top:10px;right:12px;background:none;border:none;color:inherit;
-  font-size:20px;cursor:pointer;opacity:.7;
-}
-.modal-close:hover{opacity:1;}
 
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
@@ -167,60 +125,10 @@ a{color:inherit;text-decoration:none;}
 .info-strip .info-price{font-size:12px;color:var(--brass);}
 
 /* ============================================================
-   SECTION: MAIN > PACKS — the pack carousel + individual cards
+   SECTION: MAIN > PACKS — now lives entirely in packs-section.html,
+   fetched and injected at runtime. Its CSS/markup/JS are self-contained
+   over there, not duplicated here.
    ============================================================ */
-.pack-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
-.pack-name{font-size:22px;font-weight:900;text-transform:uppercase;line-height:1;}
-.odds-list{
-  display:flex;flex-direction:column;gap:4px;font-size:11px;
-}
-.odds-row{display:flex;justify-content:space-between;color:var(--muted);}
-
-.carousel{
-  display:flex;gap:16px;overflow-x:auto;
-  padding:10px calc(50% - min(120px, 38vw)) 22px;
-  scroll-snap-type:x mandatory;
-  scrollbar-width:none;
-}
-.carousel::-webkit-scrollbar{display:none;}
-
-.pack-stage{
-  flex:0 0 auto;
-  width:min(240px, 76vw);
-  scroll-snap-align:center;
-  background:linear-gradient(160deg,var(--panel-2),var(--panel));
-  border:1px solid var(--line);border-radius:10px;
-  padding:22px 18px 18px;position:relative;overflow:hidden;
-  display:flex;flex-direction:column;align-items:center;gap:14px;
-  box-shadow:0 20px 45px -25px rgba(0,0,0,.6);
-  transition:border-color .2s ease, box-shadow .2s ease;
-}
-.pack-stage.is-active{
-  border-color:var(--brass-dim);
-  box-shadow:0 20px 45px -25px rgba(0,0,0,.6), 0 0 0 1px rgba(212,175,106,.15);
-}
-.pack-stage::before{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(115deg, rgba(212,175,106,.04) 0px, rgba(212,175,106,.04) 1px, transparent 1px, transparent 14px);
-}
-.stage-art{
-  width:120px;height:164px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:46px;
-  border:1px solid var(--line);position:relative;
-}
-.stage-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
-.stage-name{font-size:19px;font-weight:900;text-transform:uppercase;line-height:1;text-align:center;}
-
-.stat-row{
-  display:flex;width:100%;justify-content:space-between;
-  border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
-  padding:12px 0;margin-top:2px;
-}
-.stat{text-align:center;flex:1;}
-.stat .stat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
-.stat .stat-value{font-size:13px;font-weight:800;}
-.stat .stat-value.min{color:var(--ink);}
-.stat .stat-value.max{color:var(--legendary);}
 
 .page{padding-bottom:110px;} /* leave room for the fixed bottom hud */
 
@@ -258,11 +166,9 @@ a{color:inherit;text-decoration:none;}
   </section>
 
   <!-- ============================================================
-       MAIN > PACKS
+       MAIN > PACKS — injected at runtime from packs-section.html
        ============================================================ -->
-  <section id="packs">
-    <div class="carousel" id="carousel"></div>
-  </section>
+  <div id="packsSectionMount"></div>
 
 </main>
 
@@ -305,19 +211,8 @@ function makeCardPool(){
 }
 const CARD_POOL = makeCardPool();
 
-// The 5 rarity tiers, per the locked Popularity Ledger economics.
-// Buy Price = Redemption Value at every tier — no separate pack odds,
-// no separate pack pricing. Buying a tier guarantees that rarity;
-// which specific card design you get is randomized at rip time.
-// Chips are pegged at 100 chips = $1 (matches the rest of the app).
-const PACKS = [
-  { id:"common",    name:"Common",    price:500   }, // $5
-  { id:"rare",      name:"Rare",      price:1000  }, // $10
-  { id:"epic",      name:"Epic",      price:2500  }, // $25
-  { id:"legendary", name:"Legendary", price:10000 }, // $100
-  { id:"mythic",    name:"Mythic",    price:15000 }  // $150
-];
-const CENTER_PACK_INDEX = 2; // Epic — default starting/centered tier
+// PACKS and CENTER_PACK_INDEX now live in packs-section.html — fetched
+// and injected at runtime, along with the carousel that uses them.
 
 /* ==========================================================
    STATE — persisted to localStorage, shared across all pages
@@ -417,75 +312,14 @@ function renderHud(state, currentPage){
 let state = loadState();
 renderHud(state, "shop");
 
-let activePackId = PACKS[CENTER_PACK_INDEX].id; // single source of truth —
-                                                 // carousel scroll drives this,
-                                                 // Info strip + Hud/Footer both just read it
+// activePackId is declared by packs-section.html once it loads —
+// renderInfoStrip/renderBuyHud/buyPack below just read it by name.
 
-/* ---------------- MAIN > PACKS ---------------- */
-
-function renderCarousel(){
-  const carousel = document.getElementById("carousel");
-  carousel.innerHTML = PACKS.map(pack=>{
-    // the tier IS the rarity now — no more weighted odds across rarities,
-    // buying a tier guarantees that rarity
-    const rarClass = pack.id;
-
-    return `
-      <div class="pack-stage ${pack.id===activePackId?'is-active':''}" data-pack="${pack.id}">
-        <div class="stage-tier">${pack.name} Tier</div>
-        <div class="stage-art rar-${rarClass}">&#9670;</div>
-        <div class="stage-name">${pack.name}</div>
-        <div class="stat-row">
-          <div class="stat">
-            <div class="stat-label">Buy Price</div>
-            <div class="stat-value min">${fmt(pack.price)}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Redemption Value</div>
-            <div class="stat-value max">${fmt(pack.price)}</div>
-          </div>
-        </div>
-      </div>`;
-  }).join("");
-}
-
-// whichever card is nearest the carousel's center becomes "active" —
-// this is the link between PACKS, INFO, and the HUD/FOOTER
-function computeActivePack(){
-  const carousel = document.getElementById("carousel");
-  const carouselRect = carousel.getBoundingClientRect();
-  const carouselCenter = carouselRect.left + carouselRect.width / 2;
-
-  let closestId = activePackId;
-  let closestDist = Infinity;
-  carousel.querySelectorAll(".pack-stage").forEach(card=>{
-    const rect = card.getBoundingClientRect();
-    const cardCenter = rect.left + rect.width / 2;
-    const dist = Math.abs(cardCenter - carouselCenter);
-    if (dist < closestDist){
-      closestDist = dist;
-      closestId = card.dataset.pack;
-    }
-  });
-
-  if (closestId !== activePackId){
-    activePackId = closestId;
-    // just flip the active highlight, no full re-render (keeps scroll position stable)
-    carousel.querySelectorAll(".pack-stage").forEach(card=>{
-      card.classList.toggle("is-active", card.dataset.pack === activePackId);
-    });
-    renderInfoStrip();
-    renderBuyHud();
-  }
-}
-
-function centerOnActivePack(){
-  const carousel = document.getElementById("carousel");
-  const activeCard = carousel.querySelector(`[data-pack="${activePackId}"]`);
-  if (activeCard){
-    activeCard.scrollIntoView({ inline: "center", block: "nearest" });
-  }
-}
+/* ---------------- MAIN > PACKS ----------------
+   Now lives in packs-section.html, fetched and injected below.
+   It owns PACKS, CENTER_PACK_INDEX, and activePackId, and calls
+   renderInfoStrip()/renderBuyHud() (defined right below) whenever
+   the centered card changes. */
 
 /* ---------------- MAIN > INFO ---------------- */
 
@@ -525,24 +359,28 @@ function buyPack(packId){
   toast(pack.name + " added to your unopened packs.");
 }
 
-/* ---------------- Scroll wiring ---------------- */
+/* ---------------- Load MAIN > PACKS ----------------
+   Fetches packs-section.html and injects it into the page. Style
+   tags apply automatically on injection; script tags don't execute
+   via innerHTML, so they're pulled out and re-appended manually to
+   run in this same global scope (no iframe, no postMessage). */
 
-let scrollTick = false;
-document.getElementById("carousel").addEventListener("scroll", ()=>{
-  if (scrollTick) return;
-  scrollTick = true;
-  requestAnimationFrame(()=>{
-    computeActivePack();
-    scrollTick = false;
+fetch("packs-section.html")
+  .then(r => r.text())
+  .then(html => {
+    const mount = document.getElementById("packsSectionMount");
+    mount.innerHTML = html;
+    mount.querySelectorAll("script").forEach(oldScript => {
+      const newScript = document.createElement("script");
+      newScript.textContent = oldScript.textContent;
+      document.body.appendChild(newScript);
+      oldScript.remove();
+    });
+  })
+  .catch(err => {
+    console.error("Failed to load packs-section.html:", err);
+    toast("Couldn't load the Card Shop packs.");
   });
-}, {passive:true});
-
-/* ---------------- Init ---------------- */
-
-renderCarousel();
-renderInfoStrip();
-renderBuyHud();
-centerOnActivePack();
 </script>
 </body>
 </html>
