@@ -437,130 +437,48 @@ function buyPack(packId){
 }
 
 </script>
-<script>
-/* ==========================================================
-   PACKS SECTION — data, rendering, and scroll-driven selection
-   Owns: PACKS, CENTER_PACK_INDEX, activePackId
-   Calls out to (defined by the host page): fmt(), renderInfoStrip(), renderBuyHud()
-   ========================================================== */
-
-// The 5 rarity tiers, per the locked Popularity Ledger economics.
-// Buy Price = Redemption Value at every tier — no separate pack odds,
-// no separate pack pricing. Buying a tier guarantees that rarity;
-// which specific card design you get is randomized at rip time.
-// Chips are pegged at 100 chips = $1 (matches the rest of the app).
-const PACKS = [
-  { id:"common",    name:"Common",    price:500   }, // $5
-  { id:"rare",      name:"Rare",      price:1000  }, // $10
-  { id:"epic",      name:"Epic",      price:2500  }, // $25
-  { id:"legendary", name:"Legendary", price:10000 }, // $100
-  { id:"mythic",    name:"Mythic",    price:15000 }  // $150
-];
-const CENTER_PACK_INDEX = 2; // Epic — default starting/centered tier
-
-let activePackId = PACKS[CENTER_PACK_INDEX].id; // single source of truth —
-                                                 // carousel scroll drives this,
-                                                 // Info strip + Hud/Footer both just read it
-
-function renderCarousel(){
-  const carousel = document.getElementById("carousel");
-  carousel.innerHTML = PACKS.map(pack=>{
-    // the tier IS the rarity now — no more weighted odds across rarities,
-    // buying a tier guarantees that rarity
-    const rarClass = pack.id;
-
-    return `
-      <div class="pack-stage ${pack.id===activePackId?'is-active':''}" data-pack="${pack.id}">
-        <div class="stage-tier">${pack.name} Tier</div>
-        <div class="stage-art rar-${rarClass}">&#9670;</div>
-        <div class="stage-name">${pack.name}</div>
-        <div class="stat-row">
-          <div class="stat">
-            <div class="stat-label">Buy Price</div>
-            <div class="stat-value min">${fmt(pack.price)}</div>
-          </div>
-          <div class="stat">
-            <div class="stat-label">Redemption Value</div>
-            <div class="stat-value max">${fmt(pack.price)}</div>
-          </div>
-        </div>
-      </div>`;
-  }).join("");
-}
-
-// whichever card is nearest the carousel's center becomes "active" —
-// this is the link between this section and the host page's Info/HUD
-function computeActivePack(){
-  const carousel = document.getElementById("carousel");
-  const carouselRect = carousel.getBoundingClientRect();
-  const carouselCenter = carouselRect.left + carouselRect.width / 2;
-
-  let closestId = activePackId;
-  let closestDist = Infinity;
-  carousel.querySelectorAll(".pack-stage").forEach(card=>{
-    const rect = card.getBoundingClientRect();
-    const cardCenter = rect.left + rect.width / 2;
-    const dist = Math.abs(cardCenter - carouselCenter);
-    if (dist < closestDist){
-      closestDist = dist;
-      closestId = card.dataset.pack;
-    }
-  });
-
-  if (closestId !== activePackId){
-    activePackId = closestId;
-    // just flip the active highlight, no full re-render (keeps scroll position stable)
-    carousel.querySelectorAll(".pack-stage").forEach(card=>{
-      card.classList.toggle("is-active", card.dataset.pack === activePackId);
-    });
-    if (typeof renderInfoStrip === "function") renderInfoStrip();
-    if (typeof renderBuyHud === "function") renderBuyHud();
-  }
-}
-
-function centerOnActivePack(){
-  const carousel = document.getElementById("carousel");
-  const activeCard = carousel.querySelector(`[data-pack="${activePackId}"]`);
-  if (activeCard){
-    activeCard.scrollIntoView({ inline: "center", block: "nearest" });
-  }
-}
-
-/* ---------------- Scroll wiring (owned entirely by this section) ---------------- */
-
-let packsScrollTick = false;
-const carouselEl = document.getElementById("carousel");
-if (carouselEl){
-  carouselEl.addEventListener("scroll", ()=>{
-    if (packsScrollTick) return;
-    packsScrollTick = true;
-    requestAnimationFrame(()=>{
-      computeActivePack();
-      packsScrollTick = false;
-    });
-  }, {passive:true});
-}
-
-/* ---------------- Init ---------------- */
-
-if (carouselEl) renderCarousel();
-if (typeof renderInfoStrip === "function") renderInfoStrip();
-if (typeof renderBuyHud === "function") renderBuyHud();
-if (carouselEl) centerOnActivePack();
-</script>
 
 <script>
 fetch("packs-section.html")
   .then(r => r.text())
   .then(html => {
+    // packs-section.html is a full standalone document (own doctype/html/head/body).
+    // Dumping that raw string into a div's innerHTML is invalid nested HTML and
+    // browsers mangle it unpredictably — that's what was breaking both the cards
+    // and (via its own body{background} rule leaking in) the page background.
+    // Parse it properly instead, and pull out only what belongs in this page.
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+
+    // Pull just the #packs section markup — not its <html>/<head>/<body> wrapper.
+    const packsSection = parsed.getElementById("packs");
     const mount = document.getElementById("packsSectionMount");
-    mount.innerHTML = html;
-    mount.querySelectorAll("script").forEach(oldScript => {
+    if (packsSection){
+      mount.appendChild(packsSection);
+    }
+
+    // Pull its <style>, but strip the page-level rules (:root, *, html/body, body{background})
+    // that only make sense when packs-section.html is opened standalone — those would
+    // otherwise override this page's own tokens and background.
+    const parsedStyle = parsed.querySelector("style");
+    if (parsedStyle){
+      let css = parsedStyle.textContent;
+      css = css.replace(/:root\{[^}]*\}/, "");
+      css = css.replace(/\*\{box-sizing:border-box;\}/, "");
+      css = css.replace(/html,body\{margin:0;padding:0;\}/, "");
+      css = css.replace(/body\{[^}]*\}/, "");
+      const styleTag = document.createElement("style");
+      styleTag.textContent = css;
+      document.head.appendChild(styleTag);
+    }
+
+    // Pull its <script> content and execute it in this page's scope
+    // (script tags inserted via innerHTML/appendChild don't auto-run).
+    const parsedScript = parsed.querySelector("script");
+    if (parsedScript){
       const newScript = document.createElement("script");
-      newScript.textContent = oldScript.textContent;
+      newScript.textContent = parsedScript.textContent;
       document.body.appendChild(newScript);
-      oldScript.remove();
-    });
+    }
   })
   .catch(err => console.error("Failed to load packs-section.html:", err));
 </script>
