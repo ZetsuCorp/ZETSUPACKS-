@@ -5,116 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZETSU PACKZ</title>
 <style>
-  :root{
-    --brass:#D4AF6A;
-    --brass-dim:#8A7245;
-    --ink:#EDE6DC;
-    --muted:#6B6478;
-  }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
     background:#000;
-    color:var(--ink);
     min-height:100vh;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:22px;padding:40px 20px;
+    display:flex;align-items:center;justify-content:center;
   }
-  a{text-decoration:none;color:inherit;}
-
-  /* ---------- Wordmark hierarchy: Corporation -> Division -> Product ---------- */
-  .corp{
-    font-size:10px;letter-spacing:.45em;text-transform:uppercase;
-    color:var(--muted);font-weight:700;
-  }
-  .division{
-    font-size:12px;letter-spacing:.14em;text-transform:uppercase;
-    color:var(--brass-dim);font-weight:700;max-width:320px;text-align:center;line-height:1.5;
-  }
-  .title{
-    margin:6px 0 4px;font-size:clamp(38px,8vw,64px);font-weight:900;
-    letter-spacing:.06em;text-transform:uppercase;line-height:1;
-    color:var(--brass);text-align:center;
-  }
-
-  /* ---------- Pack stage — gives the container 3D perspective to rotate within ---------- */
-  .pack-stage{
-    perspective:1000px;
-  }
-
-  @keyframes move{
-    0%{ transform:rotateY(-20deg) rotateX(-5deg); }
-    25%{ transform:rotateY(20deg) rotateX(-5deg); }
-    50%{ transform:rotateY(20deg) rotateX(5deg); }
-    75%{ transform:rotateY(-20deg) rotateX(5deg); }
-    100%{ transform:rotateY(-20deg) rotateX(-5deg); }
-  }
-
-  /* ---------- Pack container — holds/frames the pack image, continuously tilts in 3D ---------- */
-  .pack-link{display:block;}
-  .pack-container{
-    width:220px;
-    position:relative;
-    border-radius:10px;
-    overflow:hidden;
-    cursor:pointer;
-    transform-style:preserve-3d;
-    animation:move 10s 0s infinite;
-    filter:drop-shadow(0 30px 50px rgba(0,0,0,.85));
-  }
-  .pack-img{
-    width:100%;height:auto;display:block;
-  }
-  /* room for future overlays: glow ring, foil sheen, badges, etc.
-     add ::before/::after or extra children inside .pack-container */
-
-  .enter-label{
-    font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--brass);font-weight:700;
-  }
-
-  @media (prefers-reduced-motion: reduce){
-    .pack-container{animation:none;}
+  a{display:block;line-height:0;}
+  .home-img{
+    display:block;
+    width:100%;
+    height:100vh;
+    object-fit:contain;
   }
 </style>
 </head>
 <body>
-  <div class="corp">The Zetsumetsu Corporation</div>
-  <div class="division">Zetsumetsu EOe &middot; TCG Collectors Shop</div>
-  <h1 class="title">Zetsu PackZ</h1>
-
-  <a class="pack-link" href="shop.html" aria-label="Enter Zetsu Packz">
-    <div class="pack-stage">
-      <div class="pack-container" id="enterPack">
-        <img class="pack-img" src="assets/S1pack.png" alt="Zetsumetsu Series 1 Card Pack">
-      </div>
-    </div>
+  <a href="shop.html" aria-label="Enter Zetsu Packz">
+    <img class="home-img" src="assets/zetsupkzhome.png" alt="Zetsu PackZ — Press to Start">
   </a>
-
-  <div class="enter-label">Tap to Enter</div>
-
-<script>
-  // self-contained state logic -- this page doesn't depend on any other file
-  const STORAGE_KEY = "vault_state_v1";
-  function defaultState(){
-    return { balance: 1000, collection: [], unopened: [], firstVisit: true };
-  }
-  function loadState(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return defaultState();
-      return Object.assign(defaultState(), JSON.parse(raw));
-    } catch(e){ return defaultState(); }
-  }
-  function saveState(state){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
-  }
-
-  const state = loadState();
-  if (state.firstVisit){
-    state.firstVisit = false;
-    saveState(state);
-  }
-</script>
 </body>
 </html>
