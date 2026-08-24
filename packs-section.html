@@ -32,7 +32,7 @@
   width:min(240px, 76vw);
   scroll-snap-align:center;
   background:linear-gradient(160deg,var(--panel-2),var(--panel));
-  border:1px solid var(--line);border-radius:10px;
+  border:3px solid var(--line);border-radius:10px;
   padding:22px 18px 18px;position:relative;overflow:hidden;
   display:flex;flex-direction:column;align-items:center;gap:14px;
   box-shadow:0 20px 45px -25px rgba(0,0,0,.6);
@@ -49,31 +49,32 @@
 .stage-art{
   width:120px;height:164px;border-radius:8px;
   display:flex;align-items:center;justify-content:center;font-size:46px;
-  border:1px solid var(--line);position:relative;
+  border:3px solid var(--line);position:relative;
 }
 .stage-tier{font-size:10px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;color:var(--brass);}
 .stage-name{font-size:19px;font-weight:900;text-transform:uppercase;line-height:1;text-align:center;}
 
 .stat-row{
   display:flex;width:100%;justify-content:space-between;
-  border-top:1px dashed var(--line);border-bottom:1px dashed var(--line);
+  border-top:3px dashed var(--line);border-bottom:3px dashed var(--line);
   padding:12px 0;margin-top:2px;
 }
 .stat{text-align:center;flex:1;}
 .stat .stat-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
-.stat .stat-value{font-size:13px;font-weight:800;}
-.stat .stat-value.min{color:var(--ink,#EDE6DC);}
-.stat .stat-value.max{color:var(--legendary);}
+.stat .stat-value{
+  font-size:15px;font-weight:700;color:#FFFFFF;
+  font-family:'Fredoka',sans-serif;letter-spacing:.02em;
+}
 
-.rar-common{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--common);}
+.rar-common{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--common);}
 .rar-common .tier,.rar-common .name{color:var(--common);}
-.rar-rare{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--rare);}
+.rar-rare{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--rare);}
 .rar-rare .tier,.rar-rare .name{color:var(--rare);}
-.rar-epic{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--epic);}
+.rar-epic{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--epic);}
 .rar-epic .tier,.rar-epic .name{color:var(--epic);}
-.rar-legendary{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid var(--legendary);}
+.rar-legendary{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid var(--legendary);}
 .rar-legendary .tier,.rar-legendary .name{color:var(--legendary);}
-.rar-mythic{background:linear-gradient(160deg,#1C1C1C,#101010);border:1px solid transparent;position:relative;}
+.rar-mythic{background:linear-gradient(160deg,#1C1C1C,#101010);border:3px solid transparent;position:relative;}
 .rar-mythic::after{content:"";position:absolute;inset:-1px;border-radius:inherit;z-index:-1;
   background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
 .rar-mythic .tier,.rar-mythic .name{
@@ -126,11 +127,11 @@ function renderCarousel(){
         <div class="stat-row">
           <div class="stat">
             <div class="stat-label">Buy Price</div>
-            <div class="stat-value min">${fmt(pack.price)}</div>
+            <div class="stat-value">${fmt(pack.price)}</div>
           </div>
           <div class="stat">
             <div class="stat-label">Redemption Value</div>
-            <div class="stat-value max">${fmt(pack.price)}</div>
+            <div class="stat-value">${fmt(pack.price)}</div>
           </div>
         </div>
       </div>`;
