@@ -136,8 +136,8 @@ body{
   pointer-events:none;
   transition:opacity .4s ease;
 }
-.pack-sparkles.behind{ z-index:0; }  /* below .pack-container (z-index:1) */
-.pack-sparkles.infront{ z-index:2; } /* above .pack-container (z-index:1) */
+.pack-sparkles.behind{ z-index:0; }  /* below .pack-container (z-index:1, or 3 when active) */
+.pack-sparkles.infront{ z-index:4; } /* above .pack-container even when active (z-index:3) */
 .pack-container.is-active ~ .pack-sparkles{
   opacity:1;
 }
