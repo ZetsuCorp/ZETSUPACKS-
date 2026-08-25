@@ -432,6 +432,24 @@ function toggleInfo(pillEl){
   if (card) card.classList.toggle("info-open");
 }
 
+/* ----------------------------------------------------------
+   SELECTION — shared by scroll snapping, clicking/tapping a
+   pack directly, and arrow-key navigation. Updates state,
+   flips the is-active class, refreshes the INFO/HUD strips,
+   and scrolls the chosen pack to center.
+   ---------------------------------------------------------- */
+function selectPack(id, smooth){
+  if (!id || id === activePackId) { centerOnActivePack(smooth); return; }
+  activePackId = id;
+  const carousel = document.getElementById("carousel");
+  carousel.querySelectorAll(".pack-container").forEach(card=>{
+    card.classList.toggle("is-active", card.dataset.pack === activePackId);
+  });
+  if (typeof renderInfoStrip === "function") renderInfoStrip();
+  if (typeof renderBuyHud === "function") renderBuyHud();
+  centerOnActivePack(smooth);
+}
+
 function computeActivePack(){
   const carousel = document.getElementById("carousel");
   const carouselRect = carousel.getBoundingClientRect();
@@ -459,11 +477,11 @@ function computeActivePack(){
   }
 }
 
-function centerOnActivePack(){
+function centerOnActivePack(smooth){
   const carousel = document.getElementById("carousel");
   const activeCard = carousel.querySelector(`[data-pack="${activePackId}"]`);
   if (activeCard){
-    activeCard.scrollIntoView({ inline: "center", block: "nearest" });
+    activeCard.scrollIntoView({ inline: "center", block: "nearest", behavior: smooth ? "smooth" : "auto" });
   }
 }
 
@@ -476,6 +494,31 @@ document.getElementById("carousel").addEventListener("scroll", ()=>{
     packsScrollTick = false;
   });
 }, {passive:true});
+
+/* Click/tap a pack anywhere on its card to bring it to center. */
+document.getElementById("carousel").addEventListener("click", (e)=>{
+  const card = e.target.closest(".pack-container");
+  if (!card) return;
+  selectPack(card.dataset.pack, true);
+});
+
+/* Left/Right arrow keys step to the previous/next pack. */
+document.addEventListener("keydown", (e)=>{
+  if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+  const tag = (document.activeElement && document.activeElement.tagName) || "";
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+  const idx = PACKS.findIndex(p => p.id === activePackId);
+  if (idx === -1) return;
+  const nextIdx = e.key === "ArrowLeft"
+    ? Math.max(0, idx - 1)
+    : Math.min(PACKS.length - 1, idx + 1);
+
+  if (nextIdx !== idx){
+    e.preventDefault();
+    selectPack(PACKS[nextIdx].id, true);
+  }
+});
 
 renderCarousel();
 if (typeof renderInfoStrip === "function") renderInfoStrip();
