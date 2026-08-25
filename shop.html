@@ -68,9 +68,6 @@ a{color:inherit;text-decoration:none;}
 .hud .navlink:hover{color:var(--ink);}
 .hud .navlink.current{background:var(--brass);color:#141414;}
 .hud .hud-stats{display:flex;align-items:center;gap:18px;}
-.hud .balance{text-align:right;}
-.hud .balance .label{font-size:9px;letter-spacing:.2em;color:#FFFFFF;text-transform:uppercase;}
-.hud .balance .amt{font-size:26px;font-weight:700;}
 .hud .packs-count{
   display:flex;align-items:center;gap:6px;
   color:var(--ink);border:3px solid var(--line);border-radius:20px;
@@ -228,36 +225,35 @@ const CARD_POOL = makeCardPool();
 // and injected at runtime, along with the carousel that uses them.
 
 /* ==========================================================
-   STATE — persisted to localStorage, shared across all pages
+   STATE — in-memory only, no local save
    ========================================================== */
 
-const STORAGE_KEY = "vault_state_v1";
-
 function defaultState(){
+  const now = Date.now(), day = 86400000;
   return {
     balance: 1000,
     collection: [],   // [{uid,name,rarity,glyph,value,ts}]
     unopened: [],     // [{uid,packId}]
-    firstVisit: true
+    firstVisit: true,
+    ledger: [
+      { type:"buy",       label:"Pack Buy — Ashen Cipher Pack",  amount:-25,  rarity:"rare",   ts: now - day },
+      { type:"sell",      label:"Card Sell — Iron Warden",       amount:8,    rarity:"common", ts: now - day*2 },
+      { type:"fusion",    label:"Fusion — Normal to Holo",       amount:-15,  ts: now - day*3 },
+      { type:"kickstart", label:"Kickstart — Next Deck Fund",    amount:-40,  ts: now - day*4 },
+      { type:"cashout",   label:"Gift Card Cash-Out",            amount:-150, ts: now - day*5 },
+      { type:"raffle",    label:"Raffle Entry",                  amount:-10,  ts: now - day*5 },
+      { type:"share",     label:"Share the App — Free Pack",     amount:0,    ts: now - day*6 },
+      { type:"sleeve",    label:"Sleeve Upgrade",                amount:-12,  ts: now - day*7 },
+      { type:"showcase",  label:"Showcase Slot",                 amount:-20,  ts: now - day*8 }
+    ]
   };
 }
 
 function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState();
-    const parsed = JSON.parse(raw);
-    return Object.assign(defaultState(), parsed);
-  } catch(e){
-    return defaultState();
-  }
+  return defaultState();
 }
 
-function saveState(state){
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch(e){ /* storage unavailable — state just won't persist */ }
-}
+function saveState(state){ /* no local save — state is in-memory only */ }
 
 /* ==========================================================
    HELPERS
@@ -304,16 +300,18 @@ function renderHud(state, currentPage){
       ${pages.map(p=>`<a class="navlink ${p.id===currentPage?'current':''}" href="${p.href}">${p.label}</a>`).join("")}
     </nav>
     <div class="hud-stats">
-      <a class="packs-count" href="index.html" title="Unopened packs">
-        <span class="icon">&#9670;</span>
-        <span class="num mono glow-num">${state.unopened.length}</span>
-      </a>
-      <div class="balance">
-        <div class="label">Chips</div>
-        <div class="amt mono glow-num">${fmt(state.balance)}</div>
-      </div>
+      <div id="walletMount"></div>
     </div>
   `;
+  // The wallet button itself lives in wallet-ledger.html and is fetched/injected
+  // once (see the fetch block near the bottom of this file). renderHud() rebuilds
+  // .hud-stats from scratch on every call (e.g. after buyPack), which would wipe
+  // that injected node out — so if it's already been fetched, move the same node
+  // back into the fresh mount instead of losing it, and refresh its amount.
+  if (window.walletNode){
+    document.getElementById("walletMount").appendChild(window.walletNode);
+    if (typeof renderWallet === "function") renderWallet(state);
+  }
 }
 </script>
 
@@ -323,6 +321,10 @@ function renderHud(state, currentPage){
    ========================================================== */
 
 let state = loadState();
+window.state = state; // wallet-ledger.html checks window.state to know whether
+                       // to use this page's real state or fall back to its own
+                       // standalone demo state — without this it can't see `state`
+                       // (a `let` binding isn't a window property on its own).
 renderHud(state, "shop");
 
 // activePackId is declared by packs-section.html once it loads —
@@ -417,6 +419,60 @@ fetch("packs-section.html")
     }
   })
   .catch(err => console.error("Failed to load packs-section.html:", err));
+</script>
+
+<script>
+fetch("wallet-ledger.html")
+  .then(r => r.text())
+  .then(html => {
+    // wallet-ledger.html is its own standalone document too — same reasoning
+    // as packs-section.html above: parse it properly and pull out only what
+    // belongs in this page, instead of dumping the raw string into innerHTML.
+    const parsed = new DOMParser().parseFromString(html, "text/html");
+
+    // Pull the wallet trigger button (#wallet) into the header's mount point,
+    // and cache the node itself so renderHud() can re-insert this same node
+    // (with its listeners intact) every time it rebuilds .hud-stats.
+    const walletDiv = parsed.getElementById("wallet");
+    const walletMount = document.getElementById("walletMount");
+    if (walletDiv && walletMount){
+      window.walletNode = walletDiv;
+      walletMount.appendChild(walletDiv);
+    }
+
+    // Pull the ledger overlay — it's a full-screen takeover, so it just needs
+    // to exist once anywhere in the body, not inside the header.
+    const ledgerOverlay = parsed.getElementById("ledgerOverlay");
+    if (ledgerOverlay){
+      document.body.appendChild(ledgerOverlay);
+    }
+
+    // Pull its <style>, stripping the standalone-page-only rules the same way
+    // packs-section.html's style is stripped above.
+    const parsedStyle = parsed.querySelector("style");
+    if (parsedStyle){
+      let css = parsedStyle.textContent;
+      css = css.replace(/:root\{[^}]*\}/, "");
+      css = css.replace(/\*\{box-sizing:border-box;\}/, "");
+      css = css.replace(/html,body\{margin:0;padding:0;\}/, "");
+      css = css.replace(/body\{[^}]*\}/, "");
+      const styleTag = document.createElement("style");
+      styleTag.textContent = css;
+      document.head.appendChild(styleTag);
+    }
+
+    // Pull its <script> and execute it in this page's scope. window.state
+    // already exists by this point (set above), so its self-boot block is
+    // skipped and it ends by calling renderWallet(window.state) +
+    // wireLedgerControls(window.state) against this page's real state.
+    const parsedScript = parsed.querySelector("script");
+    if (parsedScript){
+      const newScript = document.createElement("script");
+      newScript.textContent = parsedScript.textContent;
+      document.body.appendChild(newScript);
+    }
+  })
+  .catch(err => console.error("Failed to load wallet-ledger.html:", err));
 </script>
 </body>
 </html>
