@@ -28,16 +28,21 @@
   --mythic-b:#C77DFF;
   --mythic-c:#4FD1E5;
   --danger:#E8636B;
+  --card-w:clamp(120px, 17vh, 210px); /* drives pack card width; height follows via its own aspect-ratio */
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0;height:100%;overflow:hidden;}
 body{
   background:
     url('assets/packzbg.jpg') center / cover no-repeat,
     var(--bg);
   color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  min-height:100vh;
+  height:100vh;
+  height:100dvh; /* accounts for mobile browser chrome so nothing gets clipped under it */
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
 }
 a{color:inherit;text-decoration:none;}
 .mono{font-family:'Fredoka',sans-serif;font-weight:700;}
@@ -50,7 +55,7 @@ a{color:inherit;text-decoration:none;}
    SECTION: HEADER — top brand / nav / packs counter / balance
    ============================================================ */
 .hud{
-  position:sticky;top:0;z-index:50;
+  flex:0 0 auto;
   background:rgba(0,0,0,.92);backdrop-filter:blur(6px);
   border-bottom:3px solid var(--line);
   padding:14px 20px;
@@ -84,7 +89,15 @@ a{color:inherit;text-decoration:none;}
    SHARED — buttons, empty state, rarity theming, toast, modal
    (used across Main/Info/Packs, not section-specific)
    ============================================================ */
-.page{max-width:1080px;margin:0 auto;padding:28px 16px 60px;}
+.page{
+  max-width:1080px;width:100%;margin:0 auto;
+  padding:20px 16px;
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
 
 .btn{
   border:none;border-radius:3px;padding:12px 20px;font-size:13px;font-weight:800;
@@ -111,6 +124,17 @@ a{color:inherit;text-decoration:none;}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
 }
+
+@media (max-height: 560px){
+  :root{ --card-w:clamp(90px, 15vh, 210px); }
+  .hud{ padding:8px 16px; }
+  .hud .brand h1{ font-size:16px; }
+  .hud .balance .amt{ font-size:20px; }
+  .page{ padding:10px 16px; }
+  .info-strip{ padding:8px 14px; }
+  .info-strip .info-name{ font-size:22px; }
+  .buy-hud{ padding:8px 20px; }
+}
 </style>
 
 <style>
@@ -122,7 +146,7 @@ a{color:inherit;text-decoration:none;}
 /* ============================================================
    SECTION: MAIN > INFO — big rarity/tier header, right under the page header
    ============================================================ */
-#info{margin-bottom:6px;}
+#info{flex:0 0 auto;margin-bottom:6px;}
 .info-strip{
   display:flex;justify-content:space-between;align-items:center;
   background:var(--panel-2);border:3px solid var(--line);border-radius:6px;
@@ -137,13 +161,21 @@ a{color:inherit;text-decoration:none;}
    over there, not duplicated here.
    ============================================================ */
 
-.page{padding-bottom:110px;} /* leave room for the fixed bottom hud */
+#packsSectionMount{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  overflow:hidden;
+}
 
 /* ============================================================
-   SECTION: HUD / FOOTER — fixed bottom bar, buys the active pack
+   SECTION: HUD / FOOTER — bottom bar, buys the active pack.
+   Normal flow now (not fixed) — it's a flex child of <body>,
+   so the browser reserves its space instead of us guessing a
+   padding-bottom number to avoid it overlapping the page.
    ============================================================ */
 .buy-hud{
-  position:fixed;left:0;right:0;bottom:0;z-index:60;
+  flex:0 0 auto;
   background:rgba(0,0,0,.96);backdrop-filter:blur(6px);
   border-top:3px solid var(--line);
   padding:14px 20px;
