@@ -91,6 +91,29 @@ body{
   0%,100%{ transform:scale(1); opacity:.55; }
   50%{ transform:scale(.88); opacity:.35; }
 }
+
+/* ------------------------------------------------------------
+   ACTIVE PACK — grows larger than the resting deck instead of
+   floating upward, so the selected pack reads as pulled forward
+   in place, not lifted off the shelf.
+   ------------------------------------------------------------ */
+.pack-container.is-active{
+  z-index:3;
+  animation:pack-grow 3.4s ease-in-out infinite;
+  transform-origin:center center;
+  box-shadow:0 34px 64px -18px rgba(0,0,0,.65), 0 0 46px -10px var(--tier-b);
+}
+.pack-container.is-active::after{
+  animation:shadow-grow 3.4s ease-in-out infinite;
+}
+@keyframes pack-grow{
+  0%,100%{ transform:scale(1.08); }
+  50%{ transform:scale(1.13); }
+}
+@keyframes shadow-grow{
+  0%,100%{ transform:scale(1.08); opacity:.5; }
+  50%{ transform:scale(1.16); opacity:.4; }
+}
 .pack-container::before{
   content:"";
   position:absolute; inset:-40%;
