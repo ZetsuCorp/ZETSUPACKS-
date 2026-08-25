@@ -464,8 +464,7 @@ function goStage1(){
   pack.addEventListener("animationend", function onShakeEnd(e){
     if (e.animationName !== "pack-shake") return;
     pack.removeEventListener("animationend", onShakeEnd);
-    btn.textContent = "Continue";
-    btn.hidden = false;
+    goStage2(); // shake flows straight into the tear — no extra click to trigger the rip itself
   });
 }
 
