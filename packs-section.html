@@ -250,17 +250,36 @@ body{
 .pack-container.info-open .info-pill .chevron{ transform:rotate(180deg); }
 
 .info-panel{
-  max-height:0;
-  overflow:hidden;
-  transition:max-height .3s ease;
+  position:absolute;
+  inset:0;
+  z-index:5;
   display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:center;
+  gap:0;
+  background:rgba(8,8,8,.88);
+  backdrop-filter:blur(3px);
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .25s ease;
+  cursor:pointer;
 }
-.pack-container.info-open .info-panel{ max-height:80px; }
+.pack-container.info-open .info-panel{
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+.info-panel-row{
+  display:flex;
+  border-top:2px solid var(--line);
+  border-bottom:2px solid var(--line);
+}
 .info-stat{
   flex:1; text-align:center;
   padding:12px 6px 14px;
   border-right:2px solid var(--line);
-  border-top:2px solid var(--line);
 }
 .info-stat:last-child{ border-right:none; }
 .info-label{
@@ -378,25 +397,27 @@ function renderCarousel(){
           <div class="pack-stage">
             <img class="pack-art" src="${pack.art}" alt="${pack.name} pack">
             <div class="tier-layer"></div>
+            <div class="info-panel" onclick="toggleInfo(this)">
+              <div class="info-panel-row">
+                <div class="info-stat">
+                  <div class="info-label">Pull Rate</div>
+                  <div class="info-value">${pack.pullRate}</div>
+                </div>
+                <div class="info-stat">
+                  <div class="info-label">Pop. Rank</div>
+                  <div class="info-value tier-colored">${pack.popRank}</div>
+                </div>
+                <div class="info-stat">
+                  <div class="info-label">Value</div>
+                  <div class="info-value">${fmt(pack.price)}</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="pack-info">
             <div class="info-pill" onclick="toggleInfo(this)">
               Pack Info <span class="chevron">&#9662;</span>
-            </div>
-          </div>
-          <div class="info-panel">
-            <div class="info-stat">
-              <div class="info-label">Pull Rate</div>
-              <div class="info-value">${pack.pullRate}</div>
-            </div>
-            <div class="info-stat">
-              <div class="info-label">Pop. Rank</div>
-              <div class="info-value tier-colored">${pack.popRank}</div>
-            </div>
-            <div class="info-stat">
-              <div class="info-label">Value</div>
-              <div class="info-value">${fmt(pack.price)}</div>
             </div>
           </div>
         </div>
