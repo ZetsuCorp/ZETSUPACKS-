@@ -38,6 +38,9 @@ body{
   color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   min-height:100vh;
+  zoom:0.67; /* starting zoom level — browser's native zoom, not a CSS transform,
+                so layout, sticky header, and fixed footer all behave normally at
+                this scale, and the player can still zoom further from here. */
 }
 a{color:inherit;text-decoration:none;}
 .mono{font-family:'Fredoka',sans-serif;font-weight:700;}
