@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZETSU PACKZ — Pack Opening</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A0A0A;
+  --panel:#141414;
+  --panel-2:#1B1B1B;
+  --line:#3D3D3D;
+  --ink:#EDE6DC;
+  --muted:#8F8A82;
+  --brass:#D4AF6A;
+  --brass-dim:#8A7245;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  min-height:100vh;
+}
+
+/* Full-screen overlay footprint — same pattern as the ledger
+   overlay, so this drops into shop.html the same way wallet-ledger
+   does: fetched and injected, not copy-pasted. */
+#stage{
+  position:fixed; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:32px;
+  padding:20px;
+}
+
+/* ============================================================
+   PACK CONTAINER — same markup/CSS as packs-section.html, so the
+   pack being opened is visually identical to the one in the shop
+   carousel.
+   ============================================================ */
+.pack-slot{
+  flex:0 0 auto;
+  width:230px;
+  position:relative;
+}
+.pack-container{
+  width:100%;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  border-radius:18px;
+  background:linear-gradient(180deg, var(--panel-2), var(--panel) 55%, #0D0D0D);
+  border:1px solid var(--line);
+  overflow:hidden;
+  transform-style:preserve-3d;
+  transition:transform .35s cubic-bezier(.2,.8,.2,1), box-shadow .35s ease;
+  z-index:1;
+}
+.pack-container::after{
+  content:"";
+  position:absolute;
+  left:8%; right:8%; bottom:-26px;
+  height:34px;
+  background:radial-gradient(ellipse, rgba(0,0,0,.55), transparent 70%);
+  filter:blur(4px);
+  z-index:-1;
+}
+.pack-container::before{
+  content:"";
+  position:absolute; inset:-40%;
+  background:conic-gradient(from 0deg, var(--tier-a), var(--tier-b), var(--tier-c), var(--tier-a));
+  opacity:.22; /* brighter baseline glow than the resting carousel pack (.14) — this pack is the hero moment */
+  filter:blur(30px);
+  z-index:-1;
+}
+
+.deck-info{
+  display:flex; align-items:center;
+  gap:8px; white-space:nowrap;
+  padding:14px 16px 12px;
+  border-bottom:3px solid var(--line);
+}
+.deck-mark{
+  flex:0 0 auto;
+  width:18px;height:18px;
+  background:linear-gradient(135deg,var(--brass),var(--brass-dim));
+  clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
+}
+.deck-name{
+  font-size:11px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.deck-name b{ color:var(--ink); font-weight:700; }
+
+.pack-stage{
+  position:relative;
+  overflow:hidden;
+  aspect-ratio: 245 / 467;
+}
+.pack-art{
+  position:absolute;
+  width:155.51%;
+  left:-27.755%;
+  top:-17.559%;
+  height:auto;
+  display:block;
+  filter:drop-shadow(0 18px 26px rgba(0,0,0,.55));
+}
+.tier-layer{
+  position:absolute; inset:0;
+  z-index:2;
+  pointer-events:none;
+  overflow:hidden;
+}
+.tier-layer::before{
+  content:"";
+  position:absolute; inset:-20% -60%;
+  background:linear-gradient(100deg,
+    transparent 35%,
+    var(--tier-a) 47%,
+    var(--tier-b) 50%,
+    var(--tier-c) 53%,
+    transparent 65%);
+  opacity:.7; /* brighter sheen than the resting carousel pack (.55) */
+  mix-blend-mode:screen;
+  animation:sheen-sweep 4.5s ease-in-out infinite;
+}
+@keyframes sheen-sweep{
+  0%{ transform:translateX(-60%) translateY(-20%); }
+  50%{ transform:translateX(60%) translateY(20%); }
+  100%{ transform:translateX(-60%) translateY(-20%); }
+}
+
+/* ============================================================
+   SPARKLES — same two-layer system (behind/in-front) and same
+   twinkle keyframes as packs-section.html, reused rather than
+   redrawn. Point sets are denser and each sparkle runs bigger
+   and glows harder, since this is the hero moment, not the
+   resting carousel state.
+   ============================================================ */
+.pack-sparkles{
+  position:absolute;
+  inset:-46px;
+  opacity:1;
+  pointer-events:none;
+}
+.pack-sparkles.behind{ z-index:0; }
+.pack-sparkles.infront{ z-index:4; }
+
+.sparkle{
+  position:absolute;
+  border-radius:50%;
+  animation:sparkle-rise ease-in-out infinite;
+}
+.sparkle.white{
+  background:#FFFFFF;
+  box-shadow:0 0 5px 1px rgba(255,255,255,.6), 0 0 1px 0.5px #FFFFFF;
+}
+.sparkle.gold{
+  background:#F2D08A;
+  box-shadow:0 0 6px 1px rgba(242,208,138,.6), 0 0 1px 0.5px #F2D08A;
+}
+@keyframes sparkle-rise{
+  0%{ opacity:0; transform:translateY(6px) scale(.5); }
+  15%{ opacity:.65; transform:translateY(2px) scale(.85); }
+  50%{ opacity:.5; transform:translateY(-8px) scale(1); }
+  85%{ opacity:.35; transform:translateY(-16px) scale(.9); }
+  100%{ opacity:0; transform:translateY(-22px) scale(.6); }
+}
+
+/* Extra surge layer — only shown during the opening/tear beat,
+   for an additional burst of brighter sparkles on top of the
+   ambient field above. */
+.pack-sparkles.surge{
+  opacity:0;
+  transition:opacity .2s ease;
+}
+.pack-sparkles.surge.show{ opacity:1; }
+.pack-sparkles.surge .sparkle{
+  animation-duration:.6s;
+}
+
+/* Stage: idle, just-purchased. Gentle float, waiting on the player. */
+.pack-container.is-idle{
+  animation:idle-float 3.2s ease-in-out infinite;
+}
+@keyframes idle-float{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-10px); }
+}
+
+/* Stage: opening — a building shake/pulse once the player commits.
+   Runs once so it has a real end for animationend to fire on —
+   that's what unlocks the next Continue click. */
+.pack-container.is-opening{
+  animation:pack-shake 1.6s cubic-bezier(.36,.07,.19,.97) both;
+}
+@keyframes pack-shake{
+  0%{ transform:scale(1) rotate(0deg); }
+  10%{ transform:scale(1.02) rotate(-1deg); }
+  20%{ transform:scale(1.02) rotate(1deg); }
+  30%{ transform:scale(1.04) rotate(-1.5deg); }
+  40%{ transform:scale(1.04) rotate(1.5deg); }
+  50%{ transform:scale(1.06) rotate(-2deg); }
+  60%{ transform:scale(1.06) rotate(2deg); }
+  70%{ transform:scale(1.09) rotate(-2.5deg); }
+  80%{ transform:scale(1.09) rotate(2.5deg); }
+  90%{ transform:scale(1.14) rotate(-1deg); }
+  100%{ transform:scale(1.14) rotate(0deg); }
+}
+.pack-container.is-opening::before{
+  animation:tell-glow 1.6s ease-in-out both;
+}
+@keyframes tell-glow{
+  0%{ opacity:.22; }
+  100%{ opacity:.85; }
+}
+
+/* Stage: tear — the pack splits into two halves along a jagged
+   line and pulls apart. */
+.tear-half{
+  position:absolute; inset:0;
+  display:none;
+}
+.tear-half.show{ display:block; }
+.tear-half .pack-container{
+  transition:none; /* the tear keyframes drive movement, not the hover transition */
+}
+.tear-half.left.animate{
+  animation:tear-left .75s cubic-bezier(.36,.07,.4,.97) both;
+}
+.tear-half.right.animate{
+  animation:tear-right .75s cubic-bezier(.36,.07,.4,.97) both;
+}
+@keyframes tear-left{
+  0%{ transform:translate(0,0) rotate(0deg); opacity:1; }
+  100%{ transform:translate(-140px,26px) rotate(-22deg); opacity:0; }
+}
+@keyframes tear-right{
+  0%{ transform:translate(0,0) rotate(0deg); opacity:1; }
+  100%{ transform:translate(140px,26px) rotate(22deg); opacity:0; }
+}
+#flash{
+  position:fixed; inset:0;
+  background:#FFFFFF;
+  opacity:0;
+  pointer-events:none;
+  z-index:10;
+}
+#flash.hit{
+  animation:flash-pop .5s ease-out both;
+}
+@keyframes flash-pop{
+  0%{ opacity:0; }
+  30%{ opacity:.95; }
+  100%{ opacity:0; }
+}
+
+/* Presentation screen placeholder */
+#presentation{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  gap:18px;
+  text-align:center;
+}
+#presentation.show{ display:flex; }
+#presentation h2{
+  margin:0;
+  font-family:'Fredoka',sans-serif;
+  font-size:22px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.04em;
+}
+#presentation p{
+  margin:0; color:var(--muted); font-size:13px; max-width:340px;
+}
+
+.continue-btn{
+  border:none; border-radius:3px;
+  padding:14px 28px;
+  font-size:12px; font-weight:800;
+  letter-spacing:.12em; text-transform:uppercase;
+  background:var(--brass); color:#141414;
+  cursor:pointer;
+  transition:filter .15s ease, transform .1s ease, opacity .2s ease;
+}
+.continue-btn:hover{ filter:brightness(1.08); }
+.continue-btn:active{ transform:scale(.97); }
+.continue-btn[hidden]{ display:none; }
+</style>
+</head>
+<body>
+
+<div id="flash"></div>
+
+<div id="stage">
+  <div class="pack-slot" id="packSlot">
+    <div class="pack-container is-idle" id="packContainer">
+      <div class="deck-info">
+        <div class="deck-mark"></div>
+        <div class="deck-name">Deck · <b>ZETSUMETSU EOe</b></div>
+      </div>
+      <div class="pack-stage">
+        <img class="pack-art" id="packArt" alt="pack">
+        <div class="tier-layer"></div>
+      </div>
+    </div>
+    <div class="pack-sparkles behind" id="sparklesBehind"></div>
+    <div class="pack-sparkles infront" id="sparklesInfront"></div>
+    <div class="pack-sparkles infront surge" id="sparklesSurge"></div>
+  </div>
+
+  <div id="presentation">
+    <h2>Presentation Screen</h2>
+    <p>Card reveals go here — held for now, per current scope.</p>
+  </div>
+
+  <button class="continue-btn" id="continueBtn">Open Pack</button>
+</div>
+
+<script>
+/* ==========================================================
+   PACK DATA — same tier set as packs-section.html. The pack
+   being opened is picked by id via ?pack= in the URL (this is
+   how shop.html will hand off which pack was bought); falls
+   back to "epic" if none is given.
+   ========================================================== */
+const PACKS = [
+  { id:"common",    name:"Common",    art:"assets/S0pack.png", tierColors:["#8C8880","#ADA9A2","#6E6A64"] },
+  { id:"rare",      name:"Rare",      art:"assets/S0pack.png", tierColors:["#4FB6A8","#7FD8CC","#2E7A70"] },
+  { id:"epic",      name:"Epic",      art:"assets/S0pack.png", tierColors:["#9B6BD6","#C39BF0","#6B3FA0"] },
+  { id:"legendary", name:"Legendary", art:"assets/S0pack.png", tierColors:["#E8A23D","#F5C46B","#B8781F"] },
+  { id:"mythic",    name:"Mythic",    art:"assets/S0pack.png", tierColors:["#FF6B9D","#C77DFF","#4FD1E5"] }
+];
+
+function getSelectedPack(){
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get("pack");
+  return PACKS.find(p => p.id === id) || PACKS.find(p => p.id === "epic");
+}
+
+const selectedPack = getSelectedPack();
+
+const pack = document.getElementById("packContainer");
+const packArt = document.getElementById("packArt");
+const btn = document.getElementById("continueBtn");
+const presentation = document.getElementById("presentation");
+const packSlot = document.getElementById("packSlot");
+const flash = document.getElementById("flash");
+
+// Apply the selected pack's own tier colors and art — nothing
+// about the shine is hardcoded to one pack.
+const [tierA, tierB, tierC] = selectedPack.tierColors;
+pack.style.setProperty("--tier-a", tierA);
+pack.style.setProperty("--tier-b", tierB);
+pack.style.setProperty("--tier-c", tierC);
+packArt.src = selectedPack.art;
+packArt.alt = selectedPack.name + " pack";
+packArt.onerror = function(){
+  this.style.background = `linear-gradient(160deg, ${tierC}, #1B1B1B)`;
+};
+
+/* ----------------------------------------------------------
+   SPARKLES — reused point layout from packs-section.html,
+   doubled up (jittered copies) for a denser field, since this
+   moment should read brighter and busier than the resting
+   carousel pack.
+   ---------------------------------------------------------- */
+const SPARKLE_POINTS_BEHIND = [
+  {l:4,  t:6},  {l:16, t:1},  {l:30, t:5},  {l:46, t:0},  {l:62, t:4},
+  {l:78, t:1},  {l:92, t:7},  {l:97, t:22}, {l:99, t:40}, {l:98, t:58},
+  {l:95, t:76}, {l:88, t:92}, {l:72, t:98}, {l:55, t:100},{l:38, t:97},
+  {l:22, t:93}, {l:8,  t:88}, {l:1,  t:70}, {l:0,  t:50}, {l:2,  t:30},
+  {l:10, t:14}, {l:24, t:2},  {l:38, t:9},  {l:54, t:1},  {l:70, t:6},
+  {l:86, t:2},  {l:99, t:14}, {l:99, t:32}, {l:99, t:50}, {l:99, t:68},
+  {l:99, t:86}, {l:80, t:97}, {l:62, t:99}, {l:44, t:96}, {l:26, t:99},
+  {l:12, t:96}, {l:0,  t:82}, {l:0,  t:62}, {l:0,  t:42}, {l:0,  t:20}
+];
+const SPARKLE_POINTS_INFRONT = [
+  {l:22, t:18}, {l:68, t:14}, {l:45, t:32}, {l:80, t:46}, {l:14, t:50},
+  {l:60, t:62}, {l:30, t:74}, {l:76, t:82}, {l:48, t:92}, {l:10, t:86},
+  {l:36, t:10}, {l:88, t:28}, {l:56, t:48}, {l:6,  t:64}, {l:92, t:66},
+  {l:40, t:58}, {l:66, t:38}, {l:20, t:38}
+];
+
+function jitter(points, dl, dt){
+  return points.map(p => ({ l: Math.max(0, Math.min(100, p.l + dl)), t: Math.max(0, Math.min(100, p.t + dt)) }));
+}
+
+// Denser field: original points plus two offset passes — more,
+// smaller sparkles read better than fewer big ones.
+const BEHIND_DENSE = SPARKLE_POINTS_BEHIND
+  .concat(jitter(SPARKLE_POINTS_BEHIND, 3, -3))
+  .concat(jitter(SPARKLE_POINTS_BEHIND, -3, 3));
+const INFRONT_DENSE = SPARKLE_POINTS_INFRONT
+  .concat(jitter(SPARKLE_POINTS_INFRONT, -4, 4))
+  .concat(jitter(SPARKLE_POINTS_INFRONT, 4, -4));
+
+function makeSparkles(points, idOffset){
+  return points.map((p,i)=>{
+    const n = i + idOffset;
+    const gold = n % 3 === 0;
+    const size = 1.5 + (n % 4) * 0.5;      // small: 1.5–3px
+    const delay = ((n * 0.47) % 3).toFixed(2);
+    const duration = (1.3 + (n % 5) * 0.25).toFixed(2);
+    return `<span class="sparkle ${gold?'gold':'white'}" style="left:${p.l}%; top:${p.t}%; width:${size}px; height:${size}px; animation-delay:${delay}s; animation-duration:${duration}s;"></span>`;
+  }).join("");
+}
+
+document.getElementById("sparklesBehind").innerHTML = makeSparkles(BEHIND_DENSE, 0);
+document.getElementById("sparklesInfront").innerHTML = makeSparkles(INFRONT_DENSE, 20);
+document.getElementById("sparklesSurge").innerHTML = makeSparkles(INFRONT_DENSE, 60);
+const sparklesSurge = document.getElementById("sparklesSurge");
+
+/* ----------------------------------------------------------
+   TEAR HALVES — built from the real pack markup (cloned, not
+   redrawn), each shown through a clip-path that only reveals
+   its side of a jagged line down the middle. Both halves use
+   the same point list so the line matches with no gap.
+   ---------------------------------------------------------- */
+const TEAR_POINTS = [
+  {x:50,y:0}, {x:57,y:9}, {x:46,y:18}, {x:60,y:27}, {x:44,y:36},
+  {x:58,y:45}, {x:45,y:54}, {x:62,y:63}, {x:47,y:72}, {x:56,y:81},
+  {x:50,y:90}, {x:50,y:100}
+];
+function clipPath(points){
+  return "polygon(" + points.map(p=>`${p.x}% ${p.y}%`).join(",") + ")";
+}
+const leftClip = clipPath([{x:0,y:0}, ...TEAR_POINTS, {x:0,y:100}]);
+const rightClip = clipPath([{x:100,y:0}, ...TEAR_POINTS, {x:100,y:100}]);
+
+const leftHalf = document.createElement("div");
+leftHalf.className = "tear-half left";
+leftHalf.style.clipPath = leftClip;
+leftHalf.innerHTML = pack.outerHTML.replace('id="packContainer"', "");
+
+const rightHalf = document.createElement("div");
+rightHalf.className = "tear-half right";
+rightHalf.style.clipPath = rightClip;
+rightHalf.innerHTML = pack.outerHTML.replace('id="packContainer"', "");
+
+packSlot.appendChild(leftHalf);
+packSlot.appendChild(rightHalf);
+
+/* ==========================================================
+   STAGE MACHINE — every stage waits on a click. animationend
+   only tells us a CSS animation finished playing; it never
+   advances the stage on its own — the button click still does.
+   ========================================================== */
+let stage = 0;
+
+function goStage1(){
+  stage = 1;
+  btn.hidden = true;
+  pack.classList.remove("is-idle");
+  pack.classList.add("is-opening");
+  sparklesSurge.classList.add("show");
+
+  pack.addEventListener("animationend", function onShakeEnd(e){
+    if (e.animationName !== "pack-shake") return;
+    pack.removeEventListener("animationend", onShakeEnd);
+    btn.textContent = "Continue";
+    btn.hidden = false;
+  });
+}
+
+function goStage2(){
+  stage = 2;
+  btn.hidden = true;
+  pack.style.visibility = "hidden"; // the two halves take over the same spot
+  leftHalf.classList.add("show");
+  rightHalf.classList.add("show");
+  flash.classList.add("hit");
+
+  requestAnimationFrame(()=>{
+    leftHalf.classList.add("animate");
+    rightHalf.classList.add("animate");
+  });
+
+  rightHalf.addEventListener("animationend", function onTearEnd(e){
+    if (e.animationName !== "tear-right") return;
+    rightHalf.removeEventListener("animationend", onTearEnd);
+    goStage3(); // the rip itself is the trigger — screen changes right after it finishes, no extra click needed
+  });
+}
+
+function goStage3(){
+  stage = 3;
+  packSlot.style.display = "none";
+  presentation.classList.add("show");
+  btn.textContent = "Back to Shop";
+  btn.hidden = false;
+}
+
+function goStage4(){
+  stage = 4;
+  // In the real flow, this hands back to shop.html.
+  window.location.href = "shop.html";
+}
+
+btn.addEventListener("click", ()=>{
+  if (stage === 0) goStage1();
+  else if (stage === 1) goStage2();
+  else if (stage === 2) goStage3();
+  else if (stage === 3) goStage4();
+});
+</script>
+</body>
+</html>
