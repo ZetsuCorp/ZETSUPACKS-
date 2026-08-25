@@ -367,9 +367,7 @@ function buyPack(packId){
   state.balance -= pack.price;
   state.unopened.push({ uid: uid(), packId: pack.id });
   saveState(state);
-  renderHud(state, "shop"); // updates the HEADER's packs-count + balance
-  renderBuyHud();
-  toast(pack.name + " added to your unopened packs.");
+  window.location.href = `pack-opening.html?pack=${encodeURIComponent(pack.id)}`;
 }
 
 </script>
