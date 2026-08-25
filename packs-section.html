@@ -28,18 +28,9 @@ body{
   padding:40px 0;
 }
 
-#packs{
-  flex:1;
-  min-height:0;
-  width:100%;
-  display:flex;
-}
 .carousel{
-  flex:1;
-  min-height:0;
-  display:flex;align-items:center;gap:28px;
-  overflow-x:auto;overflow-y:visible;
-  padding:8px calc(50vw - 115px);
+  display:flex;gap:28px;overflow-x:auto;overflow-y:visible;
+  padding:30px calc(50vw - 115px) 50px;
   scroll-snap-type:x mandatory;
   scrollbar-width:none;
   width:100vw;
@@ -406,7 +397,7 @@ function renderCarousel(){
           <div class="pack-stage">
             <img class="pack-art" src="${pack.art}" alt="${pack.name} pack">
             <div class="tier-layer"></div>
-            <div class="info-panel" onclick="toggleInfo(this, event)">
+            <div class="info-panel" onclick="toggleInfo(this)">
               <div class="info-panel-row">
                 <div class="info-stat">
                   <div class="info-label">Pull Rate</div>
@@ -425,7 +416,7 @@ function renderCarousel(){
           </div>
 
           <div class="pack-info">
-            <div class="info-pill" onclick="toggleInfo(this, event)">
+            <div class="info-pill" onclick="toggleInfo(this)">
               Pack Info <span class="chevron">&#9662;</span>
             </div>
           </div>
@@ -436,8 +427,7 @@ function renderCarousel(){
   }).join("");
 }
 
-function toggleInfo(pillEl, evt){
-  if (evt) evt.stopPropagation(); // don't also trigger the carousel's card-select/recenter click handler
+function toggleInfo(pillEl){
   const card = pillEl.closest(".pack-container");
   if (card) card.classList.toggle("info-open");
 }
