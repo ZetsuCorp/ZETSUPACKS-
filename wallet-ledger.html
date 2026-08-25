@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZETSU PACKZ — Wallet / Personal Ledger</title>
+<style>
+:root{
+  --bg:#0A0A0A;
+  --panel:#141414;
+  --panel-2:#1C1C1C;
+  --line:#333333;
+  --ink:#EDE6DC;
+  --muted:#9A958E;
+  --brass:#D4AF6A;
+  --brass-dim:#8A7245;
+  --common:#8C8880;
+  --rare:#4FB6A8;
+  --epic:#9B6BD6;
+  --legendary:#E8A23D;
+  --mythic-a:#FF6B9D;
+  --mythic-b:#C77DFF;
+  --mythic-c:#4FD1E5;
+  --danger:#E8636B;
+  --good:#5FBF7A;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+.mono{font-family:'Fredoka',sans-serif;font-weight:700;}
+
+/* ============================================================
+   WALLET — header trigger. Chip balance only. No pack count.
+   Meant to sit inside the existing .hud-stats slot in the header.
+   ============================================================ */
+#walletTrigger{
+  display:flex;align-items:center;gap:10px;
+  background:transparent;border:3px solid var(--line);border-radius:20px;
+  padding:6px 16px;cursor:pointer;color:var(--ink);
+  transition:border-color .15s ease;
+}
+#walletTrigger:hover{border-color:var(--brass-dim);}
+#walletTrigger .wallet-label{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;}
+#walletTrigger .wallet-amt{font-size:20px;font-weight:800;color:#FFFFFF;letter-spacing:.02em;}
+#walletTrigger .wallet-icon{font-size:14px;color:var(--brass);}
+
+/* ============================================================
+   LEDGER OVERLAY — full-screen takeover
+   ============================================================ */
+#ledgerOverlay{
+  position:fixed;inset:0;z-index:200;
+  background:var(--bg);
+  display:none;
+  flex-direction:column;
+  overflow:hidden;
+}
+#ledgerOverlay.open{display:flex;}
+body.ledger-locked{overflow:hidden;}
+
+.ledger-top{
+  flex:none;
+  border-bottom:3px solid var(--line);
+  padding:20px;
+  display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+}
+.ledger-top .ledger-title-wrap{display:flex;flex-direction:column;gap:2px;}
+.ledger-top .mark{font-size:10px;letter-spacing:.28em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+.ledger-top h1{margin:0;font-size:24px;font-weight:900;text-transform:uppercase;letter-spacing:.02em;}
+.ledger-close{
+  background:transparent;border:3px solid var(--line);color:var(--ink);
+  width:40px;height:40px;border-radius:50%;font-size:18px;line-height:1;
+  cursor:pointer;flex:none;
+}
+.ledger-close:hover{border-color:var(--danger);color:var(--danger);}
+
+/* filter bar — Packs Bought / Packs Sold / Chip Allocation */
+.ledger-filters{
+  flex:none;
+  display:flex;gap:10px;flex-wrap:wrap;
+  padding:16px 20px;
+  border-bottom:3px solid var(--line);
+  background:var(--panel);
+}
+.ledger-filter{
+  flex:1 1 160px;
+  background:var(--panel-2);border:3px solid var(--line);border-radius:6px;
+  padding:10px 14px;cursor:pointer;text-align:left;color:var(--ink);
+  transition:border-color .15s ease;
+}
+.ledger-filter:hover{border-color:var(--brass-dim);}
+.ledger-filter.active{border-color:var(--brass);background:rgba(212,175,106,.08);}
+.ledger-filter .lf-label{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+.ledger-filter .lf-value{font-size:20px;font-weight:800;margin-top:2px;}
+
+/* body — swaps between transaction list and allocation breakdown */
+.ledger-body{flex:1;overflow-y:auto;padding:20px;max-width:820px;margin:0 auto;width:100%;}
+
+.ledger-empty{text-align:center;padding:60px 20px;color:var(--muted);border:3px dashed var(--line);border-radius:8px;}
+
+.ledger-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;border-bottom:1px solid var(--line);
+}
+.ledger-row:last-child{border-bottom:none;}
+.ledger-row .lr-left{display:flex;align-items:center;gap:12px;}
+.ledger-row .lr-dot{width:9px;height:9px;border-radius:50%;flex:none;}
+.ledger-row .lr-dot.mythic{background:linear-gradient(120deg,var(--mythic-a),var(--mythic-b),var(--mythic-c));}
+.ledger-row .lr-dot.legendary{background:var(--legendary);}
+.ledger-row .lr-dot.epic{background:var(--epic);}
+.ledger-row .lr-dot.rare{background:var(--rare);}
+.ledger-row .lr-dot.common{background:var(--common);}
+.ledger-row .lr-dot.system{background:var(--brass);}
+.ledger-row .lr-info{display:flex;flex-direction:column;gap:2px;}
+.ledger-row .lr-type{font-size:14px;font-weight:700;}
+.ledger-row .lr-ts{font-size:11px;color:var(--muted);}
+.ledger-row .lr-amt{font-size:16px;font-weight:800;font-family:'Fredoka',sans-serif;}
+.ledger-row .lr-amt.pos{color:var(--good);}
+.ledger-row .lr-amt.neg{color:var(--danger);}
+
+/* chip allocation breakdown view */
+.alloc-grid{display:flex;flex-direction:column;gap:12px;}
+.alloc-stat{
+  display:flex;justify-content:space-between;align-items:center;
+  background:var(--panel-2);border:3px solid var(--line);border-radius:6px;
+  padding:16px 18px;
+}
+.alloc-stat .as-label{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;}
+.alloc-stat .as-amt{font-size:22px;font-weight:800;}
+.alloc-stat .as-amt.pos{color:var(--good);}
+.alloc-stat .as-amt.neg{color:var(--danger);}
+.alloc-stat.net{border-color:var(--brass-dim);}
+.alloc-stat.net .as-amt{color:#FFFFFF;}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     WALLET — drop this markup into the header's .hud-stats slot
+     in place of the old packs-count element.
+     ============================================================ -->
+<div id="wallet">
+  <button id="walletTrigger" type="button" title="Open Personal Ledger">
+    <span class="wallet-icon">&#9670;</span>
+    <span class="wallet-label">Wallet</span>
+    <span class="wallet-amt mono" id="walletAmt">0</span>
+  </button>
+</div>
+
+<!-- ============================================================
+     LEDGER OVERLAY — full screen
+     ============================================================ -->
+<div id="ledgerOverlay">
+  <div class="ledger-top">
+    <div class="ledger-title-wrap">
+      <span class="mark">Zetsumetsu EOe</span>
+      <h1>Personal Ledger</h1>
+    </div>
+    <button class="ledger-close" id="ledgerCloseBtn" type="button" aria-label="Close">&times;</button>
+  </div>
+
+  <div class="ledger-filters">
+    <button class="ledger-filter" id="filterAll" data-filter="all">
+      <div class="lf-label">Show All</div>
+      <div class="lf-value mono" id="statAllCount">0</div>
+    </button>
+    <button class="ledger-filter" id="filterBought" data-filter="bought">
+      <div class="lf-label">Packs Bought</div>
+      <div class="lf-value mono" id="statBoughtCount">0</div>
+    </button>
+    <button class="ledger-filter" id="filterSold" data-filter="sold">
+      <div class="lf-label">Packs Sold</div>
+      <div class="lf-value mono" id="statSoldCount">0</div>
+    </button>
+    <button class="ledger-filter" id="filterAlloc" data-filter="allocation">
+      <div class="lf-label">Chip Allocation</div>
+      <div class="lf-value mono" id="statAllocValue">0</div>
+    </button>
+  </div>
+
+  <div class="ledger-body" id="ledgerBody"></div>
+</div>
+
+<script>
+/* ==========================================================
+   WALLET / PERSONAL LEDGER — shared component
+   Depends on the host page already having:
+     state          (the shared vault_state_v1 object)
+     saveState(s)   (persists it)
+     fmt(n)         (number formatter)
+   All of those already exist identically on shop.html, index.html,
+   collection.html, and redemption.html.
+   ========================================================== */
+
+/* ---- ledger entry types -------------------------------------
+   type: "buy"    — pack purchase          (always negative)
+   type: "sell"   — card sell / redemption (always positive)
+   type: "cashout"— gift card cash-out     (always negative, chips)
+   entry shape: { type, label, amount, rarity, ts }
+   rarity is optional — only buy/sell entries carry a tier dot.
+   ---------------------------------------------------------- */
+
+function ensureLedger(state){
+  if (!Array.isArray(state.ledger)) state.ledger = [];
+  return state;
+}
+
+function logTransaction(state, entry){
+  ensureLedger(state);
+  state.ledger.unshift(Object.assign({ ts: Date.now() }, entry));
+  saveState(state);
+}
+
+/* ---- WALLET (header) ---------------------------------------- */
+
+function renderWallet(state){
+  const amt = document.getElementById("walletAmt");
+  if (amt) amt.textContent = fmt(state.balance);
+}
+
+/* ---- LEDGER OVERLAY -------------------------------------------- */
+
+let ledgerFilter = "all";
+
+function openLedger(state){
+  ensureLedger(state);
+  document.body.classList.add("ledger-locked");
+  document.getElementById("ledgerOverlay").classList.add("open");
+  renderLedgerStats(state);
+  renderLedgerBody(state);
+}
+
+function closeLedger(){
+  document.body.classList.remove("ledger-locked");
+  document.getElementById("ledgerOverlay").classList.remove("open");
+}
+
+function renderLedgerStats(state){
+  const bought = state.ledger.filter(e => e.type === "buy");
+  const sold = state.ledger.filter(e => e.type === "sell");
+  const allocNet = state.ledger.reduce((sum, e) => sum + e.amount, 0);
+
+  document.getElementById("statAllCount").textContent = fmt(state.ledger.length);
+  document.getElementById("statBoughtCount").textContent = fmt(bought.length);
+  document.getElementById("statSoldCount").textContent = fmt(sold.length);
+  document.getElementById("statAllocValue").textContent = fmt(allocNet);
+
+  document.querySelectorAll(".ledger-filter").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.filter === ledgerFilter);
+  });
+}
+
+function renderLedgerBody(state){
+  const body = document.getElementById("ledgerBody");
+
+  if (ledgerFilter === "allocation"){
+    const spentOnPacks = state.ledger.filter(e=>e.type==="buy").reduce((s,e)=>s+Math.abs(e.amount),0);
+    const earnedFromSells = state.ledger.filter(e=>e.type==="sell").reduce((s,e)=>s+e.amount,0);
+    const cashedOut = state.ledger.filter(e=>e.type==="cashout").reduce((s,e)=>s+Math.abs(e.amount),0);
+    const net = earnedFromSells - spentOnPacks - cashedOut;
+
+    body.innerHTML = `
+      <div class="alloc-grid">
+        <div class="alloc-stat">
+          <div class="as-label">Spent on Packs</div>
+          <div class="as-amt mono neg">&minus;${fmt(spentOnPacks)}</div>
+        </div>
+        <div class="alloc-stat">
+          <div class="as-label">Earned from Sells</div>
+          <div class="as-amt mono pos">+${fmt(earnedFromSells)}</div>
+        </div>
+        <div class="alloc-stat">
+          <div class="as-label">Cashed Out</div>
+          <div class="as-amt mono neg">&minus;${fmt(cashedOut)}</div>
+        </div>
+        <div class="alloc-stat net">
+          <div class="as-label">Net Chip Allocation</div>
+          <div class="as-amt mono">${fmt(net)}</div>
+        </div>
+        <div class="alloc-stat">
+          <div class="as-label">Current Balance</div>
+          <div class="as-amt mono">${fmt(state.balance)}</div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  let rows = state.ledger;
+  if (ledgerFilter === "bought") rows = rows.filter(e => e.type === "buy");
+  if (ledgerFilter === "sold") rows = rows.filter(e => e.type === "sell");
+
+  if (!rows.length){
+    body.innerHTML = `<div class="ledger-empty">No activity yet.</div>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(entry=>{
+    const date = new Date(entry.ts);
+    const dateStr = date.toLocaleDateString(undefined, { month:"short", day:"numeric" }) + " \u00b7 " +
+                    date.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" });
+    const dotClass = entry.rarity ? entry.rarity : "system";
+    const isPos = entry.amount >= 0;
+    return `
+      <div class="ledger-row">
+        <div class="lr-left">
+          <span class="lr-dot ${dotClass}"></span>
+          <div class="lr-info">
+            <div class="lr-type">${entry.label}</div>
+            <div class="lr-ts">${dateStr}</div>
+          </div>
+        </div>
+        <div class="lr-amt ${isPos ? 'pos':'neg'} mono">${isPos ? '+' : '&minus;'}${fmt(Math.abs(entry.amount))}</div>
+      </div>`;
+  }).join("");
+}
+
+function wireLedgerControls(state){
+  document.getElementById("walletTrigger").addEventListener("click", ()=>openLedger(state));
+  document.getElementById("ledgerCloseBtn").addEventListener("click", closeLedger);
+  document.querySelectorAll(".ledger-filter").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      ledgerFilter = btn.dataset.filter;
+      renderLedgerStats(state);
+      renderLedgerBody(state);
+    });
+  });
+}
+
+/* ==========================================================
+   SELF-BOOT — only runs if the host page hasn't already defined
+   state / saveState / fmt (i.e. this file was opened directly,
+   not injected into shop/index/collection/redemption). When it
+   IS injected, those globals already exist and this whole block
+   is skipped — the host page is expected to call
+   renderWallet(state) + wireLedgerControls(state) itself once
+   this markup lands in the DOM.
+   ========================================================== */
+if (typeof window.fmt === "undefined"){
+  window.fmt = function(n){ return n.toLocaleString(); };
+}
+
+if (typeof window.state === "undefined"){
+  const STORAGE_KEY = "vault_state_v1";
+
+  function defaultState(){
+    return { balance: 1000, collection: [], unopened: [], firstVisit: true, ledger: [] };
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      return Object.assign(defaultState(), JSON.parse(raw));
+    } catch(e){ return defaultState(); }
+  }
+  window.saveState = function(s){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch(e){}
+  };
+
+  window.state = loadState();
+
+  // demo seed so a directly-opened file isn't just an empty ledger
+  if (!window.state.ledger.length){
+    const now = Date.now(), day = 86400000;
+    window.state.ledger = [
+      { type:"buy",  label:"Pack Buy — Ashen Cipher Pack", amount:-25,  rarity:"rare",      ts: now - day },
+      { type:"sell", label:"Card Sell — Iron Warden",      amount:8,    rarity:"common",    ts: now - day*2 },
+      { type:"cashout", label:"Gift Card Cash-Out",        amount:-150, ts: now - day*5 }
+    ];
+    window.saveState(window.state);
+  }
+}
+
+renderWallet(window.state);
+wireLedgerControls(window.state);
+</script>
+
+</body>
+</html>
