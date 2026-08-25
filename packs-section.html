@@ -1,3 +1,4 @@
+  
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,21 +26,15 @@ body{
   color:var(--ink);
   font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   min-height:100vh;
+  padding:40px 0;
 }
 
-#packs{
-  flex:1 1 auto;
-  min-height:0;
-  width:100%;
-  display:flex;
-}
 .carousel{
-  display:flex;gap:28px;overflow-x:auto;overflow-y:visible;align-items:center;
-  padding:24px calc(50vw - (var(--card-w, 210px) / 2));
+  display:flex;gap:28px;overflow-x:auto;overflow-y:visible;
+  padding:30px calc(50vw - 115px) 50px;
   scroll-snap-type:x mandatory;
   scrollbar-width:none;
   width:100vw;
-  height:100%;
   position:relative;
   left:50%;
   transform:translateX(-50%);
@@ -57,7 +52,7 @@ body{
 .pack-slot{
   flex:0 0 auto;
   scroll-snap-align:center;
-  width:var(--card-w, 210px);
+  width:230px;
   position:relative;
 }
 .pack-container{
