@@ -196,12 +196,37 @@ body.ledger-locked{overflow:hidden;}
    ========================================================== */
 
 /* ---- ledger entry types -------------------------------------
-   type: "buy"    — pack purchase          (always negative)
-   type: "sell"   — card sell / redemption (always positive)
-   type: "cashout"— gift card cash-out     (always negative, chips)
+   type: "buy"      — pack purchase          (always negative)
+   type: "sell"     — card sell / redemption (always positive)
+   type: "cashout"  — gift card cash-out     (always negative, chips)
+
+   Chip-Spend Ideas — gathering stage, no pricing locked, nothing
+   in production yet. Registered here now so these types are
+   already on file and logTransaction() doesn't need reshaping
+   later when pricing lands. All five are "Paid · Chips" (always
+   negative) and are pull-back spends, not tied to a specific pack:
+   type: "fusion"    — morph a card's finish (Normal → Holo → Holo Foil).
+                        Cosmetic only — never touches tier or redemption value.
+   type: "kickstart" — chips put toward funding the next deck's release
+                        (ties to real deck cost, $555+ per deck)
+   type: "raffle"    — chips spent on raffle entries (main pull-back
+                        mechanic — prizes are cards and/or cosmetics)
+   type: "sleeve"    — cosmetic border/sleeve upgrade, pure flex spend
+   type: "showcase"  — featured display slot for a player's best pulls
+
+   type: "share"     — Free · Growth. Sharing the app earns a free pack.
+                        NOT a chip sink — amount is always 0, this is an
+                        acquisition/growth lever, logged for history only
+                        and excluded from chip allocation totals.
+
    entry shape: { type, label, amount, rarity, ts }
    rarity is optional — only buy/sell entries carry a tier dot.
    ---------------------------------------------------------- */
+
+// Chip-Spend Ideas types — grouped so the allocation breakdown can
+// bucket them together as "Other Chip Spend" without hardcoding
+// each name in multiple places once pricing is locked.
+const CHIP_SPEND_TYPES = ["fusion", "kickstart", "raffle", "sleeve", "showcase"];
 
 function ensureLedger(state){
   if (!Array.isArray(state.ledger)) state.ledger = [];
@@ -260,22 +285,29 @@ function renderLedgerBody(state){
     const spentOnPacks = state.ledger.filter(e=>e.type==="buy").reduce((s,e)=>s+Math.abs(e.amount),0);
     const earnedFromSells = state.ledger.filter(e=>e.type==="sell").reduce((s,e)=>s+e.amount,0);
     const cashedOut = state.ledger.filter(e=>e.type==="cashout").reduce((s,e)=>s+Math.abs(e.amount),0);
-    const net = earnedFromSells - spentOnPacks - cashedOut;
+    const otherChipSpend = state.ledger.filter(e=>CHIP_SPEND_TYPES.includes(e.type)).reduce((s,e)=>s+Math.abs(e.amount),0);
+    const net = earnedFromSells - spentOnPacks - cashedOut - otherChipSpend;
+
+    if (!state.ledger.length){
+      body.innerHTML = `<div class="ledger-empty">No activity yet.</div>`;
+      return;
+    }
+
+    // Only report a category that actually happened — no zero-value
+    // placeholder rows for things that never occurred.
+    const rows = [];
+    if (spentOnPacks > 0) rows.push({label:"Spent on Packs", amt:spentOnPacks, cls:"neg", sign:"&minus;"});
+    if (earnedFromSells > 0) rows.push({label:"Earned from Sells", amt:earnedFromSells, cls:"pos", sign:"+"});
+    if (cashedOut > 0) rows.push({label:"Cashed Out", amt:cashedOut, cls:"neg", sign:"&minus;"});
+    if (otherChipSpend > 0) rows.push({label:"Other Chip Spend", amt:otherChipSpend, cls:"neg", sign:"&minus;"});
 
     body.innerHTML = `
       <div class="alloc-grid">
+        ${rows.map(r=>`
         <div class="alloc-stat">
-          <div class="as-label">Spent on Packs</div>
-          <div class="as-amt mono neg">&minus;${fmt(spentOnPacks)}</div>
-        </div>
-        <div class="alloc-stat">
-          <div class="as-label">Earned from Sells</div>
-          <div class="as-amt mono pos">+${fmt(earnedFromSells)}</div>
-        </div>
-        <div class="alloc-stat">
-          <div class="as-label">Cashed Out</div>
-          <div class="as-amt mono neg">&minus;${fmt(cashedOut)}</div>
-        </div>
+          <div class="as-label">${r.label}</div>
+          <div class="as-amt mono ${r.cls}">${r.sign}${fmt(r.amt)}</div>
+        </div>`).join("")}
         <div class="alloc-stat net">
           <div class="as-label">Net Chip Allocation</div>
           <div class="as-amt mono">${fmt(net)}</div>
@@ -344,34 +376,28 @@ if (typeof window.fmt === "undefined"){
 }
 
 if (typeof window.state === "undefined"){
-  const STORAGE_KEY = "vault_state_v1";
 
   function defaultState(){
     return { balance: 1000, collection: [], unopened: [], firstVisit: true, ledger: [] };
   }
-  function loadState(){
-    try{
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return defaultState();
-      return Object.assign(defaultState(), JSON.parse(raw));
-    } catch(e){ return defaultState(); }
-  }
-  window.saveState = function(s){
-    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch(e){}
-  };
 
-  window.state = loadState();
+  window.saveState = function(s){ /* no local save — demo state is in-memory only */ };
+
+  window.state = defaultState();
 
   // demo seed so a directly-opened file isn't just an empty ledger
-  if (!window.state.ledger.length){
-    const now = Date.now(), day = 86400000;
-    window.state.ledger = [
-      { type:"buy",  label:"Pack Buy — Ashen Cipher Pack", amount:-25,  rarity:"rare",      ts: now - day },
-      { type:"sell", label:"Card Sell — Iron Warden",      amount:8,    rarity:"common",    ts: now - day*2 },
-      { type:"cashout", label:"Gift Card Cash-Out",        amount:-150, ts: now - day*5 }
-    ];
-    window.saveState(window.state);
-  }
+  const now = Date.now(), day = 86400000;
+  window.state.ledger = [
+    { type:"buy",  label:"Pack Buy — Ashen Cipher Pack", amount:-25,  rarity:"rare",      ts: now - day },
+    { type:"sell", label:"Card Sell — Iron Warden",      amount:8,    rarity:"common",    ts: now - day*2 },
+    { type:"fusion",    label:"Fusion — Normal to Holo",         amount:-15, ts: now - day*3 },
+    { type:"kickstart", label:"Kickstart — Next Deck Fund",      amount:-40, ts: now - day*4 },
+    { type:"cashout", label:"Gift Card Cash-Out",        amount:-150, ts: now - day*5 },
+    { type:"raffle",    label:"Raffle Entry",                    amount:-10, ts: now - day*5 },
+    { type:"share", label:"Share the App — Free Pack",   amount:0,    ts: now - day*6 },
+    { type:"sleeve",    label:"Sleeve Upgrade",                  amount:-12, ts: now - day*7 },
+    { type:"showcase",  label:"Showcase Slot",                   amount:-20, ts: now - day*8 }
+  ];
 }
 
 renderWallet(window.state);
