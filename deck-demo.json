@@ -14,22 +14,24 @@
   "moveRule": "Each quarter, check every card's buys and sales counters against its current tier's number in moveThresholds. Whichever counter reaches that number first decides the move: buys reaching it first moves the card up one tier, sales reaching it first moves the card down one tier. Common is the floor and Mythic is the ceiling — neither can be crossed. After any move, both counters reset to 0 and the race restarts at the new tier.",
   "tiers": {
     "common": {
+      "cards": []
+    },
+    "rare": { "cards": [] },
+    "epic": {
       "cards": [
         {
-          "id": "common-iron-warden",
-          "name": "Iron Warden",
-          "image": "assets/cards/common/iron-warden.png",
+          "id": "epic-mikimbri",
+          "name": "Mikimbri",
+          "image": "https://aefd92791e.cbaul-cdnwnd.com/d10539437c0c9009ebf0318f1bb1b6c7/200000138-ad332ad334/700/Screenshot_20231221_081855.webp?ph=aefd92791e",
           "value": 5,
-          "originTier": "common",
-          "currentTier": "common",
-          "isPreset": false,
+          "originTier": "epic",
+          "currentTier": "epic",
+          "isPreset": true,
           "buys": 0,
           "sales": 0
         }
       ]
     },
-    "rare": { "cards": [] },
-    "epic": { "cards": [] },
     "legendary": { "cards": [] },
     "mythic": { "cards": [] }
   }
