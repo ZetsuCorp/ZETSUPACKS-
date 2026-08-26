@@ -221,48 +221,23 @@
 
 <script>
   /* ==========================================================
-     FETCH + HANDOFF — reads ?pack=<tier id> from the URL, fetches
-     one real card for that tier from Supabase, stores it in
-     sessionStorage, then hands off to pack-opening.html. The
-     animation above just runs on its own the whole time; this
-     doesn't touch it.
+     HANDOFF ONLY — the actual card pull and sales increment now
+     happen in shop.html's buyPack(), at the moment Buy is clicked,
+     not here. This page just carries sessionStorage["zetsu_drawn_cards"]
+     (already set by buyPack) through to pack-opening.html. The
+     animation above runs on its own the whole time; nothing here
+     touches it or Supabase.
      ========================================================== */
-
-  const SUPABASE_URL = "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
-  const DECK_NAME = "Season 0";
 
   function getPackIdFromUrl(){
     const params = new URLSearchParams(window.location.search);
     return params.get("pack") || "epic";
   }
 
-  async function fetchCardForTier(tier){
-    if (typeof window.supabase === "undefined") return null;
-    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // Starts with this pack's own tier — the majority case.
-    const own = await client.from("decks").select("*").eq("current_tier", tier);
-    if (!own.error && own.data && own.data.length){
-      return own.data[Math.floor(Math.random() * own.data.length)];
-    }
-
-    // Crossover — something from any tier can still show up.
-    const any = await client.from("decks").select("*");
-    if (any.error || !any.data || !any.data.length) return null;
-    return any.data[Math.floor(Math.random() * any.data.length)];
-  }
-
-  (async function main(){
-    const packId = getPackIdFromUrl();
-    const card = await fetchCardForTier(packId);
-    if (card){
-      sessionStorage.setItem("zetsu_drawn_card", JSON.stringify(card));
-    } else {
-      sessionStorage.removeItem("zetsu_drawn_card");
-    }
+  const packId = getPackIdFromUrl();
+  setTimeout(() => {
     window.location.href = `pack-opening.html?pack=${encodeURIComponent(packId)}`;
-  })();
+  }, 1400);
 </script>
 </body>
 </html>
