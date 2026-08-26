@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZETSU PACKZ — Loading</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after{
     padding:0;margin:0;box-sizing:border-box;
@@ -216,6 +217,59 @@
     sqr.div.style.setProperty('--a', sqr.a);
     sqr.div.innerHTML = '<div><span class="z-mark">Z</span></div>';
   }
+</script>
+
+<script>
+  /* ==========================================================
+     FETCH + HANDOFF — reads ?pack=<tier id> from the URL, fetches
+     one real card for that tier from Supabase, stores it in
+     sessionStorage, then hands off to pack-opening.html. The
+     animation above just runs on its own the whole time; this
+     doesn't touch it.
+     ========================================================== */
+
+  const SUPABASE_URL = "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
+  const DECK_NAME = "Season 0";
+
+  function getPackIdFromUrl(){
+    const params = new URLSearchParams(window.location.search);
+    return params.get("pack") || "epic";
+  }
+
+  async function fetchCardForTier(tier){
+    if (typeof window.supabase === "undefined"){
+      console.error("Supabase library failed to load.");
+      return null;
+    }
+    const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data, error } = await client
+      .from("popularity_ledger")
+      .select("card, cards(*)")
+      .eq("current_tier", tier)
+      .eq("deck", DECK_NAME);
+
+    if (error){
+      console.error("Supabase query failed:", error);
+      return null;
+    }
+    if (!data || !data.length) return null;
+    const pick = data[Math.floor(Math.random() * data.length)];
+    return pick.cards;
+  }
+
+  (async function main(){
+    const packId = getPackIdFromUrl();
+    const card = await fetchCardForTier(packId);
+
+    if (card){
+      sessionStorage.setItem("zetsu_drawn_card", JSON.stringify(card));
+    } else {
+      sessionStorage.removeItem("zetsu_drawn_card");
+    }
+
+    window.location.href = `pack-opening.html?pack=${encodeURIComponent(packId)}`;
+  })();
 </script>
 </body>
 </html>
