@@ -33,8 +33,8 @@ body{
 #stage{
   position:fixed; inset:0;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:32px;
-  padding:20px;
+  gap:24px;
+  padding:12px;
 }
 
 /* ============================================================
@@ -44,7 +44,12 @@ body{
    ============================================================ */
 .pack-slot{
   flex:0 0 auto;
-  width:230px;
+  /* Constrained by width AND height — the card's aspect ratio
+     (~1.9 tall) means a width-only clamp let it run off the top
+     and bottom of the screen on normal-height viewports. 38vh
+     keeps the whole card (art + deck-info bar) comfortably
+     inside the visible area, with room left for the button. */
+  width:clamp(240px, min(70vw, 38vh), 460px);
   position:relative;
 }
 .pack-container{
@@ -80,18 +85,18 @@ body{
 
 .deck-info{
   display:flex; align-items:center;
-  gap:8px; white-space:nowrap;
-  padding:14px 16px 12px;
-  border-bottom:3px solid var(--line);
+  gap:12px; white-space:nowrap;
+  padding:20px 22px 18px;
+  border-bottom:4px solid var(--line);
 }
 .deck-mark{
   flex:0 0 auto;
-  width:18px;height:18px;
+  width:26px;height:26px;
   background:linear-gradient(135deg,var(--brass),var(--brass-dim));
   clip-path:polygon(50% 0%,100% 50%,50% 100%,0% 50%);
 }
 .deck-name{
-  font-size:11px; font-weight:600; letter-spacing:.06em;
+  font-size:15px; font-weight:600; letter-spacing:.06em;
   text-transform:uppercase; color:var(--muted);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
@@ -145,7 +150,7 @@ body{
    ============================================================ */
 .pack-sparkles{
   position:absolute;
-  inset:-46px;
+  inset:-60px;
   opacity:1;
   pointer-events:none;
 }
@@ -239,11 +244,11 @@ body{
 }
 @keyframes tear-left{
   0%{ transform:translate(0,0) rotate(0deg); opacity:1; }
-  100%{ transform:translate(-140px,26px) rotate(-22deg); opacity:0; }
+  100%{ transform:translate(-180px,32px) rotate(-22deg); opacity:0; }
 }
 @keyframes tear-right{
   0%{ transform:translate(0,0) rotate(0deg); opacity:1; }
-  100%{ transform:translate(140px,26px) rotate(22deg); opacity:0; }
+  100%{ transform:translate(180px,32px) rotate(22deg); opacity:0; }
 }
 #flash{
   position:fixed; inset:0;
@@ -316,8 +321,9 @@ body{
   </div>
 
   <div id="presentation">
-    <h2>Presentation Screen</h2>
-    <p>Card reveals go here — held for now, per current scope.</p>
+    <img id="revealedCardImage" alt="" style="display:none; max-width:220px; border-radius:12px;">
+    <h2 id="revealedCardName">No Card Found</h2>
+    <p id="revealedCardFallback">Continuing without a card — nothing came back from the last fetch.</p>
   </div>
 
   <button class="continue-btn" id="continueBtn">Open Pack</button>
@@ -494,6 +500,25 @@ function goStage3(){
   presentation.classList.add("show");
   btn.textContent = "Back to Shop";
   btn.hidden = false;
+
+  const raw = sessionStorage.getItem("zetsu_drawn_card");
+  const img = document.getElementById("revealedCardImage");
+  const nameEl = document.getElementById("revealedCardName");
+  const fallbackEl = document.getElementById("revealedCardFallback");
+
+  if (raw){
+    try {
+      const card = JSON.parse(raw);
+      img.src = card.image;
+      img.alt = card.card || card.name || "Card";
+      img.style.display = "block";
+      nameEl.textContent = card.card || card.name || "Unknown Card";
+      fallbackEl.style.display = "none";
+    } catch(e){
+      console.error("Failed to parse drawn card from sessionStorage:", e);
+    }
+    sessionStorage.removeItem("zetsu_drawn_card"); // one-time reveal, don't leave it for the next pack
+  }
 }
 
 function goStage4(){
