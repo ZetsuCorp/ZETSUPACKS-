@@ -450,8 +450,13 @@ async function fetchOneCard(client, tier){
     }
   }
   if (card){
-    await client.from("decks").update({ sales: (card.sales || 0) + 1 }).eq("id", card.id);
-    card.sales = (card.sales || 0) + 1;
+    try {
+      await client.from("decks").update({ sales: (card.sales || 0) + 1 }).eq("id", card.id);
+      card.sales = (card.sales || 0) + 1;
+    } catch (e){
+      // The sales write failing must never cost the player the card
+      // they already found — the draw already succeeded above.
+    }
   }
   return card;
 }
