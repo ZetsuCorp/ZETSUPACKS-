@@ -516,8 +516,7 @@ async function getCardForTier(tier){
   const { data, error } = await supabaseClient
     .from("decks")
     .select("*")
-    .eq("card_tier", tier)
-    .eq("deck", "Season 0");
+    .eq("current_tier", tier);
   if (error){
     console.error("Supabase query failed:", error);
     return null;
