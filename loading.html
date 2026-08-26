@@ -249,8 +249,7 @@
     const { data, error } = await client
       .from("decks")
       .select("*")
-      .eq("card_tier", tier)
-      .eq("deck", DECK_NAME);
+      .eq("current_tier", tier);
 
     if (error){
       return { reason: `Supabase error: ${error.message || JSON.stringify(error)}` };
