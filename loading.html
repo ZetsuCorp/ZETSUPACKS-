@@ -240,12 +240,17 @@
   async function fetchCardForTier(tier){
     if (typeof window.supabase === "undefined") return null;
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const { data, error } = await client
-      .from("decks")
-      .select("*")
-      .eq("current_tier", tier);
-    if (error || !data || !data.length) return null;
-    return data[Math.floor(Math.random() * data.length)];
+
+    // Starts with this pack's own tier — the majority case.
+    const own = await client.from("decks").select("*").eq("current_tier", tier);
+    if (!own.error && own.data && own.data.length){
+      return own.data[Math.floor(Math.random() * own.data.length)];
+    }
+
+    // Crossover — something from any tier can still show up.
+    const any = await client.from("decks").select("*");
+    if (any.error || !any.data || !any.data.length) return null;
+    return any.data[Math.floor(Math.random() * any.data.length)];
   }
 
   (async function main(){
