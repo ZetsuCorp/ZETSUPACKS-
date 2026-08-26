@@ -40,14 +40,6 @@ body{
 }
 .carousel::-webkit-scrollbar{display:none;}
 
-/* ============================================================
-   PACK CONTAINER — one floating unit per pack, doubling as the
-   carousel item. Three zones: deck-info (single line) / pack-stage
-   (art + tier sheen) / pack-info (collapsible stat pill).
-   Every value below comes from the PACKS data array — nothing
-   here is hardcoded to one specific pack.
-   ============================================================ */
-
 .pack-slot{
   flex:0 0 auto;
   scroll-snap-align:center;
@@ -92,11 +84,6 @@ body{
   50%{ transform:scale(.88); opacity:.35; }
 }
 
-/* ------------------------------------------------------------
-   ACTIVE PACK — grows larger than the resting deck instead of
-   floating upward, so the selected pack reads as pulled forward
-   in place, not lifted off the shelf.
-   ------------------------------------------------------------ */
 .pack-container.is-active{
   z-index:3;
   animation:pack-grow 3.4s ease-in-out infinite;
@@ -123,12 +110,6 @@ body{
   z-index:-1;
 }
 
-/* ------------------------------------------------------------
-   ACTIVE-PACK SPARKLES — lives in pack-slot (not pack-container,
-   which has overflow:hidden and would clip it). A scatter of tiny
-   white/gold dots around the active pack, each twinkling on its
-   own cycle so some read solid and some read faded at any moment.
-   ------------------------------------------------------------ */
 .pack-sparkles{
   position:absolute;
   inset:-36px;
@@ -136,8 +117,8 @@ body{
   pointer-events:none;
   transition:opacity .4s ease;
 }
-.pack-sparkles.behind{ z-index:0; }  /* below .pack-container (z-index:1, or 3 when active) */
-.pack-sparkles.infront{ z-index:4; } /* above .pack-container even when active (z-index:3) */
+.pack-sparkles.behind{ z-index:0; }
+.pack-sparkles.infront{ z-index:4; }
 .pack-container.is-active ~ .pack-sparkles{
   opacity:1;
 }
@@ -344,10 +325,6 @@ const DECK_NAME = "ZETSUMETSU EOe";
 
 let activePackId = PACKS[CENTER_PACK_INDEX].id;
 
-// BEHIND layer: two staggered rings outside the card edges (in %
-// of the oversized .pack-sparkles box, which extends 36px past the
-// card on every side) — reads as a denser field of sparkles
-// floating around/behind the pack.
 const SPARKLE_POINTS_BEHIND = [
   {l:4,  t:6},  {l:16, t:1},  {l:30, t:5},  {l:46, t:0},  {l:62, t:4},
   {l:78, t:1},  {l:92, t:7},  {l:97, t:22}, {l:99, t:40}, {l:98, t:58},
@@ -359,9 +336,6 @@ const SPARKLE_POINTS_BEHIND = [
   {l:12, t:96}, {l:0,  t:82}, {l:0,  t:62}, {l:0,  t:42}, {l:0,  t:20}
 ];
 
-// IN-FRONT layer: dots scattered closer in and across the card
-// face itself, so sparkles also read as floating between the
-// viewer and the pack, not just behind it.
 const SPARKLE_POINTS_INFRONT = [
   {l:22, t:18}, {l:68, t:14}, {l:45, t:32}, {l:80, t:46}, {l:14, t:50},
   {l:60, t:62}, {l:30, t:74}, {l:76, t:82}, {l:48, t:92}, {l:10, t:86},
@@ -373,7 +347,7 @@ function makeSparkles(points, idOffset){
   return points.map((p,i)=>{
     const n = i + idOffset;
     const gold = n % 3 === 0;
-    const size = 3 + (n % 5);              // 3–7px
+    const size = 3 + (n % 5);
     const delay = ((n * 0.53) % 3).toFixed(2);
     const duration = (1.6 + (n % 5) * 0.3).toFixed(2);
     return `<span class="sparkle ${gold?'gold':'white'}" style="left:${p.l}%; top:${p.t}%; width:${size}px; height:${size}px; animation-delay:${delay}s; animation-duration:${duration}s;"></span>`;
@@ -432,12 +406,6 @@ function toggleInfo(pillEl){
   if (card) card.classList.toggle("info-open");
 }
 
-/* ----------------------------------------------------------
-   SELECTION — shared by scroll snapping, clicking/tapping a
-   pack directly, and arrow-key navigation. Updates state,
-   flips the is-active class, refreshes the INFO/HUD strips,
-   and scrolls the chosen pack to center.
-   ---------------------------------------------------------- */
 function selectPack(id, smooth){
   if (!id || id === activePackId) { centerOnActivePack(smooth); return; }
   activePackId = id;
@@ -495,14 +463,12 @@ document.getElementById("carousel").addEventListener("scroll", ()=>{
   });
 }, {passive:true});
 
-/* Click/tap a pack anywhere on its card to bring it to center. */
 document.getElementById("carousel").addEventListener("click", (e)=>{
   const card = e.target.closest(".pack-container");
   if (!card) return;
   selectPack(card.dataset.pack, true);
 });
 
-/* Left/Right arrow keys step to the previous/next pack. */
 document.addEventListener("keydown", (e)=>{
   if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
   const tag = (document.activeElement && document.activeElement.tagName) || "";
@@ -524,6 +490,70 @@ renderCarousel();
 if (typeof renderInfoStrip === "function") renderInfoStrip();
 if (typeof renderBuyHud === "function") renderBuyHud();
 centerOnActivePack();
+
+/* ==========================================================
+   SUPABASE CLIENT — connection is set up and ready, but the
+   card pool below still loads from season-0.json for now. Not
+   switched over yet because it's unconfirmed whether
+   supabase-schema.sql has actually been run against this
+   project — if the cards/popularity_ledger tables don't exist
+   yet, querying them would just error.
+   ========================================================== */
+const SUPABASE_URL = "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
+let supabaseClient = null;
+if (typeof window.supabase !== "undefined"){
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+/* ==========================================================
+   REAL CARD POOL — loaded once from season-0.json, keyed by
+   tier. Later this fetch gets swapped for a real Supabase query;
+   nothing that calls getCardForTier() needs to change when that
+   happens.
+   ========================================================== */
+let CARD_POOL_BY_TIER = { common:[], rare:[], epic:[], legendary:[], mythic:[] };
+let cardPoolLoaded = false;
+
+fetch("season-0.json")
+  .then(r => r.json())
+  .then(deck => {
+    Object.keys(deck.tiers).forEach(tier => {
+      CARD_POOL_BY_TIER[tier] = deck.tiers[tier].cards;
+    });
+    cardPoolLoaded = true;
+  })
+  .catch(err => console.error("Failed to load season-0.json:", err));
+
+/* Just go get a card and put it in the pack — no cross-tier odds,
+   no popularity weighting. Picks one card at random from that
+   tier's pool. Returns null if the pool for that tier is empty
+   or hasn't loaded yet — callers need to handle that case. */
+/* Queries Supabase directly now — popularity_ledger holds each
+   card's current_tier, joined to cards for the actual name/image.
+   Falls back to the local season-0.json pool only if the Supabase
+   client isn't available at all. Async now (network call), so
+   every caller needs to await this. */
+async function getCardForTier(tier){
+  if (supabaseClient){
+    const { data, error } = await supabaseClient
+      .from("popularity_ledger")
+      .select("card, cards(*)")
+      .eq("current_tier", tier)
+      .eq("deck", "Season 0");
+    if (error){
+      console.error("Supabase query failed:", error);
+      return null;
+    }
+    if (!data || !data.length) return null;
+    const pick = data[Math.floor(Math.random() * data.length)];
+    return pick.cards;
+  }
+  const pool = CARD_POOL_BY_TIER[tier];
+  if (!pool || !pool.length) return null;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 </script>
 </body>
 </html>
