@@ -48,21 +48,21 @@ create table popularity_ledger (
 
 insert into cards (id, deck, card, image, value, origin_tier, is_preset)
 values (
-  'common-iron-warden',
+  'epic-mikimbri',
   'Season 0',
-  'Iron Warden',
-  'assets/cards/common/iron-warden.png',
+  'Mikimbri',
+  'https://aefd92791e.cbaul-cdnwnd.com/d10539437c0c9009ebf0318f1bb1b6c7/200000138-ad332ad334/700/Screenshot_20231221_081855.webp?ph=aefd92791e',
   5,
-  'common',
-  false
+  'epic',
+  true
 );
 
 insert into popularity_ledger (card, deck, current_tier, threshold, buys, sales)
 values (
-  'common-iron-warden',
+  'epic-mikimbri',
   'Season 0',
-  'common',
-  371250,   -- Common -> Rare threshold, since this card is currently at Common
+  'epic',
+  216000,
   0,
   0
 );
