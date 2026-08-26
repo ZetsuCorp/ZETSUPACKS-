@@ -492,12 +492,9 @@ if (typeof renderBuyHud === "function") renderBuyHud();
 centerOnActivePack();
 
 /* ==========================================================
-   SUPABASE CLIENT — connection is set up and ready, but the
-   card pool below still loads from season-0.json for now. Not
-   switched over yet because it's unconfirmed whether
-   supabase-schema.sql has actually been run against this
-   project — if the cards/popularity_ledger tables don't exist
-   yet, querying them would just error.
+   SUPABASE CLIENT — the only source for cards. No local file,
+   no fallback pool. If this client isn't available, there is
+   no card, full stop.
    ========================================================== */
 const SUPABASE_URL = "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
@@ -506,52 +503,27 @@ if (typeof window.supabase !== "undefined"){
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
-/* ==========================================================
-   REAL CARD POOL — loaded once from season-0.json, keyed by
-   tier. Later this fetch gets swapped for a real Supabase query;
-   nothing that calls getCardForTier() needs to change when that
-   happens.
-   ========================================================== */
-let CARD_POOL_BY_TIER = { common:[], rare:[], epic:[], legendary:[], mythic:[] };
-let cardPoolLoaded = false;
-
-fetch("season-0.json")
-  .then(r => r.json())
-  .then(deck => {
-    Object.keys(deck.tiers).forEach(tier => {
-      CARD_POOL_BY_TIER[tier] = deck.tiers[tier].cards;
-    });
-    cardPoolLoaded = true;
-  })
-  .catch(err => console.error("Failed to load season-0.json:", err));
-
-/* Just go get a card and put it in the pack — no cross-tier odds,
-   no popularity weighting. Picks one card at random from that
-   tier's pool. Returns null if the pool for that tier is empty
-   or hasn't loaded yet — callers need to handle that case. */
-/* Queries Supabase directly now — popularity_ledger holds each
-   card's current_tier, joined to cards for the actual name/image.
-   Falls back to the local season-0.json pool only if the Supabase
-   client isn't available at all. Async now (network call), so
-   every caller needs to await this. */
+/* Pulls one card for a tier straight from the decks table.
+   No join, no second table. Returns null if Supabase isn't
+   available or that tier has no rows for this deck — callers
+   handle that case. Async (network call), so every caller
+   needs to await this. */
 async function getCardForTier(tier){
-  if (supabaseClient){
-    const { data, error } = await supabaseClient
-      .from("popularity_ledger")
-      .select("card, cards(*)")
-      .eq("current_tier", tier)
-      .eq("deck", "Season 0");
-    if (error){
-      console.error("Supabase query failed:", error);
-      return null;
-    }
-    if (!data || !data.length) return null;
-    const pick = data[Math.floor(Math.random() * data.length)];
-    return pick.cards;
+  if (!supabaseClient){
+    console.error("Supabase client not available — no card source.");
+    return null;
   }
-  const pool = CARD_POOL_BY_TIER[tier];
-  if (!pool || !pool.length) return null;
-  return pool[Math.floor(Math.random() * pool.length)];
+  const { data, error } = await supabaseClient
+    .from("decks")
+    .select("*")
+    .eq("current_tier", tier)
+    .eq("deck", "Season 0");
+  if (error){
+    console.error("Supabase query failed:", error);
+    return null;
+  }
+  if (!data || !data.length) return null;
+  return data[Math.floor(Math.random() * data.length)];
 }
 
 </script>
