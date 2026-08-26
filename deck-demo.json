@@ -1,0 +1,36 @@
+{
+  "deck": "Season 0",
+  "baseCardValue": 5,
+  "floor": "common",
+  "ceiling": "mythic",
+  "reviewCadence": "quarterly",
+  "presetTierNote": "A small handful of cards are seeded into the deck at launch already sitting above Common — at Rare, Epic, Legendary, or Mythic — bypassing the Common-start / $5-base rule entirely. Which cards those are, which tier each starts at, and their launch values, live on the individual card entries (isPreset: true, originTier set to whatever tier they launched at).",
+  "moveThresholds": {
+    "common": 371250,
+    "rare": 302400,
+    "epic": 216000,
+    "legendary": 135000
+  },
+  "moveRule": "Each quarter, check every card's buys and sales counters against its current tier's number in moveThresholds. Whichever counter reaches that number first decides the move: buys reaching it first moves the card up one tier, sales reaching it first moves the card down one tier. Common is the floor and Mythic is the ceiling — neither can be crossed. After any move, both counters reset to 0 and the race restarts at the new tier.",
+  "tiers": {
+    "common": {
+      "cards": [
+        {
+          "id": "common-iron-warden",
+          "name": "Iron Warden",
+          "image": "assets/cards/common/iron-warden.png",
+          "value": 5,
+          "originTier": "common",
+          "currentTier": "common",
+          "isPreset": false,
+          "buys": 0,
+          "sales": 0
+        }
+      ]
+    },
+    "rare": { "cards": [] },
+    "epic": { "cards": [] },
+    "legendary": { "cards": [] },
+    "mythic": { "cards": [] }
+  }
+}
