@@ -503,26 +503,23 @@ if (typeof window.supabase !== "undefined"){
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
-/* Pulls one card for a tier straight from the decks table.
-   No join, no second table. Returns null if Supabase isn't
-   available or that tier has no rows for this deck — callers
-   handle that case. Async (network call), so every caller
-   needs to await this. */
+/* Pulls one card for a tier from the decks table. Starts with this
+   pack's own tier — the majority case. If nothing matches, falls
+   back to any card in the table, since crossover from other tiers
+   can still happen. Returns null only if Supabase isn't available
+   or the table is genuinely empty. Async, so every caller awaits. */
 async function getCardForTier(tier){
   if (!supabaseClient){
     console.error("Supabase client not available — no card source.");
     return null;
   }
-  const { data, error } = await supabaseClient
-    .from("decks")
-    .select("*")
-    .eq("current_tier", tier);
-  if (error){
-    console.error("Supabase query failed:", error);
-    return null;
+  const own = await supabaseClient.from("decks").select("*").eq("current_tier", tier);
+  if (!own.error && own.data && own.data.length){
+    return own.data[Math.floor(Math.random() * own.data.length)];
   }
-  if (!data || !data.length) return null;
-  return data[Math.floor(Math.random() * data.length)];
+  const any = await supabaseClient.from("decks").select("*");
+  if (any.error || !any.data || !any.data.length) return null;
+  return any.data[Math.floor(Math.random() * any.data.length)];
 }
 
 </script>
