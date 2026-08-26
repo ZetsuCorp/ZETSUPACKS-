@@ -237,34 +237,40 @@
     return params.get("pack") || "epic";
   }
 
+  // Returns { card } on success, or { reason } on failure — reason is
+  // the literal Supabase error (or a specific description), stored and
+  // shown on the pack-opening screen so the real cause is visible
+  // without opening devtools.
   async function fetchCardForTier(tier){
     if (typeof window.supabase === "undefined"){
-      console.error("Supabase library failed to load.");
-      return null;
+      return { reason: "Supabase library failed to load from the CDN." };
     }
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const { data, error } = await client
       .from("decks")
       .select("*")
-      .eq("current_tier", tier)
+      .eq("card_tier", tier)
       .eq("deck", DECK_NAME);
 
     if (error){
-      console.error("Supabase query failed:", error);
-      return null;
+      return { reason: `Supabase error: ${error.message || JSON.stringify(error)}` };
     }
-    if (!data || !data.length) return null;
-    return data[Math.floor(Math.random() * data.length)];
+    if (!data || !data.length){
+      return { reason: `Query succeeded but returned 0 rows for tier="${tier}", deck="${DECK_NAME}".` };
+    }
+    return { card: data[Math.floor(Math.random() * data.length)] };
   }
 
   (async function main(){
     const packId = getPackIdFromUrl();
-    const card = await fetchCardForTier(packId);
+    const result = await fetchCardForTier(packId);
 
-    if (card){
-      sessionStorage.setItem("zetsu_drawn_card", JSON.stringify(card));
+    if (result.card){
+      sessionStorage.setItem("zetsu_drawn_card", JSON.stringify(result.card));
+      sessionStorage.removeItem("zetsu_drawn_card_error");
     } else {
       sessionStorage.removeItem("zetsu_drawn_card");
+      sessionStorage.setItem("zetsu_drawn_card_error", result.reason);
     }
 
     window.location.href = `pack-opening.html?pack=${encodeURIComponent(packId)}`;
