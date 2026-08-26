@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZETSU PACKZ — Pack Shop</title>
@@ -408,7 +409,7 @@ function buyPack(packId){
   state.balance -= pack.price;
   state.unopened.push({ uid: uid(), packId: pack.id });
   saveState(state);
-  window.location.href = `pack-opening.html?pack=${encodeURIComponent(pack.id)}`;
+  window.location.href = `loading.html?pack=${encodeURIComponent(pack.id)}`;
 }
 
 </script>
