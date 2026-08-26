@@ -244,8 +244,8 @@
     }
     const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const { data, error } = await client
-      .from("popularity_ledger")
-      .select("card, cards(*)")
+      .from("decks")
+      .select("*")
       .eq("current_tier", tier)
       .eq("deck", DECK_NAME);
 
@@ -254,8 +254,7 @@
       return null;
     }
     if (!data || !data.length) return null;
-    const pick = data[Math.floor(Math.random() * data.length)];
-    return pick.cards;
+    return data[Math.floor(Math.random() * data.length)];
   }
 
   (async function main(){
