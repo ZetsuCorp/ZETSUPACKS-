@@ -293,31 +293,31 @@ const PACKS = [
     id:"common", name:"Common", price:500,
     art:"assets/S0pack.png",
     tierColors:["#8C8880","#ADA9A2","#6E6A64"],
-    pullRate:"55%", popRank:"#5"
+    cardCount:"3–5", popRank:"#5"
   },
   {
     id:"rare", name:"Rare", price:1000,
     art:"assets/S0pack.png",
     tierColors:["#4FB6A8","#7FD8CC","#2E7A70"],
-    pullRate:"28%", popRank:"#4"
+    cardCount:"3–5", popRank:"#4"
   },
   {
     id:"epic", name:"Epic", price:2500,
     art:"assets/S0pack.png",
     tierColors:["#9B6BD6","#C39BF0","#6B3FA0"],
-    pullRate:"11%", popRank:"#3"
+    cardCount:"3–5", popRank:"#3"
   },
   {
     id:"legendary", name:"Legendary", price:10000,
     art:"assets/S0pack.png",
     tierColors:["#E8A23D","#F5C46B","#B8781F"],
-    pullRate:"5%", popRank:"#2"
+    cardCount:"3–5", popRank:"#2"
   },
   {
     id:"mythic", name:"Mythic", price:15000,
     art:"assets/S0pack.png",
     tierColors:["#FF6B9D","#C77DFF","#4FD1E5"],
-    pullRate:"0.8%", popRank:"#1"
+    cardCount:"3–5", popRank:"#1"
   }
 ];
 const CENTER_PACK_INDEX = 2;
@@ -374,8 +374,8 @@ function renderCarousel(){
             <div class="info-panel" onclick="toggleInfo(this)">
               <div class="info-panel-row">
                 <div class="info-stat">
-                  <div class="info-label">Pull Rate</div>
-                  <div class="info-value">${pack.pullRate}</div>
+                  <div class="info-label">Cards</div>
+                  <div class="info-value">${pack.cardCount}</div>
                 </div>
                 <div class="info-stat">
                   <div class="info-label">Pop. Rank</div>
