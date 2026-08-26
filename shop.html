@@ -403,12 +403,83 @@ function renderBuyHud(){
   document.getElementById("buyHudBtn").addEventListener("click", ()=>buyPack(activePackId));
 }
 
-function buyPack(packId){
+const SUPABASE_URL = "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
+
+const COMMON_PACK_ODDS = [
+  { tier: "common",    weight: 80 },
+  { tier: "epic",      weight: 10 },
+  { tier: "legendary", weight: 8  },
+  { tier: "mythic",    weight: 2  }
+];
+
+function rollTier(tier){
+  if (tier !== "common") return tier; // only common's odds are defined so far
+  const r = Math.random() * 100;
+  let acc = 0;
+  for (const entry of COMMON_PACK_ODDS){
+    acc += entry.weight;
+    if (r < acc) return entry.tier;
+  }
+  return "common";
+}
+
+const BASE_CARDS = 3;
+
+async function computeCardCount(client){
+  const { data, error } = await client.from("decks").select("sales");
+  let totalSold = 0;
+  if (!error && data){
+    totalSold = data.reduce((sum, row) => sum + (row.sales || 0), 0);
+  }
+  const product = totalSold * 555;
+  const lastDigit = Math.abs(product) % 10;
+  return BASE_CARDS + (lastDigit % 2 === 0 ? 2 : 1); // even -> 5, odd -> 4
+}
+
+async function fetchOneCard(client, tier){
+  const rolled = rollTier(tier);
+  const own = await client.from("decks").select("*").eq("current_tier", rolled);
+  let card = null;
+  if (!own.error && own.data && own.data.length){
+    card = own.data[Math.floor(Math.random() * own.data.length)];
+  } else {
+    const any = await client.from("decks").select("*");
+    if (!any.error && any.data && any.data.length){
+      card = any.data[Math.floor(Math.random() * any.data.length)];
+    }
+  }
+  if (card){
+    await client.from("decks").update({ sales: (card.sales || 0) + 1 }).eq("id", card.id);
+    card.sales = (card.sales || 0) + 1;
+  }
+  return card;
+}
+
+async function buyPack(packId){
   const pack = PACKS.find(p=>p.id===packId);
   if (state.balance < pack.price){ toast("Not enough chips."); return; }
+
+  // Payment first — commit the deduction before anything gets
+  // drawn or recorded as sold.
   state.balance -= pack.price;
   state.unopened.push({ uid: uid(), packId: pack.id });
   saveState(state);
+
+  // Only now — after payment is committed — pull the actual cards
+  // and record the sale.
+  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const totalCount = await computeCardCount(client);
+  const cards = [];
+  for (let i = 0; i < totalCount; i++){
+    const card = await fetchOneCard(client, pack.id);
+    if (card) cards.push(card);
+  }
+  if (cards.length){
+    sessionStorage.setItem("zetsu_drawn_cards", JSON.stringify(cards));
+  } else {
+    sessionStorage.removeItem("zetsu_drawn_cards");
+  }
   window.location.href = `loading.html?pack=${encodeURIComponent(pack.id)}`;
 }
 
