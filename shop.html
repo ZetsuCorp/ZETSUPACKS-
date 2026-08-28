@@ -462,6 +462,10 @@ async function fetchOneCard(client, tier){
 }
 
 async function buyPack(packId){
+  if (!window.walletRow || window.walletRow.id_type !== "account"){
+    requireAccount(()=>buyPack(packId));
+    return;
+  }
   const pack = PACKS.find(p=>p.id===packId);
   if (state.balance < pack.price){ toast("Not enough chips."); return; }
 
