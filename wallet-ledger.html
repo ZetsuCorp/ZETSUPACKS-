@@ -281,7 +281,7 @@ async function autoSignInByIp(){
   }
 
   const { data: created } = await client.from("wallet_ledger")
-    .insert({ identifier: candidate, id_type: "ip", balance: 1000 })
+    .insert({ identifier: candidate, id_type: "ip", balance: 0 })
     .select().single();
 
   window.walletRow = created;
@@ -313,7 +313,7 @@ async function submitSignup(){
 
   const client = walletClient();
   const { data, error } = await client.from("wallet_ledger")
-    .update({ id_type: "account", email_or_username: email, password: password })
+    .update({ id_type: "account", email_or_username: email, password: password, balance: 1000 })
     .eq("id", window.walletRow.id)
     .select().single();
 
@@ -321,6 +321,9 @@ async function submitSignup(){
     errEl.textContent = "Something went wrong — try again.";
     return;
   }
+
+  window.state.balance = data.balance;
+  renderWallet(window.state);
 
   window.walletRow = data;
   localStorage.setItem("wallet_identifier", data.identifier);
