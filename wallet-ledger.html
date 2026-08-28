@@ -134,6 +134,27 @@ body.ledger-locked{overflow:hidden;}
 .alloc-stat .as-amt.neg{color:var(--danger);}
 .alloc-stat.net{border-color:var(--brass-dim);}
 .alloc-stat.net .as-amt{color:#FFFFFF;}
+
+/* ============================================================
+   SIGNUP MODAL — gates Buy / Wallet-open until an account exists
+   ============================================================ */
+.signup-overlay{
+  position:fixed;inset:0;z-index:300;
+  background:rgba(0,0,0,.85);
+  display:none;align-items:center;justify-content:center;
+}
+.signup-overlay.open{display:flex;}
+.signup-card{
+  background:var(--panel-2);border:3px solid var(--brass-dim);border-radius:8px;
+  padding:28px;width:320px;display:flex;flex-direction:column;gap:12px;
+}
+.signup-title{font-size:16px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
+.signup-input{
+  background:var(--panel);border:3px solid var(--line);border-radius:4px;
+  padding:10px 12px;color:var(--ink);font-size:14px;
+}
+.signup-input:focus{outline:none;border-color:var(--brass-dim);}
+.signup-error{font-size:12px;color:var(--danger);min-height:14px;}
 </style>
 </head>
 <body>
@@ -184,6 +205,19 @@ body.ledger-locked{overflow:hidden;}
   <div class="ledger-body" id="ledgerBody"></div>
 </div>
 
+<!-- ============================================================
+     SIGNUP MODAL — shown the first time Buy or Wallet is clicked
+     ============================================================ -->
+<div id="signupOverlay" class="signup-overlay">
+  <div class="signup-card">
+    <div class="signup-title">Create Your Wallet</div>
+    <input id="signupEmail" class="signup-input" type="text" placeholder="Email or Username" autocomplete="username">
+    <input id="signupPassword" class="signup-input" type="password" placeholder="Password" autocomplete="new-password">
+    <div class="signup-error" id="signupError"></div>
+    <button id="signupSubmitBtn" class="btn btn-brass" type="button">Continue</button>
+  </div>
+</div>
+
 <script>
 /* ==========================================================
    WALLET / PERSONAL LEDGER — shared component
@@ -194,6 +228,120 @@ body.ledger-locked{overflow:hidden;}
    All of those already exist identically on shop.html, index.html,
    collection.html, and redemption.html.
    ========================================================== */
+
+/* ---- SUPABASE / WALLET_LEDGER ROW ----------------------------
+   window.walletRow is the person's one row in wallet_ledger.
+   id_type "ip"      — auto-seated by IP, no password yet
+   id_type "account" — has completed the signup modal
+   ---------------------------------------------------------- */
+
+const WALLET_SUPABASE_URL = "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
+const WALLET_SUPABASE_ANON_KEY = "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
+
+function walletClient(){
+  if (!window._walletClient){
+    window._walletClient = window.supabase.createClient(WALLET_SUPABASE_URL, WALLET_SUPABASE_ANON_KEY);
+  }
+  return window._walletClient;
+}
+
+async function getIp(){
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip;
+  } catch (e){
+    return "unknown";
+  }
+}
+
+async function autoSignInByIp(){
+  const client = walletClient();
+  const stored = localStorage.getItem("wallet_identifier");
+
+  // Returning browser — go straight to their already-claimed row,
+  // no IP lookup needed, so a second visit never re-triggers creation.
+  if (stored){
+    const { data } = await client.from("wallet_ledger").select("*").eq("identifier", stored).maybeSingle();
+    if (data){
+      window.walletRow = data;
+      window.state.balance = data.balance;
+      return;
+    }
+    // stored identifier no longer exists in the table — fall through and re-claim
+  }
+
+  // First-ever visit from this browser — find or create by IP.
+  const ip = await getIp();
+  let candidate = ip;
+  while (true){
+    const { data } = await client.from("wallet_ledger").select("id").eq("identifier", candidate).maybeSingle();
+    if (!data) break;
+    candidate += "0"; // same IP already claimed by a different browser — next slot
+  }
+
+  const { data: created } = await client.from("wallet_ledger")
+    .insert({ identifier: candidate, id_type: "ip", balance: 1000 })
+    .select().single();
+
+  window.walletRow = created;
+  if (created) window.state.balance = created.balance;
+  localStorage.setItem("wallet_identifier", candidate);
+}
+
+/* ---- SIGNUP MODAL ---------------------------------------------- */
+
+function openSignupModal(onDone){
+  window._signupOnDone = onDone;
+  document.getElementById("signupError").textContent = "";
+  document.getElementById("signupOverlay").classList.add("open");
+}
+
+function closeSignupModal(){
+  document.getElementById("signupOverlay").classList.remove("open");
+}
+
+async function submitSignup(){
+  const email = document.getElementById("signupEmail").value.trim();
+  const password = document.getElementById("signupPassword").value;
+  const errEl = document.getElementById("signupError");
+
+  if (!email || !password){
+    errEl.textContent = "Enter an email/username and password.";
+    return;
+  }
+
+  const client = walletClient();
+  const { data, error } = await client.from("wallet_ledger")
+    .update({ id_type: "account", email_or_username: email, password: password })
+    .eq("id", window.walletRow.id)
+    .select().single();
+
+  if (error || !data){
+    errEl.textContent = "Something went wrong — try again.";
+    return;
+  }
+
+  window.walletRow = data;
+  localStorage.setItem("wallet_identifier", data.identifier);
+  closeSignupModal();
+
+  const fn = window._signupOnDone;
+  window._signupOnDone = null;
+  if (typeof fn === "function") fn();
+}
+
+function wireSignupControls(){
+  document.getElementById("signupSubmitBtn").addEventListener("click", submitSignup);
+}
+
+function requireAccount(action){
+  if (window.walletRow && window.walletRow.id_type === "account"){
+    action();
+  } else {
+    openSignupModal(action);
+  }
+}
 
 /* ---- ledger entry types -------------------------------------
    type: "buy"      — pack purchase          (always negative)
@@ -351,7 +499,9 @@ function renderLedgerBody(state){
 }
 
 function wireLedgerControls(state){
-  document.getElementById("walletTrigger").addEventListener("click", ()=>openLedger(state));
+  document.getElementById("walletTrigger").addEventListener("click", ()=>{
+    requireAccount(()=>openLedger(state));
+  });
   document.getElementById("ledgerCloseBtn").addEventListener("click", closeLedger);
   document.querySelectorAll(".ledger-filter").forEach(btn=>{
     btn.addEventListener("click", ()=>{
@@ -402,6 +552,8 @@ if (typeof window.state === "undefined"){
 
 renderWallet(window.state);
 wireLedgerControls(window.state);
+wireSignupControls();
+autoSignInByIp().then(()=>{ renderWallet(window.state); });
 </script>
 
 </body>
