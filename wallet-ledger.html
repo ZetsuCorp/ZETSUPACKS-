@@ -338,7 +338,10 @@ function wireSignupControls(){
   document.getElementById("signupSubmitBtn").addEventListener("click", submitSignup);
 }
 
-function requireAccount(action){
+async function requireAccount(action){
+  if (!window.walletRow){
+    await autoSignInByIp();
+  }
   if (window.walletRow && window.walletRow.id_type === "account"){
     action();
   } else {
@@ -556,7 +559,6 @@ if (typeof window.state === "undefined"){
 renderWallet(window.state);
 wireLedgerControls(window.state);
 wireSignupControls();
-autoSignInByIp().then(()=>{ renderWallet(window.state); });
 </script>
 
 </body>
