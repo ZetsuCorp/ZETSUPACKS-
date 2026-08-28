@@ -271,7 +271,7 @@ const CARD_POOL = makeCardPool();
 function defaultState(){
   const now = Date.now(), day = 86400000;
   return {
-    balance: 1000,
+    balance: 0,
     collection: [],   // [{uid,name,rarity,glyph,value,ts}]
     unopened: [],     // [{uid,packId}]
     firstVisit: true,
@@ -563,6 +563,15 @@ fetch("wallet-ledger.html")
     const ledgerOverlay = parsed.getElementById("ledgerOverlay");
     if (ledgerOverlay){
       document.body.appendChild(ledgerOverlay);
+    }
+
+    // Pull the signup modal the same way — it's also a full-screen overlay,
+    // not part of the header markup, so it needs its own explicit pull just
+    // like ledgerOverlay above. Missing this meant openSignupModal() was
+    // calling getElementById on a node that was never actually in the page.
+    const signupOverlay = parsed.getElementById("signupOverlay");
+    if (signupOverlay){
+      document.body.appendChild(signupOverlay);
     }
 
     // Pull its <style>, stripping the standalone-page-only rules the same way
