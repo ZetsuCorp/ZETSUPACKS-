@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZETSU PACKZ — Loading</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   *, *::before, *::after{
     padding:0;margin:0;box-sizing:border-box;
@@ -220,24 +219,9 @@
 </script>
 
 <script>
-  /* ==========================================================
-     HANDOFF ONLY — the actual card pull and sales increment now
-     happen in shop.html's buyPack(), at the moment Buy is clicked,
-     not here. This page just carries sessionStorage["zetsu_drawn_cards"]
-     (already set by buyPack) through to pack-opening.html. The
-     animation above runs on its own the whole time; nothing here
-     touches it or Supabase.
-     ========================================================== */
-
-  function getPackIdFromUrl(){
-    const params = new URLSearchParams(window.location.search);
-    return params.get("pack") || "epic";
-  }
-
-  const packId = getPackIdFromUrl();
   setTimeout(() => {
-    window.location.href = `pack-opening.html?pack=${encodeURIComponent(packId)}`;
-  }, 1400);
+    window.location.href = "shop.html";
+  }, 500);
 </script>
 </body>
 </html>
