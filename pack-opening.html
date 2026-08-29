@@ -318,8 +318,10 @@ body{
 .select-carousel{
   position:relative;
   width:100%;
-  height:460px; /* tall enough for a full-size pack (aspect-ratio 245/467 at
-                    230px wide ≈ 438px) plus the flattened arc's vertical spread */
+  height:clamp(280px, 62vh, 460px); /* scales with viewport instead of a fixed
+                                        460px — that fixed height is what let
+                                        the wheel overflow the top on shorter
+                                        viewports */
   touch-action:pan-y; /* horizontal drag is handled manually below; don't let the
                           browser also try to scroll/zoom on it */
   user-select:none;
@@ -343,13 +345,19 @@ body{
 .select-slot{
   position:absolute;
   left:50%; bottom:6px;
-  width:230px; /* same width as a normal pack container (packs-section.html's
-                  .pack-slot) — the wheel spaces packs out and lets them
-                  overlap in depth instead of shrinking the pack itself */
-  margin-left:-115px;
+  /* Same clamp pattern as the hero pack-slot (width:clamp(240px, min(70vw,
+     38vh), 460px)) so the wheel packs scale down together with it on short
+     viewports instead of staying a fixed size and overflowing. */
+  width:clamp(150px, min(30vw, 26vh), 230px);
   cursor:pointer;
   transition:transform .45s cubic-bezier(.2,.8,.2,1), opacity .25s ease;
 }
+/* This wheel sits at a smaller, non-hero size, so it should read like the
+   compact packs in packs-section.html's own carousel — not like the big
+   hero pack's deck-info bar, which is sized for a much wider container. */
+.select-slot .deck-info{ padding:14px 16px 12px; }
+.select-slot .deck-mark{ width:18px; height:18px; }
+.select-slot .deck-name{ font-size:11px; }
 .select-slot.dragging{ transition:none; } /* live 1:1 feedback while the pointer is down */
 .wheel-wrap{ position:relative; width:100%; }
 .wheel-arrow{
@@ -572,10 +580,10 @@ packSlot.appendChild(rightHalf);
    ---------------------------------------------------------- */
 const SELECT_COUNT = 7;
 const WHEEL_STEP = 360 / SELECT_COUNT;
-const WHEEL_RADIUS = 300; // horizontal spread — big enough that 230px-wide
-                           // packs don't overlap their neighbors
-const WHEEL_Y_COMPRESS = 0.4; // flattens the arc vertically so full-size packs
-                               // don't need an enormous vertical footprint
+const WHEEL_Y_COMPRESS = 0.4; // flattens the arc vertically so packs don't
+                               // need an enormous vertical footprint
+let WHEEL_RADIUS = 260; // recomputed from the actual rendered slot width
+                         // below — this is just a starting value
 
 const selectStage = document.getElementById("selectStage");
 const selectCarousel = document.getElementById("selectCarousel");
@@ -583,6 +591,16 @@ const selectCarousel = document.getElementById("selectCarousel");
 let wheelRotation = 0; // degrees; slot i sits at (wheelRotation + i*WHEEL_STEP)
 
 function normalizeDeg(a){ return ((a % 360) + 360) % 360; }
+
+// The wheel packs use width:clamp(...) so they shrink on short viewports
+// along with the hero pack. The spacing has to shrink with them, so the
+// radius is derived from whatever the slots are actually rendered at
+// right now, not a fixed pixel value.
+function updateWheelRadius(){
+  const sample = selectCarousel.querySelector(".select-slot");
+  const slotWidth = sample ? sample.getBoundingClientRect().width : 230;
+  WHEEL_RADIUS = slotWidth * 1.3;
+}
 
 // Lighter sparkle sets for the mini wheel packs — same points used
 // for the hero pack, just thinned out so 7 packs' worth of sparkles
@@ -624,7 +642,7 @@ function layoutWheel(){
     const front = Math.cos(rad); // 1 at the front spot, -1 at the back of the wheel
     const scale = 0.55 + 0.45 * ((front + 1) / 2);
     const opacity = 0.35 + 0.65 * ((front + 1) / 2);
-    slot.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    slot.style.transform = `translate(calc(-50% + ${x}px), ${y}px) scale(${scale})`;
     slot.style.opacity = opacity;
     slot.style.zIndex = Math.round((front + 1) * 50);
     const distFromFront = Math.min(angleDeg, 360 - angleDeg);
@@ -722,7 +740,12 @@ selectCarousel.addEventListener("pointerup", endDrag);
 selectCarousel.addEventListener("pointercancel", endDrag);
 
 renderSelectCarousel();
+updateWheelRadius();
 layoutWheel();
+window.addEventListener("resize", () => {
+  updateWheelRadius();
+  layoutWheel();
+});
 
 /* ==========================================================
    STAGE MACHINE — every stage waits on a click. animationend
@@ -736,6 +759,13 @@ function goStageSettle(){
 
   const activeSlot = selectCarousel.querySelector(".select-slot.is-active .pack-container");
   const fromRect = activeSlot.getBoundingClientRect();
+
+  // is-idle drives its own CSS animation on transform (the floating
+  // bob). A running CSS animation overrides any transform we set from
+  // JS on the same element, which silently breaks the FLIP below and
+  // the transitionend it depends on — so it has to come off first,
+  // the same way goStage1() already removes it before the shake.
+  pack.classList.remove("is-idle");
 
   // Reveal the hero pack so we can measure where it actually rests,
   // then FLIP it: no-transition jump back to the carousel pack's
@@ -762,14 +792,28 @@ function goStageSettle(){
     });
   });
 
-  pack.addEventListener("transitionend", function onSettle(e){
-    if (e.propertyName !== "transform") return;
+  // Advance on whichever fires first — the real transitionend, or this
+  // fallback timer. Belt-and-suspenders: transitionend can be skipped
+  // by the browser in edge cases (e.g. the two rects turning out
+  // identical, so nothing actually changes value), and this stage
+  // must never be able to strand the player on a dead screen.
+  let settled = false;
+  function finishSettle(){
+    if (settled) return;
+    settled = true;
     pack.removeEventListener("transitionend", onSettle);
+    clearTimeout(fallbackTimer);
     pack.style.transition = "";
     pack.style.transform = "";
     selectStage.style.display = "none";
     goStage1(); // settling flows straight into the shake — no extra click, same pattern as shake -> tear below
-  });
+  }
+  function onSettle(e){
+    if (e.propertyName !== "transform") return;
+    finishSettle();
+  }
+  pack.addEventListener("transitionend", onSettle);
+  const fallbackTimer = setTimeout(finishSettle, 650);
 }
 
 function goStage1(){
