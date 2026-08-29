@@ -342,6 +342,7 @@ async function requireAccount(action){
   if (!window.walletRow){
     await autoSignInByIp();
   }
+  renderWallet();
   if (window.walletRow && window.walletRow.id_type === "account"){
     action();
   } else {
@@ -493,47 +494,17 @@ function wireLedgerControls(){
   });
 }
 
-/* ==========================================================
-   SELF-BOOT — only runs if the host page hasn't already defined
-   state / saveState / fmt (i.e. this file was opened directly,
-   not injected into shop/index/collection/redemption). When it
-   IS injected, those globals already exist and this whole block
-   is skipped — the host page is expected to call
-   renderWallet(state) + wireLedgerControls(state) itself once
-   this markup lands in the DOM.
-   ========================================================== */
-if (typeof window.fmt === "undefined"){
-  window.fmt = function(n){ return n.toLocaleString(); };
-}
-
-if (typeof window.state === "undefined"){
-
-  function defaultState(){
-    return { balance: 1000, collection: [], unopened: [], firstVisit: true, ledger: [] };
-  }
-
-  window.saveState = function(s){ /* no local save — demo state is in-memory only */ };
-
-  window.state = defaultState();
-
-  // demo seed so a directly-opened file isn't just an empty ledger
-  const now = Date.now(), day = 86400000;
-  window.state.ledger = [
-    { type:"buy",  label:"Pack Buy — Ashen Cipher Pack", amount:-25,  rarity:"rare",      ts: now - day },
-    { type:"sell", label:"Card Sell — Iron Warden",      amount:8,    rarity:"common",    ts: now - day*2 },
-    { type:"fusion",    label:"Fusion — Normal to Holo",         amount:-15, ts: now - day*3 },
-    { type:"kickstart", label:"Kickstart — Next Deck Fund",      amount:-40, ts: now - day*4 },
-    { type:"cashout", label:"Gift Card Cash-Out",        amount:-150, ts: now - day*5 },
-    { type:"raffle",    label:"Raffle Entry",                    amount:-10, ts: now - day*5 },
-    { type:"share", label:"Share the App — Free Pack",   amount:0,    ts: now - day*6 },
-    { type:"sleeve",    label:"Sleeve Upgrade",                  amount:-12, ts: now - day*7 },
-    { type:"showcase",  label:"Showcase Slot",                   amount:-20, ts: now - day*8 }
-  ];
-}
-
 renderWallet();
 wireLedgerControls();
 wireSignupControls();
+
+autoSignInByIp().then(()=>{ renderWallet(); });
+
+document.addEventListener("visibilitychange", ()=>{
+  if (document.visibilityState === "visible"){
+    autoSignInByIp().then(()=>{ renderWallet(); });
+  }
+});
 </script>
 
 </body>
