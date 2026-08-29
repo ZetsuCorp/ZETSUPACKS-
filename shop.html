@@ -271,7 +271,6 @@ const CARD_POOL = makeCardPool();
 function defaultState(){
   return {
     collection: [],   // [{uid,name,rarity,glyph,value,ts}]
-    unopened: [],     // [{uid,packId}]
     firstVisit: true
   };
 }
@@ -470,7 +469,6 @@ async function buyPack(packId){
   renderWallet();
   renderBuyHud();
 
-  state.unopened.push({ uid: uid(), packId: pack.id });
   const totalCount = await computeCardCount(client);
   const cards = [];
   for (let i = 0; i < totalCount; i++){
