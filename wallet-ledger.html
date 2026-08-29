@@ -323,7 +323,7 @@ async function submitSignup(){
   }
 
   window.state.balance = data.balance;
-  renderWallet(window.state);
+  renderWallet();
 
   window.walletRow = data;
   localStorage.setItem("wallet_identifier", data.identifier);
@@ -395,21 +395,20 @@ function logTransaction(state, entry){
 
 /* ---- WALLET (header) ---------------------------------------- */
 
-function renderWallet(state){
+function renderWallet(){
   const amt = document.getElementById("walletAmt");
-  if (amt) amt.textContent = fmt(state.balance);
+  if (amt) amt.textContent = fmt(window.walletRow ? window.walletRow.balance : 0);
 }
 
 /* ---- LEDGER OVERLAY -------------------------------------------- */
 
 let ledgerFilter = "all";
 
-function openLedger(state){
-  ensureLedger(state);
+function openLedger(){
   document.body.classList.add("ledger-locked");
   document.getElementById("ledgerOverlay").classList.add("open");
-  renderLedgerStats(state);
-  renderLedgerBody(state);
+  renderLedgerStats();
+  renderLedgerBody();
 }
 
 function closeLedger(){
@@ -417,103 +416,79 @@ function closeLedger(){
   document.getElementById("ledgerOverlay").classList.remove("open");
 }
 
-function renderLedgerStats(state){
-  const bought = state.ledger.filter(e => e.type === "buy");
-  const sold = state.ledger.filter(e => e.type === "sell");
-  const allocNet = state.ledger.reduce((sum, e) => sum + e.amount, 0);
-
-  document.getElementById("statAllCount").textContent = fmt(state.ledger.length);
-  document.getElementById("statBoughtCount").textContent = fmt(bought.length);
-  document.getElementById("statSoldCount").textContent = fmt(sold.length);
-  document.getElementById("statAllocValue").textContent = fmt(allocNet);
+function renderLedgerStats(){
+  const row = window.walletRow || {};
+  document.getElementById("statAllCount").textContent =
+    fmt((row.buys||0)+(row.sells||0)+(row.fused_cards||0)+(row.cash_outs||0)+(row.raffle_tickets||0)+(row.shares||0));
+  document.getElementById("statBoughtCount").textContent = fmt(row.buys||0);
+  document.getElementById("statSoldCount").textContent = fmt(row.sells||0);
+  document.getElementById("statAllocValue").textContent = fmt(row.balance||0);
 
   document.querySelectorAll(".ledger-filter").forEach(btn=>{
     btn.classList.toggle("active", btn.dataset.filter === ledgerFilter);
   });
 }
 
-function renderLedgerBody(state){
-  const body = document.getElementById("ledgerBody");
-
-  if (ledgerFilter === "allocation"){
-    const spentOnPacks = state.ledger.filter(e=>e.type==="buy").reduce((s,e)=>s+Math.abs(e.amount),0);
-    const earnedFromSells = state.ledger.filter(e=>e.type==="sell").reduce((s,e)=>s+e.amount,0);
-    const cashedOut = state.ledger.filter(e=>e.type==="cashout").reduce((s,e)=>s+Math.abs(e.amount),0);
-    const otherChipSpend = state.ledger.filter(e=>CHIP_SPEND_TYPES.includes(e.type)).reduce((s,e)=>s+Math.abs(e.amount),0);
-    const net = earnedFromSells - spentOnPacks - cashedOut - otherChipSpend;
-
-    if (!state.ledger.length){
-      body.innerHTML = `<div class="ledger-empty">No activity yet.</div>`;
-      return;
-    }
-
-    // Only report a category that actually happened — no zero-value
-    // placeholder rows for things that never occurred.
-    const rows = [];
-    if (spentOnPacks > 0) rows.push({label:"Spent on Packs", amt:spentOnPacks, cls:"neg", sign:"&minus;"});
-    if (earnedFromSells > 0) rows.push({label:"Earned from Sells", amt:earnedFromSells, cls:"pos", sign:"+"});
-    if (cashedOut > 0) rows.push({label:"Cashed Out", amt:cashedOut, cls:"neg", sign:"&minus;"});
-    if (otherChipSpend > 0) rows.push({label:"Other Chip Spend", amt:otherChipSpend, cls:"neg", sign:"&minus;"});
-
-    body.innerHTML = `
-      <div class="alloc-grid">
-        ${rows.map(r=>`
-        <div class="alloc-stat">
-          <div class="as-label">${r.label}</div>
-          <div class="as-amt mono ${r.cls}">${r.sign}${fmt(r.amt)}</div>
-        </div>`).join("")}
-        <div class="alloc-stat net">
-          <div class="as-label">Net Chip Allocation</div>
-          <div class="as-amt mono">${fmt(net)}</div>
-        </div>
-        <div class="alloc-stat">
-          <div class="as-label">Current Balance</div>
-          <div class="as-amt mono">${fmt(state.balance)}</div>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  let rows = state.ledger;
-  if (ledgerFilter === "bought") rows = rows.filter(e => e.type === "buy");
-  if (ledgerFilter === "sold") rows = rows.filter(e => e.type === "sell");
-
-  if (!rows.length){
-    body.innerHTML = `<div class="ledger-empty">No activity yet.</div>`;
-    return;
-  }
-
-  body.innerHTML = rows.map(entry=>{
-    const date = new Date(entry.ts);
-    const dateStr = date.toLocaleDateString(undefined, { month:"short", day:"numeric" }) + " \u00b7 " +
-                    date.toLocaleTimeString(undefined, { hour:"numeric", minute:"2-digit" });
-    const dotClass = entry.rarity ? entry.rarity : "system";
-    const isPos = entry.amount >= 0;
-    return `
-      <div class="ledger-row">
-        <div class="lr-left">
-          <span class="lr-dot ${dotClass}"></span>
-          <div class="lr-info">
-            <div class="lr-type">${entry.label}</div>
-            <div class="lr-ts">${dateStr}</div>
-          </div>
-        </div>
-        <div class="lr-amt ${isPos ? 'pos':'neg'} mono">${isPos ? '+' : '&minus;'}${fmt(Math.abs(entry.amount))}</div>
-      </div>`;
-  }).join("");
+function statRow(label, value){
+  return `<div class="alloc-stat"><div class="as-label">${label}</div><div class="as-amt mono">${fmt(value)}</div></div>`;
 }
 
-function wireLedgerControls(state){
+function renderLedgerBody(){
+  const body = document.getElementById("ledgerBody");
+  const row = window.walletRow;
+
+  if (!row){
+    body.innerHTML = `<div class="ledger-empty">No wallet yet.</div>`;
+    return;
+  }
+
+  if (ledgerFilter === "bought"){
+    body.innerHTML = `<div class="alloc-grid">${statRow("Packs Bought", row.buys||0)}</div>`;
+    return;
+  }
+  if (ledgerFilter === "sold"){
+    body.innerHTML = `<div class="alloc-grid">${statRow("Cards Sold", row.sells||0)}</div>`;
+    return;
+  }
+  if (ledgerFilter === "allocation"){
+    body.innerHTML = `<div class="alloc-grid">
+      ${statRow("Packs Bought", row.buys||0)}
+      ${statRow("Cards Sold", row.sells||0)}
+      ${statRow("Fused Cards", row.fused_cards||0)}
+      ${statRow("Cash Outs", row.cash_outs||0)}
+      ${statRow("Raffle Tickets", row.raffle_tickets||0)}
+      ${statRow("Shares", row.shares||0)}
+      ${statRow("Sleeve", row.sleeve ? "Yes" : "No")}
+      ${statRow("Showcase", row.showcase ? "Yes" : "No")}
+      <div class="alloc-stat net">${statRow("Current Balance", row.balance||0)}</div>
+    </div>`;
+    return;
+  }
+
+  // "all"
+  body.innerHTML = `<div class="alloc-grid">
+    ${statRow("Packs Bought", row.buys||0)}
+    ${statRow("Cards Sold", row.sells||0)}
+    ${statRow("Fused Cards", row.fused_cards||0)}
+    ${statRow("Cash Outs", row.cash_outs||0)}
+    ${statRow("Raffle Tickets", row.raffle_tickets||0)}
+    ${statRow("Shares", row.shares||0)}
+    ${statRow("Sleeve", row.sleeve ? "Yes" : "No")}
+    ${statRow("Showcase", row.showcase ? "Yes" : "No")}
+    ${statRow("Balance", row.balance||0)}
+  </div>`;
+}
+
+function wireLedgerControls(){
   document.getElementById("walletTrigger").addEventListener("click", ()=>{
-    requireAccount(()=>openLedger(state));
+    requireAccount(()=>openLedger());
   });
   document.getElementById("ledgerCloseBtn").addEventListener("click", closeLedger);
   document.querySelectorAll(".ledger-filter").forEach(btn=>{
     btn.addEventListener("click", ()=>{
       ledgerFilter = btn.dataset.filter;
-      renderLedgerStats(state);
-      renderLedgerBody(state);
+      renderLedgerStats();
+      renderLedgerBody();
     });
   });
 }
@@ -556,8 +531,8 @@ if (typeof window.state === "undefined"){
   ];
 }
 
-renderWallet(window.state);
-wireLedgerControls(window.state);
+renderWallet();
+wireLedgerControls();
 wireSignupControls();
 </script>
 
