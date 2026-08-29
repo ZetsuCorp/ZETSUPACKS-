@@ -269,23 +269,10 @@ const CARD_POOL = makeCardPool();
    ========================================================== */
 
 function defaultState(){
-  const now = Date.now(), day = 86400000;
   return {
-    balance: 0,
     collection: [],   // [{uid,name,rarity,glyph,value,ts}]
     unopened: [],     // [{uid,packId}]
-    firstVisit: true,
-    ledger: [
-      { type:"buy",       label:"Pack Buy — Ashen Cipher Pack",  amount:-25,  rarity:"rare",   ts: now - day },
-      { type:"sell",      label:"Card Sell — Iron Warden",       amount:8,    rarity:"common", ts: now - day*2 },
-      { type:"fusion",    label:"Fusion — Normal to Holo",       amount:-15,  ts: now - day*3 },
-      { type:"kickstart", label:"Kickstart — Next Deck Fund",    amount:-40,  ts: now - day*4 },
-      { type:"cashout",   label:"Gift Card Cash-Out",            amount:-150, ts: now - day*5 },
-      { type:"raffle",    label:"Raffle Entry",                  amount:-10,  ts: now - day*5 },
-      { type:"share",     label:"Share the App — Free Pack",     amount:0,    ts: now - day*6 },
-      { type:"sleeve",    label:"Sleeve Upgrade",                amount:-12,  ts: now - day*7 },
-      { type:"showcase",  label:"Showcase Slot",                 amount:-20,  ts: now - day*8 }
-    ]
+    firstVisit: true
   };
 }
 
@@ -389,7 +376,7 @@ function renderInfoStrip(){
 
 function renderBuyHud(){
   const pack = PACKS.find(p=>p.id===activePackId);
-  const affordable = state.balance >= pack.price;
+  const affordable = !window.walletRow || window.walletRow.balance >= pack.price;
   const [tierA, , tierC] = pack.tierColors;
   document.getElementById("buyHud").innerHTML = `
     <div class="buy-hud-info">
@@ -467,17 +454,23 @@ async function buyPack(packId){
     return;
   }
   const pack = PACKS.find(p=>p.id===packId);
-  if (state.balance < pack.price){ toast("Not enough chips."); return; }
+  if (window.walletRow.balance < pack.price){ toast("Not enough chips."); return; }
 
-  // Payment first — commit the deduction before anything gets
-  // drawn or recorded as sold.
-  state.balance -= pack.price;
-  state.unopened.push({ uid: uid(), packId: pack.id });
-  saveState(state);
-
-  // Only now — after payment is committed — pull the actual cards
-  // and record the sale.
+  // Payment first — commit the deduction on the table before anything
+  // gets drawn or recorded as sold.
   const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const newBalance = window.walletRow.balance - pack.price;
+  const newBuys = (window.walletRow.buys || 0) + 1;
+  const { data: updated, error } = await client.from("wallet_ledger")
+    .update({ balance: newBalance, buys: newBuys })
+    .eq("id", window.walletRow.id)
+    .select().single();
+  if (error || !updated){ toast("Purchase failed — try again."); return; }
+  window.walletRow = updated;
+  renderWallet();
+  renderBuyHud();
+
+  state.unopened.push({ uid: uid(), packId: pack.id });
   const totalCount = await computeCardCount(client);
   const cards = [];
   for (let i = 0; i < totalCount; i++){
