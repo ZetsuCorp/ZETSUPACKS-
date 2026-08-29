@@ -268,7 +268,7 @@ async function autoSignInByIp(){
       window.state.balance = data.balance;
       return;
     }
-    // stored identifier no longer exists in the table — fall through and re-claim
+   
   }
 
   // First-ever visit from this browser — find or create by IP.
@@ -322,10 +322,15 @@ async function submitSignup(){
     return;
   }
 
-  window.state.balance = data.balance;
-  renderWallet();
-
   window.walletRow = data;
+  window.state.balance = data.balance;
+  renderWallet(); // must come after window.walletRow is reassigned above —
+                   // renderWallet() reads window.walletRow.balance, so calling
+                   // it first was rendering the pre-signup row (old balance)
+                   // and nothing re-rendered it afterward until some unrelated
+                   // action (buying a pack, switching tabs) happened to call
+                   // renderWallet() again
+
   localStorage.setItem("wallet_identifier", data.identifier);
   closeSignupModal();
 
