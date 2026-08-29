@@ -297,6 +297,103 @@ body{
 .continue-btn:hover{ filter:brightness(1.08); }
 .continue-btn:active{ transform:scale(.97); }
 .continue-btn[hidden]{ display:none; }
+
+/* ============================================================
+   STAGE: SELECT — a row of 5 instances of the pack tier just
+   bought (same art/tier, only the physical copy differs), so
+   the player picks *which one* to tear open. Same carousel
+   mechanics as packs-section.html (scroll-snap + closest-to-
+   center detection), just a compact single-tier version scoped
+   to this page. Sits between the idle hero pack (now hidden
+   until a choice is confirmed) and the shake stage.
+   ============================================================ */
+#selectStage{
+  display:flex; flex-direction:column; align-items:center; gap:18px;
+  width:100%;
+}
+.select-label{
+  font-size:11px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--muted); font-weight:700;
+}
+.select-carousel{
+  position:relative;
+  width:100%;
+  height:460px; /* tall enough for a full-size pack (aspect-ratio 245/467 at
+                    230px wide ≈ 438px) plus the flattened arc's vertical spread */
+  touch-action:pan-y; /* horizontal drag is handled manually below; don't let the
+                          browser also try to scroll/zoom on it */
+  user-select:none;
+  -webkit-user-select:none;
+}
+/* Soft gold flash behind the whole wheel while it's actively spinning —
+   the "whoosh" cue that something moved, independent of any one pack. */
+.select-carousel::before{
+  content:"";
+  position:absolute; left:50%; bottom:6px;
+  width:300px; height:300px;
+  margin-left:-150px;
+  border-radius:50%;
+  background:radial-gradient(circle, rgba(212,175,106,.32), transparent 70%);
+  opacity:0;
+  transition:opacity .35s ease;
+  pointer-events:none;
+  z-index:0;
+}
+.select-carousel.is-spinning::before{ opacity:1; }
+.select-slot{
+  position:absolute;
+  left:50%; bottom:6px;
+  width:230px; /* same width as a normal pack container (packs-section.html's
+                  .pack-slot) — the wheel spaces packs out and lets them
+                  overlap in depth instead of shrinking the pack itself */
+  margin-left:-115px;
+  cursor:pointer;
+  transition:transform .45s cubic-bezier(.2,.8,.2,1), opacity .25s ease;
+}
+.select-slot.dragging{ transition:none; } /* live 1:1 feedback while the pointer is down */
+.wheel-wrap{ position:relative; width:100%; }
+.wheel-arrow{
+  position:absolute; top:56%; transform:translateY(-50%);
+  z-index:20;
+  width:44px; height:44px; border-radius:50%;
+  border:2px solid var(--line);
+  background:rgba(0,0,0,.55);
+  color:var(--ink);
+  font-size:15px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer;
+  transition:border-color .2s ease, background .2s ease, transform .1s ease;
+}
+.wheel-arrow:hover{ border-color:var(--brass-dim); background:rgba(0,0,0,.75); }
+.wheel-arrow:active{ transform:translateY(-50%) scale(.92); }
+.wheel-arrow.left{ left:6px; }
+.wheel-arrow.right{ right:6px; }
+/* Motion blur on the art itself while spinning — reads as speed on
+   top of the gold flash and sparkle burst, same "swoosh" beat. */
+.select-carousel.is-spinning .select-slot .pack-art{
+  filter:blur(2.5px);
+  transition:filter .15s ease;
+}
+.select-carousel:not(.is-spinning) .select-slot .pack-art{
+  filter:blur(0px);
+  transition:filter .3s ease .1s;
+}
+.select-slot .pack-container{
+  animation:select-idle 5s ease-in-out infinite;
+  transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s ease;
+}
+@keyframes select-idle{
+  0%,100%{ transform:translateY(0); }
+  50%{ transform:translateY(-6px); }
+}
+.select-slot.is-active .pack-container{
+  animation:select-active 2.6s ease-in-out infinite;
+  box-shadow:0 26px 50px -16px rgba(0,0,0,.65), 0 0 34px -8px var(--tier-b);
+}
+@keyframes select-active{
+  0%,100%{ transform:scale(1.1) translateY(0); }
+  50%{ transform:scale(1.15) translateY(-6px); }
+}
 </style>
 </head>
 <body>
@@ -304,7 +401,17 @@ body{
 <div id="flash"></div>
 
 <div id="stage">
-  <div class="pack-slot" id="packSlot">
+
+  <div id="selectStage">
+    <div class="select-label">Choose Your Pack</div>
+    <div class="wheel-wrap">
+      <button class="wheel-arrow left" id="wheelPrev" type="button" aria-label="Previous pack">&#10094;</button>
+      <div class="select-carousel" id="selectCarousel"></div>
+      <button class="wheel-arrow right" id="wheelNext" type="button" aria-label="Next pack">&#10095;</button>
+    </div>
+  </div>
+
+  <div class="pack-slot" id="packSlot" style="display:none;">
     <div class="pack-container is-idle" id="packContainer">
       <div class="deck-info">
         <div class="deck-mark"></div>
@@ -326,7 +433,7 @@ body{
     <p id="revealedCardFallback">Continuing without a card — nothing came back from the last fetch.</p>
   </div>
 
-  <button class="continue-btn" id="continueBtn">Open Pack</button>
+  <button class="continue-btn" id="continueBtn">Select Pack</button>
 </div>
 
 <script>
@@ -453,12 +560,217 @@ rightHalf.innerHTML = pack.outerHTML.replace('id="packContainer"', "");
 packSlot.appendChild(leftHalf);
 packSlot.appendChild(rightHalf);
 
+/* ----------------------------------------------------------
+   STAGE: SELECT — 5 instances of the pack tier just bought
+   (identical art/tier, only which physical copy differs),
+   arranged in a circle like a spin-wheel: one at 6 o'clock
+   is "front" (large, selectable), the rest arc up behind it.
+   Drag left/right to spin the wheel, or tap any pack to spin
+   it to the front directly. "Select Pack" confirms whichever
+   pack is at front and kicks off the settle → shake → tear
+   chain below.
+   ---------------------------------------------------------- */
+const SELECT_COUNT = 7;
+const WHEEL_STEP = 360 / SELECT_COUNT;
+const WHEEL_RADIUS = 300; // horizontal spread — big enough that 230px-wide
+                           // packs don't overlap their neighbors
+const WHEEL_Y_COMPRESS = 0.4; // flattens the arc vertically so full-size packs
+                               // don't need an enormous vertical footprint
+
+const selectStage = document.getElementById("selectStage");
+const selectCarousel = document.getElementById("selectCarousel");
+
+let wheelRotation = 0; // degrees; slot i sits at (wheelRotation + i*WHEEL_STEP)
+
+function normalizeDeg(a){ return ((a % 360) + 360) % 360; }
+
+// Lighter sparkle sets for the mini wheel packs — same points used
+// for the hero pack, just thinned out so 7 packs' worth of sparkles
+// don't turn into visual noise at this size.
+const MINI_SPARKLE_BEHIND = SPARKLE_POINTS_BEHIND.filter((_, i) => i % 3 === 0);
+const MINI_SPARKLE_INFRONT = SPARKLE_POINTS_INFRONT.filter((_, i) => i % 2 === 0);
+
+function renderSelectCarousel(){
+  selectCarousel.innerHTML = Array.from({length: SELECT_COUNT}).map((_, i) => `
+    <div class="select-slot" data-idx="${i}">
+      <div class="pack-container" style="--tier-a:${tierA}; --tier-b:${tierB}; --tier-c:${tierC};">
+        <div class="deck-info">
+          <div class="deck-mark"></div>
+          <div class="deck-name">Deck · <b>ZETSUMETSU EOe</b></div>
+        </div>
+        <div class="pack-stage">
+          <img class="pack-art" src="${selectedPack.art}" alt="${selectedPack.name} pack">
+          <div class="tier-layer"></div>
+        </div>
+      </div>
+      <div class="pack-sparkles behind">${makeSparkles(MINI_SPARKLE_BEHIND, i * 7)}</div>
+      <div class="pack-sparkles infront">${makeSparkles(MINI_SPARKLE_INFRONT, i * 7 + 40)}</div>
+      <div class="pack-sparkles infront surge">${makeSparkles(MINI_SPARKLE_INFRONT, i * 7 + 80)}</div>
+    </div>`).join("");
+}
+
+// Places every slot on the arc for the current wheelRotation. Angle 0
+// (mod 360) is the front/anchor spot at the bottom of the wheel;
+// distance from there drives how big, bright, and frontmost each
+// pack reads — that's what actually sells the "circle" shape, not
+// just the (x,y) position.
+function layoutWheel(){
+  selectCarousel.querySelectorAll(".select-slot").forEach(slot => {
+    const i = Number(slot.dataset.idx);
+    const angleDeg = normalizeDeg(wheelRotation + i * WHEEL_STEP);
+    const rad = angleDeg * Math.PI / 180;
+    const x = WHEEL_RADIUS * Math.sin(rad);
+    const y = (-WHEEL_RADIUS + WHEEL_RADIUS * Math.cos(rad)) * WHEEL_Y_COMPRESS;
+    const front = Math.cos(rad); // 1 at the front spot, -1 at the back of the wheel
+    const scale = 0.55 + 0.45 * ((front + 1) / 2);
+    const opacity = 0.35 + 0.65 * ((front + 1) / 2);
+    slot.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    slot.style.opacity = opacity;
+    slot.style.zIndex = Math.round((front + 1) * 50);
+    const distFromFront = Math.min(angleDeg, 360 - angleDeg);
+    slot.classList.toggle("is-active", distFromFront < WHEEL_STEP / 2);
+  });
+}
+
+// Movement FX — the gold flash behind the wheel, the motion blur on
+// each pack's art, and a burst from each pack's own surge sparkle
+// layer (the same layer/keyframes the hero pack uses for its own
+// tear-moment surge). All three turn on together for any spin,
+// whether it's a drag or a tap-to-select, and turn off once the
+// wheel settles.
+function startSpinFX(){
+  selectCarousel.classList.add("is-spinning");
+  selectCarousel.querySelectorAll(".pack-sparkles.surge").forEach(s => s.classList.add("show"));
+}
+function stopSpinFX(){
+  selectCarousel.classList.remove("is-spinning");
+  selectCarousel.querySelectorAll(".pack-sparkles.surge").forEach(s => s.classList.remove("show"));
+}
+let spinFxTimer = null;
+function pulseSpinFX(duration){
+  startSpinFX();
+  clearTimeout(spinFxTimer);
+  spinFxTimer = setTimeout(stopSpinFX, duration);
+}
+
+// Tapping a pack (not dragging) spins the wheel to bring that exact
+// pack to the front spot.
+function spinToIndex(i){
+  wheelRotation = normalizeDeg(-i * WHEEL_STEP);
+  layoutWheel();
+  pulseSpinFX(480); // matches the .45s CSS transition on .select-slot's transform
+}
+
+selectCarousel.addEventListener("click", (e) => {
+  if (selectCarousel.dataset.wasDrag === "1") return; // a drag just ended on this same pointerup; not a tap
+  const slot = e.target.closest(".select-slot");
+  if (!slot) return;
+  spinToIndex(Number(slot.dataset.idx));
+});
+
+/* ---- arrow buttons — same spinToIndex() the drag/tap use, just
+   stepping one pack at a time off the wheel's current front index ---- */
+const wheelPrev = document.getElementById("wheelPrev");
+const wheelNext = document.getElementById("wheelNext");
+
+function currentFrontIndex(){
+  return ((Math.round(-wheelRotation / WHEEL_STEP) % SELECT_COUNT) + SELECT_COUNT) % SELECT_COUNT;
+}
+function stepWheel(delta){
+  const next = ((currentFrontIndex() + delta) % SELECT_COUNT + SELECT_COUNT) % SELECT_COUNT;
+  spinToIndex(next);
+}
+wheelPrev.addEventListener("click", () => stepWheel(-1));
+wheelNext.addEventListener("click", () => stepWheel(1));
+
+/* ---- drag-to-spin ---- */
+let dragging = false, dragStartX = 0, dragStartRotation = 0, dragMoved = false;
+const DRAG_SENSITIVITY = 0.42; // degrees rotated per pixel dragged
+
+function setDraggingVisual(on){
+  selectCarousel.querySelectorAll(".select-slot").forEach(s => s.classList.toggle("dragging", on));
+}
+
+selectCarousel.addEventListener("pointerdown", (e) => {
+  dragging = true; dragMoved = false;
+  dragStartX = e.clientX;
+  dragStartRotation = wheelRotation;
+  selectCarousel.dataset.wasDrag = "0";
+  setDraggingVisual(true);
+  clearTimeout(spinFxTimer);
+  startSpinFX();
+  selectCarousel.setPointerCapture(e.pointerId);
+});
+selectCarousel.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+  const dx = e.clientX - dragStartX;
+  if (Math.abs(dx) > 4) dragMoved = true;
+  wheelRotation = normalizeDeg(dragStartRotation + dx * DRAG_SENSITIVITY);
+  layoutWheel();
+});
+function endDrag(){
+  if (!dragging) return;
+  dragging = false;
+  setDraggingVisual(false);
+  // Snap to the nearest pack rather than leaving the wheel mid-spin.
+  wheelRotation = normalizeDeg(Math.round(wheelRotation / WHEEL_STEP) * WHEEL_STEP);
+  layoutWheel();
+  pulseSpinFX(480); // the snap itself is a (short) spin too — keep the FX through it
+  if (dragMoved) selectCarousel.dataset.wasDrag = "1"; // suppress the click firing right after this pointerup
+}
+selectCarousel.addEventListener("pointerup", endDrag);
+selectCarousel.addEventListener("pointercancel", endDrag);
+
+renderSelectCarousel();
+layoutWheel();
+
 /* ==========================================================
    STAGE MACHINE — every stage waits on a click. animationend
    only tells us a CSS animation finished playing; it never
    advances the stage on its own — the button click still does.
    ========================================================== */
-let stage = 0;
+let stage = 0; // 0 = choosing which pack instance, 1 = shake, 2 = tear, 3 = presentation, 4 = exit
+
+function goStageSettle(){
+  btn.hidden = true;
+
+  const activeSlot = selectCarousel.querySelector(".select-slot.is-active .pack-container");
+  const fromRect = activeSlot.getBoundingClientRect();
+
+  // Reveal the hero pack so we can measure where it actually rests,
+  // then FLIP it: no-transition jump back to the carousel pack's
+  // position, then release the transition next frame so it animates
+  // from there into place instead of just popping in.
+  packSlot.style.display = "";
+  const toRect = pack.getBoundingClientRect();
+
+  const dx = (fromRect.left + fromRect.width / 2) - (toRect.left + toRect.width / 2);
+  const dy = (fromRect.top + fromRect.height / 2) - (toRect.top + toRect.height / 2);
+  const scale = fromRect.width / toRect.width;
+
+  pack.style.transition = "none";
+  pack.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+  pack.style.opacity = "0";
+  selectStage.style.transition = "opacity .3s ease";
+  selectStage.style.opacity = "0";
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      pack.style.transition = "transform .55s cubic-bezier(.2,.8,.2,1), opacity .3s ease";
+      pack.style.transform = "translate(0,0) scale(1)";
+      pack.style.opacity = "1";
+    });
+  });
+
+  pack.addEventListener("transitionend", function onSettle(e){
+    if (e.propertyName !== "transform") return;
+    pack.removeEventListener("transitionend", onSettle);
+    pack.style.transition = "";
+    pack.style.transform = "";
+    selectStage.style.display = "none";
+    goStage1(); // settling flows straight into the shake — no extra click, same pattern as shake -> tear below
+  });
+}
 
 function goStage1(){
   stage = 1;
@@ -528,9 +840,10 @@ function goStage4(){
 }
 
 btn.addEventListener("click", ()=>{
-  if (stage === 0) goStage1();
-  else if (stage === 1) goStage2();
-  else if (stage === 2) goStage3();
+  // Only these two are ever reachable by click — stage 1 (shake) and
+  // stage 2 (tear) both auto-advance themselves via animationend
+  // above, and hide the button while they run.
+  if (stage === 0) goStageSettle();
   else if (stage === 3) goStage4();
 });
 </script>
