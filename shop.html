@@ -29,6 +29,7 @@
   --mythic-b:#C77DFF;
   --mythic-c:#4FD1E5;
   --danger:#E8636B;
+  --app-width:100%;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -40,13 +41,20 @@ body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   min-height:100vh;
 }
+/* ============================================================
+   RESPONSIVE STRATEGY — replaces the old `zoom:0.60` hack.
+   Below 768px the shop already fills the device width edge-to-edge,
+   which is correct for a phone. At 768px+ there's more room than a
+   card-shop UI needs, so instead of shrinking every pixel value
+   (which `zoom` did, and which Firefox doesn't support at all — it
+   would've rendered full-size, uncompressed, on every Firefox user),
+   the whole app frame is capped to a fixed max-width and centered,
+   floating on the background. That's real CSS layout: it reflows
+   correctly, works in every browser, and doesn't shrink tap targets
+   the way a uniform zoom-out does.
+   ============================================================ */
 @media (min-width:768px){
-  body{
-    zoom:0.60; /* starting zoom level on desktop/tablet widths only — browser's
-                  native zoom, not a CSS transform, so layout, sticky header, and
-                  fixed footer all behave normally at this scale. Left out below
-                  768px so phones render at their normal, already-mobile-sized scale. */
-  }
+  :root{ --app-width:480px; }
 }
 a{color:inherit;text-decoration:none;}
 .mono{font-family:'Fredoka',sans-serif;font-weight:700;}
@@ -60,6 +68,8 @@ a{color:inherit;text-decoration:none;}
    ============================================================ */
 .hud{
   position:sticky;top:0;z-index:50;
+  max-width:var(--app-width);
+  margin-left:auto;margin-right:auto;
   background:rgba(0,0,0,.92);backdrop-filter:blur(6px);
   border-bottom:3px solid var(--line);
   padding:14px 20px;
@@ -90,7 +100,7 @@ a{color:inherit;text-decoration:none;}
    SHARED — buttons, empty state, rarity theming, toast, modal
    (used across Main/Info/Packs, not section-specific)
    ============================================================ */
-.page{max-width:1080px;margin:0 auto;padding:28px 16px 60px;}
+.page{max-width:var(--app-width);margin:0 auto;padding:28px 16px 60px;}
 
 .btn{
   border:none;border-radius:3px;padding:12px 20px;font-size:13px;font-weight:800;
@@ -135,7 +145,7 @@ a{color:inherit;text-decoration:none;}
   padding:14px 18px;margin-top:4px;
 }
 .info-strip .info-name{
-  font-size:36px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;line-height:1;
+  font-size:clamp(26px,7vw,36px);font-weight:900;letter-spacing:.02em;text-transform:uppercase;line-height:1;
   background-image:linear-gradient(100deg,
     var(--tier-a, #8C8880) 0%, var(--tier-a, #8C8880) 35%,
     #FFFFFF 48%,
@@ -164,6 +174,8 @@ a{color:inherit;text-decoration:none;}
    ============================================================ */
 .buy-hud{
   position:fixed;left:0;right:0;bottom:0;z-index:60;
+  max-width:var(--app-width);
+  margin-left:auto;margin-right:auto;
   background:rgba(0,0,0,.96);backdrop-filter:blur(6px);
   border-top:3px solid var(--line);
   padding:14px 20px;
@@ -504,11 +516,13 @@ fetch("packs-section.html")
       mount.appendChild(packsSection);
     }
 
-    // Pull its <style>, but strip the page-level rules (:root, *, html/body, body{background})
-    // that only make sense when packs-section.html is opened standalone — those would
-    // otherwise override this page's own tokens and background.
-    const parsedStyle = parsed.querySelector("style");
-    if (parsedStyle){
+    // Pull ALL its <style> tags, not just the first — a partial with more than
+    // one <style> block used to silently lose everything past the first one.
+    const parsedStyles = parsed.querySelectorAll("style");
+    parsedStyles.forEach(parsedStyle => {
+      // Strip the page-level rules (:root, *, html/body, body{background})
+      // that only make sense when packs-section.html is opened standalone —
+      // those would otherwise override this page's own tokens and background.
       let css = parsedStyle.textContent;
       css = css.replace(/:root\{[^}]*\}/, "");
       css = css.replace(/\*\{box-sizing:border-box;\}/, "");
@@ -517,16 +531,16 @@ fetch("packs-section.html")
       const styleTag = document.createElement("style");
       styleTag.textContent = css;
       document.head.appendChild(styleTag);
-    }
+    });
 
-    // Pull its <script> content and execute it in this page's scope
-    // (script tags inserted via innerHTML/appendChild don't auto-run).
-    const parsedScript = parsed.querySelector("script");
-    if (parsedScript){
+    // Pull ALL its <script> tags and execute them in this page's scope, in
+    // order (script tags inserted via innerHTML/appendChild don't auto-run).
+    const parsedScripts = parsed.querySelectorAll("script");
+    parsedScripts.forEach(parsedScript => {
       const newScript = document.createElement("script");
       newScript.textContent = parsedScript.textContent;
       document.body.appendChild(newScript);
-    }
+    });
   })
   .catch(err => console.error("Failed to load packs-section.html:", err));
 </script>
@@ -566,10 +580,10 @@ fetch("wallet-ledger.html")
       document.body.appendChild(signupOverlay);
     }
 
-    // Pull its <style>, stripping the standalone-page-only rules the same way
-    // packs-section.html's style is stripped above.
-    const parsedStyle = parsed.querySelector("style");
-    if (parsedStyle){
+    // Pull ALL its <style> tags, stripping the standalone-page-only rules the
+    // same way packs-section.html's styles are stripped above.
+    const parsedStyles = parsed.querySelectorAll("style");
+    parsedStyles.forEach(parsedStyle => {
       let css = parsedStyle.textContent;
       css = css.replace(/:root\{[^}]*\}/, "");
       css = css.replace(/\*\{box-sizing:border-box;\}/, "");
@@ -578,18 +592,18 @@ fetch("wallet-ledger.html")
       const styleTag = document.createElement("style");
       styleTag.textContent = css;
       document.head.appendChild(styleTag);
-    }
+    });
 
-    // Pull its <script> and execute it in this page's scope. window.state
-    // already exists by this point (set above), so its self-boot block is
-    // skipped and it ends by calling renderWallet(window.state) +
-    // wireLedgerControls(window.state) against this page's real state.
-    const parsedScript = parsed.querySelector("script");
-    if (parsedScript){
+    // Pull ALL its <script> tags and execute them in this page's scope, in
+    // order. window.state already exists by this point (set above), so its
+    // self-boot block is skipped and it ends by calling renderWallet(window.state)
+    // + wireLedgerControls(window.state) against this page's real state.
+    const parsedScripts = parsed.querySelectorAll("script");
+    parsedScripts.forEach(parsedScript => {
       const newScript = document.createElement("script");
       newScript.textContent = parsedScript.textContent;
       document.body.appendChild(newScript);
-    }
+    });
   })
   .catch(err => console.error("Failed to load wallet-ledger.html:", err));
 </script>
