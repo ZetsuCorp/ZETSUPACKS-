@@ -245,6 +245,33 @@ function walletClient(){
   return window._walletClient;
 }
 
+/* ----------------------------------------------------------
+   NOTIFIES on any change to the current wallet's own row —
+   this is the "wallet ledger is notified" step. It doesn't know
+   or care about packs; it just tells window.onWalletLedgerChanged
+   (defined by shop.html) whenever this row's balance/buys/etc.
+   actually changes in the database. Whether that change means
+   "go draw a card" is shop.html's decision, not this file's.
+   ---------------------------------------------------------- */
+function subscribeToWalletLedger(){
+  if (!window.walletRow || !window.walletRow.id) return;
+  if (window._walletChannel) return; // already subscribed for this row this session
+
+  window._walletChannel = walletClient()
+    .channel(`wallet_ledger_${window.walletRow.id}`)
+    .on("postgres_changes", {
+      event: "UPDATE",
+      schema: "public",
+      table: "wallet_ledger",
+      filter: `id=eq.${window.walletRow.id}`
+    }, (payload) => {
+      if (typeof window.onWalletLedgerChanged === "function"){
+        window.onWalletLedgerChanged(payload.new);
+      }
+    })
+    .subscribe();
+}
+
 async function getIp(){
   try {
     const res = await fetch("https://api.ipify.org?format=json");
@@ -268,7 +295,7 @@ async function autoSignInByIp(){
       window.state.balance = data.balance;
       return;
     }
-   
+    // stored identifier no longer exists in the table — fall through and re-claim
   }
 
   // First-ever visit from this browser — find or create by IP.
@@ -503,11 +530,11 @@ renderWallet();
 wireLedgerControls();
 wireSignupControls();
 
-autoSignInByIp().then(()=>{ renderWallet(); });
+autoSignInByIp().then(()=>{ renderWallet(); subscribeToWalletLedger(); });
 
 document.addEventListener("visibilitychange", ()=>{
   if (document.visibilityState === "visible"){
-    autoSignInByIp().then(()=>{ renderWallet(); });
+    autoSignInByIp().then(()=>{ renderWallet(); subscribeToWalletLedger(); });
   }
 });
 </script>
