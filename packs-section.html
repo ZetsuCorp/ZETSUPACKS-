@@ -30,13 +30,16 @@ body{
 
 .carousel{
   display:flex;gap:28px;overflow-x:auto;overflow-y:visible;
-  padding:30px calc(50vw - 115px) 50px;
+  /* Was 100vw + left:50%/translateX(-50%) — a full-viewport-bleed trick.
+     That's wrong now that this lives inside #gameCanvas (a fixed-width,
+     uniformly-scaled container in shop.html) instead of directly against
+     the real browser viewport. width:100% + a %-based centering padding
+     keeps it correctly full-width *within its own container* instead. */
+  padding:30px calc(50% - 115px) 50px;
   scroll-snap-type:x mandatory;
   scrollbar-width:none;
-  width:100vw;
+  width:100%;
   position:relative;
-  left:50%;
-  transform:translateX(-50%);
 }
 .carousel::-webkit-scrollbar{display:none;}
 
