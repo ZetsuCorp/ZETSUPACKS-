@@ -31,30 +31,22 @@
   --danger:#E8636B;
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;}
+html,body{margin:0;padding:0;}
 body{
   background:
     url('assets/packzbg.jpg') center / cover no-repeat,
     var(--bg);
   color:var(--ink);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  min-height:100vh;
 }
-/* GAME CANVAS — see the wrapping <div>s in the body and the
-   fitGameCanvas() script near the bottom of this file. #gameStage
-   fills the real viewport and centers #gameCanvas, which is a fixed
-   1440px-wide reference layout; JS scales it as one unit to fit
-   whatever width×height the browser actually has, instead of the
-   old zoom:0.67 rule (which rendered inconsistently across browsers
-   since `zoom` isn't a standard, uniformly-implemented property). */
-#gameStage{
-  position:fixed; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  overflow:hidden;
-}
-#gameCanvas{
-  width:1440px;
-  transform-origin:center center;
-  position:relative;
+@media (min-width:768px){
+  body{
+    zoom:0.60; /* starting zoom level on desktop/tablet widths only — browser's
+                  native zoom, not a CSS transform, so layout, sticky header, and
+                  fixed footer all behave normally at this scale. Left out below
+                  768px so phones render at their normal, already-mobile-sized scale. */
+  }
 }
 a{color:inherit;text-decoration:none;}
 .mono{font-family:'Fredoka',sans-serif;font-weight:700;}
@@ -204,16 +196,6 @@ a{color:inherit;text-decoration:none;}
 <body>
 
 <!-- ============================================================
-     GAME CANVAS — the whole composition (header + content + footer)
-     as one fixed-reference-width unit. #gameStage centers it in the
-     real viewport; JS below scales #gameCanvas as a single block to
-     fit whatever width×height is actually available, using a real
-     CSS transform instead of the old browser-inconsistent `zoom`.
-     ============================================================ -->
-<div id="gameStage">
-<div id="gameCanvas">
-
-<!-- ============================================================
      HEADER
      ============================================================ -->
 <header id="hud" class="hud"></header>
@@ -245,11 +227,7 @@ a{color:inherit;text-decoration:none;}
      ============================================================ -->
 <footer class="buy-hud" id="buyHud"></footer>
 
-</div>
-</div>
-
 <script>
-
 // PACKS and CENTER_PACK_INDEX now live in packs-section.html — fetched
 // and injected at runtime, along with the carousel that uses them.
 
@@ -338,30 +316,6 @@ window.state = state; // wallet-ledger.html checks window.state to know whether
                        // standalone demo state — without this it can't see `state`
                        // (a `let` binding isn't a window property on its own).
 renderHud(state, "shop");
-
-/* ==========================================================
-   GAME CANVAS SCALING — replaces the old zoom:0.67 rule. Measures
-   #gameCanvas's real, unscaled size (header + info + carousel +
-   footer, all together) and computes a single scale factor so the
-   whole composition fits inside whatever width×height the browser
-   actually has, using a real CSS transform instead of the
-   inconsistently-implemented `zoom` property.
-   ========================================================== */
-const GAME_CANVAS_WIDTH = 1440; // the fixed reference width #gameCanvas is built at
-
-function fitGameCanvas(){
-  const canvas = document.getElementById("gameCanvas");
-  if (!canvas) return;
-  canvas.style.transform = "scale(1)"; // reset so scrollHeight below measures the real, unscaled size
-  const naturalHeight = canvas.scrollHeight;
-  const scaleX = window.innerWidth / GAME_CANVAS_WIDTH;
-  const scaleY = window.innerHeight / naturalHeight;
-  const scale = Math.min(scaleX, scaleY);
-  canvas.style.transform = `scale(${scale})`;
-}
-
-window.addEventListener("resize", fitGameCanvas);
-fitGameCanvas();
 
 // activePackId is declared by packs-section.html once it loads —
 // renderInfoStrip/renderBuyHud/buyPack below just read it by name.
@@ -573,8 +527,6 @@ fetch("packs-section.html")
       newScript.textContent = parsedScript.textContent;
       document.body.appendChild(newScript);
     }
-
-    fitGameCanvas(); // the carousel just changed #gameCanvas's real height
   })
   .catch(err => console.error("Failed to load packs-section.html:", err));
 </script>
@@ -638,8 +590,6 @@ fetch("wallet-ledger.html")
       newScript.textContent = parsedScript.textContent;
       document.body.appendChild(newScript);
     }
-
-    fitGameCanvas(); // the wallet button just changed #gameCanvas's real header height
   })
   .catch(err => console.error("Failed to load wallet-ledger.html:", err));
 </script>
