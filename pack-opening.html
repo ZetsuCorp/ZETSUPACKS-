@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZETSU PACKZ — Pack Opening</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -423,7 +424,7 @@ body{
     <div class="pack-container is-idle" id="packContainer">
       <div class="deck-info">
         <div class="deck-mark"></div>
-        <div class="deck-name">Deck · <b>ZETSUMETSU EOe</b></div>
+        <div class="deck-name">Deck · <b id="heroDeckName">Loading…</b></div>
       </div>
       <div class="pack-stage">
         <img class="pack-art" id="packArt" alt="pack">
@@ -459,6 +460,18 @@ const PACKS = [
   { id:"mythic",    name:"Mythic",    art:"assets/S0pack.png", tierColors:["#FF6B9D","#C77DFF","#4FD1E5"] }
 ];
 
+// GATE — this page only exists for someone who actually just bought a
+// pack. shop.html's buyPack() is the only thing that ever writes
+// "zetsu_drawn_cards" to sessionStorage; if it's not here, nobody went
+// through a real purchase (e.g. this URL was typed/loaded directly) —
+// send them back to the shop immediately, before any wheel/animation
+// ever runs, instead of letting them play through the whole sequence
+// for nothing.
+if (!sessionStorage.getItem("zetsu_drawn_cards")){
+  window.location.href = "shop.html";
+  throw new Error("No purchase in progress — redirecting to shop.html");
+}
+
 function getSelectedPack(){
   const params = new URLSearchParams(window.location.search);
   const id = params.get("pack");
@@ -466,6 +479,44 @@ function getSelectedPack(){
 }
 
 const selectedPack = getSelectedPack();
+
+// Deck name is real data from Supabase's "decks" table (its "deck"
+// column) — the same table fetchOneCard() below queries for the
+// actual card — not static text. packs-section.html (in the shop)
+// already fetched this once and cached it, so this reads that cache
+// instead of querying Supabase again for the exact same single value.
+// Only queries directly if the cache is missing — e.g. this page was
+// opened without going through the shop first.
+let DECK_NAME = sessionStorage.getItem("zetsu_deck_name") || "Loading…";
+// The hero's label starts as static "Loading…" HTML — apply the cached
+// name to it immediately if we already have one, rather than only
+// inside fetchDeckName()'s resolve callback below (which now skips
+// entirely when the cache already has the value).
+if (DECK_NAME !== "Loading…"){
+  const heroLabel = document.getElementById("heroDeckName");
+  if (heroLabel) heroLabel.textContent = DECK_NAME;
+}
+
+async function fetchDeckName(){
+  if (sessionStorage.getItem("zetsu_deck_name")) return; // already have it, nothing to do
+  try {
+    const client = window.supabase.createClient(
+      "https://jqvnrdjrkdjgjbmqmbbl.supabase.co",
+      "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6"
+    );
+    const { data, error } = await client.from("decks").select("deck").limit(1).maybeSingle();
+    if (!error && data && data.deck){
+      DECK_NAME = data.deck;
+      sessionStorage.setItem("zetsu_deck_name", DECK_NAME);
+      const heroLabel = document.getElementById("heroDeckName");
+      if (heroLabel) heroLabel.textContent = DECK_NAME;
+      renderSelectCarousel();
+      layoutWheel();
+    }
+  } catch (e){
+    // Leave the placeholder up rather than guessing at a name.
+  }
+}
 
 const pack = document.getElementById("packContainer");
 const packArt = document.getElementById("packArt");
@@ -614,7 +665,7 @@ function renderSelectCarousel(){
       <div class="pack-container" style="--tier-a:${tierA}; --tier-b:${tierB}; --tier-c:${tierC};">
         <div class="deck-info">
           <div class="deck-mark"></div>
-          <div class="deck-name">Deck · <b>ZETSUMETSU EOe</b></div>
+          <div class="deck-name">Deck · <b>${DECK_NAME}</b></div>
         </div>
         <div class="pack-stage">
           <img class="pack-art" src="${selectedPack.art}" alt="${selectedPack.name} pack">
@@ -742,6 +793,7 @@ selectCarousel.addEventListener("pointercancel", endDrag);
 renderSelectCarousel();
 updateWheelRadius();
 layoutWheel();
+fetchDeckName();
 window.addEventListener("resize", () => {
   updateWheelRadius();
   layoutWheel();
@@ -767,10 +819,7 @@ function goStageSettle(){
   // the same way goStage1() already removes it before the shake.
   pack.classList.remove("is-idle");
 
-  // Reveal the hero pack so we can measure where it actually rests,
-  // then FLIP it: no-transition jump back to the carousel pack's
-  // position, then release the transition next frame so it animates
-  // from there into place instead of just popping in.
+  
   packSlot.style.display = "";
   const toRect = pack.getBoundingClientRect();
 
