@@ -228,39 +228,6 @@ a{color:inherit;text-decoration:none;}
 <footer class="buy-hud" id="buyHud"></footer>
 
 <script>
-/* ==========================================================
-   DATA — rarities, card names, pack tiers
-   ========================================================== */
-
-const RARITIES = [
-  { id:"common",    label:"Common",    glyphs:["●","▪","○"], valueRange:[8,20]    },
-  { id:"rare",      label:"Rare",      glyphs:["◆","✦","◈"], valueRange:[25,60]   },
-  { id:"epic",      label:"Epic",      glyphs:["✷","❖","✸"], valueRange:[70,160]  },
-  { id:"legendary", label:"Legendary", glyphs:["★","☆","✹"], valueRange:[200,450] },
-  { id:"mythic",    label:"Mythic",    glyphs:["◉","✺","❉"], valueRange:[600,1500]}
-];
-const RARITY_ORDER = ["mythic","legendary","epic","rare","common"];
-
-const NAME_PARTS = {
-  prefix:["Iron","Void","Solar","Ashen","Crimson","Gilded","Hollow","Storm","Obsidian","Wraith","Ember","Frost","Rogue","Sable","Verdant"],
-  noun:["Warden","Cipher","Relic","Sentinel","Oracle","Marauder","Construct","Effigy","Harbinger","Specter","Engine","Totem","Wyrm","Vanguard","Idol"]
-};
-
-function makeCardPool(){
-  const pool = [];
-  RARITIES.forEach(r=>{
-    NAME_PARTS.prefix.forEach((p,i)=>{
-      const step = r.id==="mythic"?5: r.id==="legendary"?3: r.id==="epic"?2:1;
-      if (i % step === 0){
-        const n = NAME_PARTS.noun[(i+RARITIES.indexOf(r)) % NAME_PARTS.noun.length];
-        pool.push({ id:r.id+"-"+p+"-"+n, name:p+" "+n, rarity:r.id, glyph:r.glyphs[i % r.glyphs.length] });
-      }
-    });
-  });
-  return pool;
-}
-const CARD_POOL = makeCardPool();
-
 // PACKS and CENTER_PACK_INDEX now live in packs-section.html — fetched
 // and injected at runtime, along with the carousel that uses them.
 
@@ -286,7 +253,6 @@ function saveState(state){ /* no local save — state is in-memory only */ }
    ========================================================== */
 
 function fmt(n){ return n.toLocaleString(); }
-function rarityMeta(id){ return RARITIES.find(r=>r.id===id); }
 function uid(){ return Date.now()+"-"+Math.random().toString(36).slice(2,7); }
 
 function toast(msg){
@@ -410,19 +376,6 @@ function rollTier(tier){
   return "common";
 }
 
-const BASE_CARDS = 3;
-
-async function computeCardCount(client){
-  const { data, error } = await client.from("decks").select("sales");
-  let totalSold = 0;
-  if (!error && data){
-    totalSold = data.reduce((sum, row) => sum + (row.sales || 0), 0);
-  }
-  const product = totalSold * 555;
-  const lastDigit = Math.abs(product) % 10;
-  return BASE_CARDS + (lastDigit % 2 === 0 ? 2 : 1); // even -> 5, odd -> 4
-}
-
 async function fetchOneCard(client, tier){
   const rolled = rollTier(tier);
   const own = await client.from("decks").select("*").eq("current_tier", rolled);
@@ -455,33 +408,70 @@ async function buyPack(packId){
   const pack = PACKS.find(p=>p.id===packId);
   if (window.walletRow.balance < pack.price){ toast("Not enough chips."); return; }
 
-  // Payment first — commit the deduction on the table before anything
-  // gets drawn or recorded as sold.
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // BUY BUTTON'S ONLY JOB: confirm the pack's price against the wallet
+  // and commit the deduction. That's the whole transaction from here.
+  // No card draw, no redirect — that happens separately, downstream of
+  // the wallet_ledger row actually changing (see onWalletLedgerChanged
+  // below and subscribeToWalletLedger() in wallet-ledger.html), not as
+  // a direct continuation of this click.
+  const client = walletClient(); // shared client from wallet-ledger.html — not a fresh one per call
   const newBalance = window.walletRow.balance - pack.price;
   const newBuys = (window.walletRow.buys || 0) + 1;
+
+  // Record which pack this deduction was for *before* committing it —
+  // onWalletLedgerChanged has no other way to know which pack a given
+  // balance change was buying.
+  sessionStorage.setItem("zetsu_pending_pack", packId);
+
   const { data: updated, error } = await client.from("wallet_ledger")
     .update({ balance: newBalance, buys: newBuys })
     .eq("id", window.walletRow.id)
     .select().single();
-  if (error || !updated){ toast("Purchase failed — try again."); return; }
+
+  if (error || !updated){
+    sessionStorage.removeItem("zetsu_pending_pack"); // nothing was actually confirmed
+    toast("Purchase failed — try again.");
+    return;
+  }
+
   window.walletRow = updated;
   renderWallet();
   renderBuyHud();
+}
 
-  const totalCount = await computeCardCount(client);
-  const cards = [];
-  for (let i = 0; i < totalCount; i++){
-    const card = await fetchOneCard(client, pack.id);
-    if (card) cards.push(card);
-  }
+/* ==========================================================
+   REACTS TO THE WALLET LEDGER CHANGING — not to the buy click.
+   subscribeToWalletLedger() in wallet-ledger.html calls this any
+   time the current wallet's row updates for any reason. Only a
+   change that this page itself just staged (via the pending-pack
+   marker above) actually draws a card; any other ledger change
+   (e.g. signing up) just refreshes the wallet display and stops.
+   ========================================================== */
+window.onWalletLedgerChanged = async function(updatedRow){
+  window.walletRow = updatedRow;
+  renderWallet();
+  if (typeof renderBuyHud === "function") renderBuyHud();
+
+  const pendingPackId = sessionStorage.getItem("zetsu_pending_pack");
+  if (!pendingPackId) return; // this ledger change wasn't a pack purchase
+
+  sessionStorage.removeItem("zetsu_pending_pack"); // consume it so it can't fire twice
+
+  const pack = PACKS.find(p => p.id === pendingPackId);
+  if (!pack) return;
+
+  // 1 pack = 1 card. Duplicates across purchases are fine — no special
+  // handling needed for that.
+  const client = walletClient();
+  const card = await fetchOneCard(client, pack.id);
+  const cards = card ? [card] : [];
   if (cards.length){
     sessionStorage.setItem("zetsu_drawn_cards", JSON.stringify(cards));
   } else {
     sessionStorage.removeItem("zetsu_drawn_cards");
   }
   window.location.href = `loading.html?pack=${encodeURIComponent(pack.id)}`;
-}
+};
 
 </script>
 
