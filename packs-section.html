@@ -29,8 +29,8 @@ body{
 }
 
 .carousel{
-  display:flex;gap:28px;overflow-x:auto;overflow-y:visible;
-  padding:30px calc(50vw - 115px) 50px;
+  display:flex;gap:28px;overflow-x:auto;overflow-y:hidden; 
+  padding:60px calc(50vw - 115px) 70px;
   scroll-snap-type:x mandatory;
   scrollbar-width:none;
   width:100vw;
@@ -321,7 +321,31 @@ const PACKS = [
   }
 ];
 const CENTER_PACK_INDEX = 2;
-const DECK_NAME = "ZETSUMETSU EOe";
+
+// Deck name is real data, not static text — it lives on the "deck"
+// column of the same "decks" table fetchOneCard() already queries in
+// shop.html for the actual cards. Falls back to a loading placeholder
+// until the fetch resolves, then re-renders with the real name.
+let DECK_NAME = "Loading…";
+
+async function fetchDeckName(){
+  try {
+    const client = window.supabase.createClient(
+      "https://jqvnrdjrkdjgjbmqmbbl.supabase.co",
+      "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6"
+    );
+    const { data, error } = await client.from("decks").select("deck").limit(1).maybeSingle();
+    if (!error && data && data.deck){
+      DECK_NAME = data.deck;
+      sessionStorage.setItem("zetsu_deck_name", DECK_NAME); // cached once here so
+        // pack-opening.html can just read it instead of querying Supabase again
+        // for the exact same single piece of data
+      renderCarousel();
+    }
+  } catch (e){
+    // Leave the placeholder up rather than guessing at a name.
+  }
+}
 
 let activePackId = PACKS[CENTER_PACK_INDEX].id;
 
@@ -487,6 +511,7 @@ document.addEventListener("keydown", (e)=>{
 });
 
 renderCarousel();
+fetchDeckName();
 if (typeof renderInfoStrip === "function") renderInfoStrip();
 if (typeof renderBuyHud === "function") renderBuyHud();
 centerOnActivePack();
