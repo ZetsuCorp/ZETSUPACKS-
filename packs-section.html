@@ -29,8 +29,14 @@ body{
 }
 
 .carousel{
-  display:flex;gap:28px;overflow-x:auto;overflow-y:visible;
-  padding:30px calc(50vw - 115px) 50px;
+  display:flex;gap:28px;overflow-x:auto;overflow-y:hidden; /* was overflow-y:visible — per
+    the CSS overflow spec, pairing that with overflow-x:auto silently computes overflow-y to
+    auto instead, not actually visible. So the hover lift/rotate and the is-active scale-up
+    (which push a card taller than the carousel's own box) were triggering a real vertical
+    auto-scrollbar on this element — and since it's 100vw wide, that scrollbar rendered right
+    at the viewport's edge. overflow-y:hidden actually enforces "never scroll" here; extra
+    top/bottom padding below gives the hover/active growth room so it isn't visibly clipped. */
+  padding:60px calc(50vw - 115px) 70px;
   scroll-snap-type:x mandatory;
   scrollbar-width:none;
   width:100vw;
