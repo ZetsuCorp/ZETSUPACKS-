@@ -437,6 +437,17 @@ async function buyPack(packId){
   window.walletRow = updated;
   renderWallet();
   renderBuyHud();
+
+  // Don't wait on the realtime subscription to notice this — call the
+  // same notify function directly with the row this update just got
+  // back. subscribeToWalletLedger() in wallet-ledger.html can still
+  // also fire onWalletLedgerChanged() for this same change if realtime
+  // is enabled on that table; that's harmless; the pending-pack marker
+  // gets consumed by whichever call reaches it first, so it only ever
+  // draws once.
+  if (typeof window.onWalletLedgerChanged === "function"){
+    window.onWalletLedgerChanged(updated);
+  }
 }
 
 /* ==========================================================
