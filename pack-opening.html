@@ -857,23 +857,31 @@ function goStage3(){
   btn.textContent = "Back to Shop";
   btn.hidden = false;
 
-  const raw = sessionStorage.getItem("zetsu_drawn_card");
+  // shop.html always stores an array under this key — even for the
+  // single card a pack actually draws (fetchOneCard() already returns
+  // one row from Supabase; buyPack() just wraps it as [card] before
+  // saving). So this has to pull element 0 out of that array, not
+  // treat the parsed value as the card itself.
+  const raw = sessionStorage.getItem("zetsu_drawn_cards");
   const img = document.getElementById("revealedCardImage");
   const nameEl = document.getElementById("revealedCardName");
   const fallbackEl = document.getElementById("revealedCardFallback");
 
   if (raw){
     try {
-      const card = JSON.parse(raw);
-      img.src = card.image;
-      img.alt = card.card || card.name || "Card";
-      img.style.display = "block";
-      nameEl.textContent = card.card || card.name || "Unknown Card";
-      fallbackEl.style.display = "none";
+      const cards = JSON.parse(raw);
+      const card = Array.isArray(cards) ? cards[0] : cards; // tolerate either shape
+      if (card){
+        img.src = card.image;
+        img.alt = card.card || card.name || "Card";
+        img.style.display = "block";
+        nameEl.textContent = card.card || card.name || "Unknown Card";
+        fallbackEl.style.display = "none";
+      }
     } catch(e){
       console.error("Failed to parse drawn card from sessionStorage:", e);
     }
-    sessionStorage.removeItem("zetsu_drawn_card"); // one-time reveal, don't leave it for the next pack
+    sessionStorage.removeItem("zetsu_drawn_cards"); // one-time reveal, don't leave it for the next pack
   }
 }
 
