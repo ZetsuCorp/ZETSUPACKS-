@@ -475,6 +475,15 @@ window.onWalletLedgerChanged = async function(updatedRow){
   // handling needed for that.
   const client = walletClient();
   const card = await fetchOneCard(client, pack.id);
+
+  if (card){
+    try {
+      await client.rpc("record_card_buy", { p_card: card.id });
+    } catch (e){
+      // popularity_ledger write failing must never cost the player the card
+    }
+  }
+
   const cards = card ? [card] : [];
   if (cards.length){
     sessionStorage.setItem("zetsu_drawn_cards", JSON.stringify(cards));
