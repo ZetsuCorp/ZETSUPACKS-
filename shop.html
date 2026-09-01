@@ -478,7 +478,11 @@ window.onWalletLedgerChanged = async function(updatedRow){
 
   if (card){
     try {
-      await client.rpc("record_card_buy", { p_card: card.id });
+      // popularity_ledger needs both card AND deck — card.id is the drawn
+      // card's own id, card.deck is the deck it belongs to (comes off the
+      // same row pulled from `decks` above). Passing only p_card left the
+      // deck column unset and the insert was failing silently.
+      await client.rpc("record_card_buy", { p_card: card.id, p_deck: card.deck });
     } catch (e){
       // popularity_ledger write failing must never cost the player the card
     }
