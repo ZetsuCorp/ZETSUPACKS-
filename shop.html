@@ -400,6 +400,39 @@ async function fetchOneCard(client, tier){
   return card;
 }
 
+/* ==========================================================
+   POPULARITY LEDGER — one row per (card, deck). Buying a card
+   that already has a row bumps its buys count; buying a card
+   for the first time creates the row, seeded from that card's
+   own current_tier/previous_tier. Reads/writes go straight
+   against the popularity_ledger table — no RPC layer between
+   this and the actual insert/update, so a failure here shows
+   up directly on whichever call caused it.
+   ========================================================== */
+async function recordCardBuy(client, card){
+  const existing = await client.from("popularity_ledger")
+    .select("*")
+    .eq("card", card.card)
+    .eq("deck", card.deck)
+    .maybeSingle();
+
+  if (existing.data){
+    await client.from("popularity_ledger")
+      .update({ buys: (existing.data.buys || 0) + 1 })
+      .eq("card", card.card)
+      .eq("deck", card.deck);
+  } else {
+    await client.from("popularity_ledger")
+      .insert({
+        card: card.card,
+        deck: card.deck,
+        current_tier: card.current_tier,
+        previous_tier: card.previous_tier,
+        buys: 1
+      });
+  }
+}
+
 async function buyPack(packId){
   if (!window.walletRow || window.walletRow.id_type !== "account"){
     requireAccount(()=>buyPack(packId));
@@ -477,15 +510,7 @@ window.onWalletLedgerChanged = async function(updatedRow){
   const card = await fetchOneCard(client, pack.id);
 
   if (card){
-    try {
-      // popularity_ledger needs both card AND deck — card.id is the drawn
-      // card's own id, card.deck is the deck it belongs to (comes off the
-      // same row pulled from `decks` above). Passing only p_card left the
-      // deck column unset and the insert was failing silently.
-      await client.rpc("record_card_buy", { p_card: card.id, p_deck: card.deck });
-    } catch (e){
-      // popularity_ledger write failing must never cost the player the card
-    }
+    await recordCardBuy(client, card);
   }
 
   const cards = card ? [card] : [];
