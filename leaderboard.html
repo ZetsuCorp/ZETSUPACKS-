@@ -1,0 +1,1023 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>ZETSU POPULARITY — Public Ledger</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <style>
+        :root {
+            --bg: #050505;
+            --panel: #0d0d0d;
+            --panel-2: #111111;
+            --border: #252525;
+            --border-bright: #3a3a3a;
+
+            --text: #f5f5f5;
+            --muted: #858585;
+            --dim: #555555;
+
+            --accent: #ffffff;
+
+            --common: #bdbdbd;
+            --epic: #a875ff;
+            --legendary: #ffb347;
+            --mythic: #ff4d8d;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            min-height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Fredoka", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        /* =========================================================
+           HEADER
+        ========================================================= */
+
+        header {
+            width: 100%;
+            border-bottom: 1px solid var(--border);
+            background: rgba(5, 5, 5, 0.96);
+        }
+
+        .header-inner {
+            width: min(1400px, calc(100% - 40px));
+            margin: 0 auto;
+            min-height: 82px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+
+            display: grid;
+            place-items: center;
+
+            border: 1px solid var(--border-bright);
+            background: #0b0b0b;
+
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .brand-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .brand-name {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+        }
+
+        .brand-sub {
+            color: var(--muted);
+            font-size: 11px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ffffff;
+        }
+
+        /* =========================================================
+           PAGE
+        ========================================================= */
+
+        main {
+            width: min(1400px, calc(100% - 40px));
+            margin: 0 auto;
+            padding: 44px 0 70px;
+        }
+
+        .page-heading {
+            margin-bottom: 34px;
+        }
+
+        .eyebrow {
+            margin-bottom: 10px;
+
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin: 0;
+
+            font-size: clamp(36px, 5vw, 68px);
+            line-height: 0.95;
+            letter-spacing: -0.04em;
+        }
+
+        .heading-description {
+            max-width: 700px;
+            margin-top: 18px;
+
+            color: var(--muted);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* =========================================================
+           LEADERBOARD CONTROLS
+        ========================================================= */
+
+        .ledger-bar {
+            min-height: 64px;
+            margin-bottom: 18px;
+            padding: 12px 16px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+
+            border: 1px solid var(--border);
+            background: var(--panel);
+        }
+
+        .ledger-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .ledger-count {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .refresh-button {
+            padding: 9px 14px;
+
+            border: 1px solid var(--border-bright);
+            background: #111111;
+            color: var(--text);
+
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+
+            transition:
+                background 0.15s ease,
+                border-color 0.15s ease;
+        }
+
+        .refresh-button:hover {
+            background: #181818;
+            border-color: #555555;
+        }
+
+        /* =========================================================
+           LEADERBOARD
+        ========================================================= */
+
+        .leaderboard {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .leader-row {
+            position: relative;
+
+            display: grid;
+            grid-template-columns:
+                74px
+                minmax(280px, 1.8fr)
+                repeat(6, minmax(80px, 0.7fr));
+
+            min-height: 112px;
+
+            border: 1px solid var(--border);
+            background: var(--panel);
+
+            overflow: hidden;
+
+            transition:
+                background 0.15s ease,
+                border-color 0.15s ease;
+        }
+
+        .leader-row:hover {
+            background: var(--panel-2);
+            border-color: var(--border-bright);
+        }
+
+        /* =========================================================
+           RANK
+        ========================================================= */
+
+        .rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-right: 1px solid var(--border);
+
+            color: var(--muted);
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .rank.top-three {
+            color: var(--text);
+        }
+
+        /* =========================================================
+           CARD
+        ========================================================= */
+
+        .card-cell {
+            min-width: 0;
+            padding: 14px 18px;
+
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .card-image {
+            width: 64px;
+            height: 84px;
+            flex: 0 0 auto;
+
+            object-fit: cover;
+
+            border: 1px solid var(--border-bright);
+            background: #080808;
+        }
+
+        .card-image-placeholder {
+            width: 64px;
+            height: 84px;
+            flex: 0 0 auto;
+
+            display: grid;
+            place-items: center;
+
+            border: 1px solid var(--border-bright);
+            background: #080808;
+
+            color: var(--dim);
+            font-size: 10px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .card-info {
+            min-width: 0;
+        }
+
+        .card-name {
+            overflow: hidden;
+
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.1;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-deck {
+            margin-top: 5px;
+
+            overflow: hidden;
+
+            color: var(--muted);
+            font-size: 12px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tier {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 3px 7px;
+
+            border: 1px solid currentColor;
+
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .tier-common {
+            color: var(--common);
+        }
+
+        .tier-epic {
+            color: var(--epic);
+        }
+
+        .tier-legendary {
+            color: var(--legendary);
+        }
+
+        .tier-mythic {
+            color: var(--mythic);
+        }
+
+        /* =========================================================
+           STAT CELLS
+        ========================================================= */
+
+        .stat {
+            min-width: 0;
+            padding: 14px 12px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            border-left: 1px solid var(--border);
+        }
+
+        .stat-label {
+            color: var(--dim);
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            margin-top: 5px;
+
+            color: var(--text);
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* =========================================================
+           EMPTY / LOADING / ERROR
+        ========================================================= */
+
+        .message {
+            min-height: 220px;
+            padding: 40px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid var(--border);
+            background: var(--panel);
+
+            text-align: center;
+        }
+
+        .message-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .message-copy {
+            max-width: 500px;
+            margin-top: 8px;
+
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* =========================================================
+           FOOTER
+        ========================================================= */
+
+        footer {
+            width: 100%;
+            border-top: 1px solid var(--border);
+            background: #050505;
+        }
+
+        .footer-inner {
+            width: min(1400px, calc(100% - 40px));
+            min-height: 64px;
+            margin: 0 auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .footer-copy {
+            color: var(--dim);
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1050px) {
+            .leader-row {
+                grid-template-columns:
+                    62px
+                    minmax(240px, 1.5fr)
+                    repeat(3, minmax(80px, 0.7fr));
+            }
+
+            .stat:nth-of-type(n + 6) {
+                display: none;
+            }
+        }
+
+        @media (max-width: 720px) {
+            main {
+                width: min(100% - 24px, 1400px);
+                padding-top: 28px;
+            }
+
+            .header-inner,
+            .footer-inner {
+                width: calc(100% - 24px);
+            }
+
+            .header-inner {
+                min-height: 68px;
+            }
+
+            .brand-sub {
+                display: none;
+            }
+
+            .status {
+                font-size: 9px;
+            }
+
+            .ledger-bar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .leader-row {
+                grid-template-columns: 52px minmax(0, 1fr);
+                min-height: 100px;
+            }
+
+            .rank {
+                grid-row: 1 / span 2;
+            }
+
+            .card-cell {
+                padding: 12px;
+            }
+
+            .card-image,
+            .card-image-placeholder {
+                width: 52px;
+                height: 68px;
+            }
+
+            .card-name {
+                font-size: 16px;
+            }
+
+            .stat {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-inner">
+            <div class="brand">
+                <div class="brand-mark">Z</div>
+
+                <div class="brand-copy">
+                    <div class="brand-name">
+                        ZETSU
+                    </div>
+
+                    <div class="brand-sub">
+                        Public Popularity Ledger
+                    </div>
+                </div>
+            </div>
+
+            <div class="status">
+                <span class="status-dot"></span>
+                Live Ledger
+            </div>
+        </div>
+    </header>
+
+
+    <main>
+
+        <section class="page-heading">
+            <div class="eyebrow">
+                Zetsumetsu Card Network
+            </div>
+
+            <h1>
+                POPULARITY
+            </h1>
+
+            <div class="heading-description">
+                A public view of the cards currently leading the
+                Zetsu popularity ledger.
+            </div>
+        </section>
+
+
+        <section class="ledger-bar">
+
+            <div class="ledger-title">
+                <span>Current Leaders</span>
+
+                <span
+                    class="ledger-count"
+                    id="ledgerCount"
+                >
+                    Loading...
+                </span>
+            </div>
+
+            <button
+                class="refresh-button"
+                id="refreshButton"
+                type="button"
+            >
+                Refresh
+            </button>
+
+        </section>
+
+
+        <section id="leaderboard">
+
+            <div class="message">
+                <div class="message-title">
+                    Loading ledger
+                </div>
+
+                <div class="message-copy">
+                    Reading the current public popularity data.
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+        <div class="footer-inner">
+
+            <div class="footer-copy">
+                ZETSUMETSU CORPORATION
+            </div>
+
+            <div class="footer-copy">
+                POPULARITY LEDGER
+            </div>
+
+        </div>
+    </footer>
+
+
+    <script>
+        /* =========================================================
+           SUPABASE
+        ========================================================= */
+
+        const SUPABASE_URL =
+            "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
+
+        const SUPABASE_ANON_KEY =
+            "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
+
+        const { createClient } =
+            supabase;
+
+        const client = createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+
+
+        /* =========================================================
+           DOM
+        ========================================================= */
+
+        const leaderboard =
+            document.getElementById("leaderboard");
+
+        const ledgerCount =
+            document.getElementById("ledgerCount");
+
+        const refreshButton =
+            document.getElementById("refreshButton");
+
+
+        /* =========================================================
+           HELPERS
+        ========================================================= */
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+
+        function formatNumber(value) {
+            return Number(value || 0).toLocaleString();
+        }
+
+
+        function getTierClass(tier) {
+            const normalized =
+                String(tier || "common")
+                    .toLowerCase();
+
+            if (normalized === "epic") {
+                return "tier-epic";
+            }
+
+            if (normalized === "legendary") {
+                return "tier-legendary";
+            }
+
+            if (normalized === "mythic") {
+                return "tier-mythic";
+            }
+
+            return "tier-common";
+        }
+
+
+        function renderCardImage(card) {
+            if (!card.image) {
+                return `
+                    <div class="card-image-placeholder">
+                        No Image
+                    </div>
+                `;
+            }
+
+            return `
+                <img
+                    class="card-image"
+                    src="${escapeHtml(card.image)}"
+                    alt="${escapeHtml(card.card)}"
+                    loading="lazy"
+                >
+            `;
+        }
+
+
+        /* =========================================================
+           RENDER
+           
+           IMPORTANT:
+           This does NOT decide how cards move.
+           
+           Ranking behavior will be added after the user defines
+           the actual popularity movement system.
+        ========================================================= */
+
+        function renderLeaderboard(rows) {
+
+            if (!rows.length) {
+
+                ledgerCount.textContent =
+                    "0 cards";
+
+                leaderboard.innerHTML = `
+                    <div class="message">
+                        <div class="message-title">
+                            No popularity data
+                        </div>
+
+                        <div class="message-copy">
+                            The public popularity ledger is
+                            currently empty.
+                        </div>
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            ledgerCount.textContent =
+                `${rows.length} cards`;
+
+
+            leaderboard.innerHTML =
+                rows.map((card, index) => {
+
+                    const rank =
+                        index + 1;
+
+                    const rankClass =
+                        rank <= 3
+                            ? "rank top-three"
+                            : "rank";
+
+                    return `
+                        <article class="leader-row">
+
+                            <div class="${rankClass}">
+                                #${rank}
+                            </div>
+
+
+                            <div class="card-cell">
+
+                                ${renderCardImage(card)}
+
+                                <div class="card-info">
+
+                                    <div class="card-name">
+                                        ${escapeHtml(card.card)}
+                                    </div>
+
+                                    <div class="card-deck">
+                                        ${escapeHtml(card.deck)}
+                                    </div>
+
+                                    <span
+                                        class="tier ${getTierClass(card.current_tier)}"
+                                    >
+                                        ${escapeHtml(
+                                            card.current_tier || "common"
+                                        )}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Buys
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(card.buys)}
+                                </div>
+                            </div>
+
+
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Sales
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(card.sales)}
+                                </div>
+                            </div>
+
+
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Collections
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        card.total_in_collections
+                                    )}
+                                </div>
+                            </div>
+
+
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Fused
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(card.fused)}
+                                </div>
+                            </div>
+
+
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Ascensions
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(card.ascensions)}
+                                </div>
+                            </div>
+
+
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Dissections
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(card.dissections)}
+                                </div>
+                            </div>
+
+                        </article>
+                    `;
+                }).join("");
+        }
+
+
+        /* =========================================================
+           LOAD LEDGER
+           
+           READ ONLY.
+           
+           No INSERT.
+           No UPDATE.
+           No RPC.
+           No ranking mutation.
+        ========================================================= */
+
+        async function loadLedger() {
+
+            leaderboard.innerHTML = `
+                <div class="message">
+                    <div class="message-title">
+                        Loading ledger
+                    </div>
+
+                    <div class="message-copy">
+                        Reading the current popularity data.
+                    </div>
+                </div>
+            `;
+
+
+            const {
+                data,
+                error
+            } = await client
+                .from("popularity_ledger")
+                .select(`
+                    card,
+                    deck,
+                    current_tier,
+                    previous_tier,
+                    threshold,
+                    buys,
+                    sales,
+                    total_in_collections,
+                    fused,
+                    ascensions,
+                    dissections,
+                    updated_at
+                `);
+
+
+            if (error) {
+
+                console.error(
+                    "Popularity ledger error:",
+                    error
+                );
+
+                ledgerCount.textContent =
+                    "Error";
+
+                leaderboard.innerHTML = `
+                    <div class="message">
+
+                        <div class="message-title">
+                            Ledger unavailable
+                        </div>
+
+                        <div class="message-copy">
+                            ${escapeHtml(error.message)}
+                        </div>
+
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            /*
+             * At this stage the rows are intentionally NOT
+             * ranked using an invented popularity formula.
+             *
+             * The ordering system will be inserted here after
+             * the popularity movement rules are defined.
+             */
+
+            renderLeaderboard(data || []);
+        }
+
+
+        /* =========================================================
+           EVENTS
+        ========================================================= */
+
+        refreshButton.addEventListener(
+            "click",
+            loadLedger
+        );
+
+
+        /* =========================================================
+           START
+        ========================================================= */
+
+        loadLedger();
+    </script>
+
+</body>
+</html>
+```
