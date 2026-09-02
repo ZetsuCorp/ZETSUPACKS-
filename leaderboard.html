@@ -2,56 +2,45 @@
 
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 ```
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>ZETSU POPULARITY Ledger</title>
+<title>ZETSU POPULARITY — Leaderboard</title>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<link
-    rel="preconnect"
-    href="https://fonts.googleapis.com"
->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
 <link
-    rel="preconnect"
-    href="https://fonts.gstatic.com"
-    crossorigin
->
-
-<link
-    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap"
     rel="stylesheet"
 >
 
 <style>
     :root {
-        --bg: #050505;
-        --panel: #0d0d0d;
-        --panel-hover: #111111;
+        --bg: #0A0A0A;
+        --panel: #141414;
+        --panel-2: #1C1C1C;
+        --line: #333333;
 
-        --border: #242424;
-        --border-bright: #3a3a3a;
-        --line: #ffffff;
+        --ink: #EDE6DC;
+        --muted: #9A958E;
 
-        --text: #f5f5f5;
-        --muted: #858585;
-        --dim: #555555;
+        --brass: #D4AF6A;
+        --brass-dim: #8A7245;
 
-        --common: #bdbdbd;
-        --rare: #63b3ff;
-        --epic: #a875ff;
-        --legendary: #ffb347;
-        --mythic: #ff4d8d;
+        --common: #8C8880;
+        --rare: #4FB6A8;
+        --epic: #9B6BD6;
+        --legendary: #E8A23D;
 
-        --ascending: #65ff9a;
-        --descending: #ff5f5f;
+        --mythic-a: #FF6B9D;
+        --mythic-b: #C77DFF;
+        --mythic-c: #4FD1E5;
+
+        --danger: #E8636B;
     }
 
     * {
@@ -61,22 +50,54 @@
     html,
     body {
         margin: 0;
-        min-height: 100%;
-        width: 100%;
-
-        background: var(--bg);
-        color: var(--text);
-
-        font-family: "Fredoka", sans-serif;
+        padding: 0;
     }
 
     body {
+        background:
+            url('assets/packzbg.jpg') center / cover no-repeat,
+            var(--bg);
+
+        background-attachment: fixed;
+
+        color: var(--ink);
+
+        font-family:
+            -apple-system,
+            BlinkMacSystemFont,
+            "Segoe UI",
+            Roboto,
+            Helvetica,
+            Arial,
+            sans-serif;
+
         min-height: 100vh;
+    }
+
+    @media (min-width: 768px) {
+        body {
+            zoom: 0.60;
+        }
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .mono {
+        font-family: 'Fredoka', sans-serif;
+        font-weight: 700;
+    }
+
+    .glow-num {
+        color: #FFFFFF;
+        letter-spacing: .02em;
     }
 
     /* =========================================================
        ZETSU PACKZ HEADER
-    ========================================================== */
+    ========================================================= */
 
     .hud {
         position: sticky;
@@ -84,7 +105,6 @@
         z-index: 50;
 
         background: rgba(0, 0, 0, .92);
-
         backdrop-filter: blur(6px);
 
         border-bottom: 3px solid var(--line);
@@ -96,7 +116,6 @@
         align-items: center;
 
         flex-wrap: wrap;
-
         gap: 12px;
     }
 
@@ -104,312 +123,328 @@
         display: flex;
         flex-direction: column;
         align-items: flex-start;
-
         gap: 0;
-
-        color: var(--text);
-        text-decoration: none;
     }
 
     .hud .brand .mark {
-        color: var(--muted);
-
-        font-size: 11px;
-        font-weight: 700;
-
-        letter-spacing: .12em;
+        font-size: 10px;
+        letter-spacing: .28em;
+        color: var(--brass);
         text-transform: uppercase;
+        font-weight: 700;
     }
 
     .hud .brand h1 {
         margin: 0;
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: .02em;
+        text-transform: uppercase;
+    }
 
-        color: var(--text);
-
-        font-size: 22px;
-        font-weight: 700;
-
-        line-height: 1;
-
-        letter-spacing: .08em;
+    .hud .brand h1 span {
+        color: var(--brass);
     }
 
     .hud nav {
         display: flex;
-        align-items: center;
-
         gap: 4px;
     }
 
     .hud .navlink {
-        padding: 8px 12px;
-
-        border: 1px solid transparent;
-
-        color: var(--muted);
-
+        padding: 8px 14px;
+        border-radius: 3px;
         font-size: 11px;
-        font-weight: 700;
-
-        letter-spacing: .08em;
+        letter-spacing: .12em;
         text-transform: uppercase;
-
-        text-decoration: none;
-
-        transition:
-            color .15s ease,
-            border-color .15s ease,
-            background .15s ease;
+        font-weight: 700;
+        color: var(--muted);
+        border: 3px solid transparent;
     }
 
     .hud .navlink:hover {
-        color: var(--text);
-
-        border-color: var(--border-bright);
-
-        background: #0b0b0b;
+        color: var(--ink);
     }
 
     .hud .navlink.current {
-        color: var(--text);
+        background: var(--brass);
+        color: #141414;
+    }
 
-        border-color: var(--border-bright);
+    .hud .hud-stats {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
 
-        background: #111111;
+    .hud .packs-count {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--ink);
+        border: 3px solid var(--line);
+        border-radius: 20px;
+        padding: 6px 12px;
+    }
+
+    .hud .packs-count .icon {
+        font-size: 14px;
+        color: var(--brass);
+    }
+
+    .hud .packs-count .num {
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .hud .packs-count:hover {
+        border-color: var(--brass-dim);
     }
 
     /* =========================================================
-       MAIN
-    ========================================================== */
+       PAGE
+    ========================================================= */
 
-    main {
-        width: min(1400px, calc(100% - 40px));
-
+    .page {
+        max-width: 1080px;
         margin: 0 auto;
-
-        padding: 48px 0 70px;
+        padding: 28px 16px 110px;
     }
 
     .heading {
-        margin-bottom: 34px;
+        margin-bottom: 18px;
     }
 
     .eyebrow {
-        margin-bottom: 10px;
-
-        color: var(--muted);
-
         font-size: 11px;
-        font-weight: 600;
-        letter-spacing: 0.18em;
+        letter-spacing: .2em;
         text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 700;
+        margin: 0 0 8px;
     }
 
-    main h1 {
+    .heading h2 {
         margin: 0;
+        font-size: 36px;
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: .02em;
+        text-transform: uppercase;
 
-        font-size: clamp(40px, 6vw, 72px);
-        font-weight: 700;
-        line-height: 0.95;
-        letter-spacing: -0.045em;
+        color: var(--ink);
     }
 
     .description {
-        max-width: 720px;
-
-        margin-top: 18px;
-
+        margin-top: 10px;
         color: var(--muted);
-
-        font-size: 15px;
-        line-height: 1.6;
+        font-size: 12px;
+        line-height: 1.5;
     }
 
     /* =========================================================
        LEDGER HEADER
-    ========================================================== */
+    ========================================================= */
 
     .ledger-header {
-        min-height: 58px;
+        margin-top: 20px;
+        margin-bottom: 6px;
 
-        padding: 0 18px;
+        background: var(--panel-2);
+        border: 3px solid var(--line);
+        border-radius: 6px;
 
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-
-        border: 1px solid var(--border);
-        background: var(--panel);
+        padding: 14px 18px;
     }
 
     .ledger-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+
         font-size: 13px;
-        font-weight: 700;
-        letter-spacing: 0.1em;
+        font-weight: 800;
+        letter-spacing: .12em;
         text-transform: uppercase;
     }
 
     .ledger-count {
-        margin-left: 8px;
-
         color: var(--muted);
-
-        font-size: 11px;
-        font-weight: 400;
-        letter-spacing: 0;
-        text-transform: none;
+        font-size: 10px;
+        letter-spacing: .08em;
     }
 
     /* =========================================================
        LEADERBOARD
-    ========================================================== */
+    ========================================================= */
 
     .leaderboard {
-        margin-top: 8px;
-
         display: flex;
         flex-direction: column;
-
-        gap: 8px;
+        gap: 6px;
     }
 
     .leader-row {
-        min-height: 112px;
-
         display: grid;
 
         grid-template-columns:
-            72px
-            minmax(280px, 1.8fr)
-            125px
-            125px
-            repeat(6, minmax(75px, 0.65fr));
+            54px
+            minmax(235px, 1.7fr)
+            92px
+            104px
+            repeat(6, minmax(62px, .6fr));
 
-        border: 1px solid var(--border);
+        align-items: center;
+
+        min-height: 96px;
+
         background: var(--panel);
+
+        border: 3px solid var(--line);
+        border-radius: 6px;
 
         overflow: hidden;
 
         transition:
-            background 0.15s ease,
-            border-color 0.15s ease;
+            border-color .15s ease,
+            background .15s ease;
     }
 
     .leader-row:hover {
-        background: var(--panel-hover);
-        border-color: var(--border-bright);
+        background: var(--panel-2);
+        border-color: var(--brass-dim);
     }
 
     /* =========================================================
        RANK
-    ========================================================== */
+    ========================================================= */
 
     .rank {
+        height: 100%;
+
         display: flex;
         align-items: center;
         justify-content: center;
 
-        border-right: 1px solid var(--border);
-
         color: var(--muted);
 
-        font-size: 22px;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 14px;
         font-weight: 700;
     }
 
     .rank.top-three {
-        color: var(--text);
+        color: var(--brass);
+        font-size: 16px;
     }
 
     /* =========================================================
        CARD
-    ========================================================== */
+    ========================================================= */
 
     .card-cell {
         min-width: 0;
 
-        padding: 14px 18px;
-
         display: flex;
         align-items: center;
+        gap: 12px;
 
-        gap: 16px;
+        padding: 10px 8px;
     }
 
-    .card-image {
-        width: 64px;
-        height: 84px;
+    .card-image,
+    .card-placeholder {
+        width: 54px;
+        height: 72px;
 
-        flex: 0 0 auto;
+        flex: 0 0 54px;
 
         object-fit: cover;
 
-        border: 1px solid var(--border-bright);
+        background: var(--panel-2);
 
-        background: #080808;
+        border: 3px solid var(--line);
+        border-radius: 4px;
     }
 
     .card-placeholder {
-        width: 64px;
-        height: 84px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
-        flex: 0 0 auto;
-
-        display: grid;
-        place-items: center;
-
-        border: 1px solid var(--border-bright);
-
-        background: #080808;
-
-        color: var(--dim);
-
-        font-size: 9px;
         text-align: center;
+
+        color: var(--muted);
+
+        font-size: 7px;
+        font-weight: 700;
+
         text-transform: uppercase;
+        letter-spacing: .06em;
     }
 
     .card-info {
         min-width: 0;
+
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
     }
 
     .card-name {
+        max-width: 100%;
+
         overflow: hidden;
-
-        color: var(--text);
-
-        font-size: 18px;
-        font-weight: 700;
-        line-height: 1.1;
-
         text-overflow: ellipsis;
         white-space: nowrap;
+
+        color: var(--ink);
+
+        font-family: 'Fredoka', sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+
+        letter-spacing: .01em;
     }
 
     .card-deck {
-        margin-top: 5px;
+        max-width: 100%;
 
         overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
 
         color: var(--muted);
 
-        font-size: 12px;
+        font-size: 10px;
+        font-weight: 700;
 
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: .08em;
     }
 
-    .tier {
-        display: inline-block;
+    /* =========================================================
+       TIERS
+    ========================================================= */
 
-        margin-top: 8px;
+    .tier {
+        display: inline-flex;
+        align-items: center;
+
+        min-height: 20px;
+
         padding: 3px 7px;
 
-        border: 1px solid currentColor;
+        border: 2px solid currentColor;
+        border-radius: 3px;
 
-        font-size: 9px;
-        font-weight: 700;
-        letter-spacing: 0.1em;
+        font-size: 8px;
+        line-height: 1;
+
+        font-weight: 800;
+        letter-spacing: .1em;
         text-transform: uppercase;
     }
 
@@ -430,83 +465,60 @@
     }
 
     .tier-mythic {
-        color: var(--mythic);
+        color: var(--mythic-b);
     }
 
     /* =========================================================
-       POPULARITY
-    ========================================================== */
+       POPULARITY / MOVEMENT
+    ========================================================= */
 
-    .popularity-cell {
+    .popularity-cell,
+    .movement-cell {
         min-width: 0;
-
-        padding: 14px 12px;
-
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-
-        border-left: 1px solid var(--border);
+        padding: 8px;
     }
 
-    .popularity-label {
-        color: var(--dim);
+    .popularity-label,
+    .movement-label,
+    .stat-label {
+        margin-bottom: 5px;
 
-        font-size: 9px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
+        color: var(--muted);
+
+        font-size: 8px;
+        font-weight: 700;
+
+        letter-spacing: .1em;
         text-transform: uppercase;
     }
 
     .popularity-value {
-        margin-top: 5px;
+        color: var(--brass);
 
-        color: var(--text);
-
-        font-size: 22px;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 20px;
         font-weight: 700;
-    }
 
-    /* =========================================================
-       MOVEMENT
-    ========================================================== */
-
-    .movement-cell {
-        min-width: 0;
-
-        padding: 14px 12px;
-
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-
-        border-left: 1px solid var(--border);
-    }
-
-    .movement-label {
-        color: var(--dim);
-
-        font-size: 9px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+        white-space: nowrap;
     }
 
     .movement-value {
-        margin-top: 5px;
+        font-family: 'Fredoka', sans-serif;
 
-        font-size: 12px;
+        font-size: 9px;
         font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+
+        letter-spacing: .04em;
+
+        white-space: nowrap;
     }
 
     .movement-ascending {
-        color: var(--ascending);
+        color: var(--rare);
     }
 
     .movement-descending {
-        color: var(--descending);
+        color: var(--danger);
     }
 
     .movement-stable {
@@ -515,148 +527,133 @@
 
     /* =========================================================
        STATS
-    ========================================================== */
+    ========================================================= */
 
     .stat {
         min-width: 0;
-
-        padding: 14px 12px;
-
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-
-        border-left: 1px solid var(--border);
-    }
-
-    .stat-label {
-        color: var(--dim);
-
-        font-size: 9px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+        padding: 8px;
     }
 
     .stat-value {
-        margin-top: 5px;
+        color: var(--ink);
 
-        color: var(--text);
-
-        font-size: 20px;
+        font-family: 'Fredoka', sans-serif;
+        font-size: 16px;
         font-weight: 700;
+
+        white-space: nowrap;
     }
 
     /* =========================================================
-       STATES
-    ========================================================== */
+       MESSAGES
+    ========================================================= */
 
     .message {
-        min-height: 220px;
+        background: var(--panel-2);
 
-        padding: 40px;
+        border: 3px dashed var(--line);
+        border-radius: 6px;
 
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-
-        border: 1px solid var(--border);
-        background: var(--panel);
+        padding: 42px 20px;
 
         text-align: center;
     }
 
     .message-title {
+        color: var(--ink);
+
+        font-family: 'Fredoka', sans-serif;
         font-size: 20px;
         font-weight: 700;
+
+        text-transform: uppercase;
+        letter-spacing: .03em;
     }
 
     .message-copy {
-        max-width: 500px;
-
         margin-top: 8px;
 
         color: var(--muted);
 
-        font-size: 13px;
+        font-size: 12px;
         line-height: 1.5;
     }
 
     /* =========================================================
        FOOTER
-    ========================================================== */
+    ========================================================= */
 
     footer {
-        width: 100%;
+        background: rgba(0, 0, 0, .92);
 
-        border-top: 1px solid var(--border);
-
-        background: #050505;
+        border-top: 3px solid var(--line);
     }
 
     .footer-inner {
-        width: min(1400px, calc(100% - 40px));
-        min-height: 64px;
+        max-width: 1080px;
+        min-height: 54px;
 
         margin: 0 auto;
+        padding: 12px 16px;
 
         display: flex;
         align-items: center;
         justify-content: space-between;
 
-        gap: 20px;
+        gap: 12px;
     }
 
     .footer-copy {
-        color: var(--dim);
+        color: var(--muted);
 
-        font-size: 10px;
-        font-weight: 600;
-        letter-spacing: 0.1em;
+        font-size: 9px;
+        font-weight: 700;
+
+        letter-spacing: .15em;
         text-transform: uppercase;
     }
 
     /* =========================================================
-       TABLET
-    ========================================================== */
+       RESPONSIVE
+    ========================================================= */
 
-    @media (max-width: 1300px) {
-
+    @media (max-width: 1050px) {
         .leader-row {
             grid-template-columns:
-                64px
-                minmax(230px, 1.5fr)
-                110px
-                110px
-                repeat(6, minmax(65px, 0.6fr));
+                48px
+                minmax(210px, 1.5fr)
+                88px
+                100px
+                repeat(6, minmax(58px, .55fr));
+        }
+
+        .stat {
+            padding-left: 5px;
+            padding-right: 5px;
+        }
+
+        .stat-value {
+            font-size: 14px;
         }
     }
 
-    @media (max-width: 1100px) {
-
+    @media (max-width: 850px) {
         .leader-row {
             grid-template-columns:
-                64px
-                minmax(240px, 1.5fr)
-                110px
-                110px
-                repeat(3, minmax(80px, 0.7fr));
+                48px
+                minmax(200px, 1fr)
+                90px
+                100px;
         }
 
-        .stat:nth-of-type(n + 4) {
+        .leader-row .stat {
             display: none;
         }
     }
 
-    /* =========================================================
-       MOBILE
-    ========================================================== */
-
-    @media (max-width: 720px) {
-
+    @media (max-width: 700px) {
         .hud {
-            padding: 12px;
+            padding: 12px 14px;
         }
 
         .hud .brand h1 {
@@ -664,76 +661,100 @@
         }
 
         .hud nav {
+            order: 3;
             width: 100%;
-
-            overflow-x: auto;
         }
 
         .hud .navlink {
-            padding: 7px 9px;
-
-            font-size: 9px;
-
-            white-space: nowrap;
+            flex: 1;
+            text-align: center;
+            padding: 8px 6px;
         }
 
-        .footer-inner {
-            width: calc(100% - 24px);
+        .hud .hud-stats {
+            margin-left: auto;
         }
 
-        main {
-            width: calc(100% - 24px);
+        .page {
+            padding: 22px 12px 80px;
+        }
 
-            padding-top: 30px;
+        .heading h2 {
+            font-size: 30px;
         }
 
         .leader-row {
-            min-height: 96px;
+            grid-template-columns: 42px minmax(0, 1fr);
 
-            grid-template-columns:
-                52px
-                minmax(0, 1fr);
+            min-height: 90px;
         }
 
         .rank {
-            grid-row: 1 / span 5;
+            font-size: 12px;
+        }
+
+        .rank.top-three {
+            font-size: 14px;
         }
 
         .card-cell {
-            padding: 12px;
+            padding-right: 10px;
         }
 
         .card-image,
         .card-placeholder {
-            width: 52px;
-            height: 68px;
+            width: 50px;
+            height: 67px;
+            flex-basis: 50px;
         }
 
         .card-name {
-            font-size: 16px;
+            font-size: 15px;
         }
 
         .popularity-cell,
         .movement-cell {
-            grid-column: 2;
-
-            border-left: 0;
-            border-top: 1px solid var(--border);
-
-            padding: 10px 12px;
-
-            flex-direction: row;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .popularity-value,
-        .movement-value {
-            margin-top: 0;
-        }
-
-        .stat {
             display: none;
+        }
+
+        .ledger-heading {
+            font-size: 11px;
+        }
+
+        .footer-inner {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+
+    @media (max-width: 420px) {
+        .hud .brand .mark {
+            font-size: 8px;
+        }
+
+        .hud .brand h1 {
+            font-size: 16px;
+        }
+
+        .hud .navlink {
+            font-size: 9px;
+            letter-spacing: .08em;
+        }
+
+        .heading h2 {
+            font-size: 27px;
+        }
+
+        .description {
+            font-size: 11px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: .01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: .01ms !important;
         }
     }
 </style>
@@ -744,68 +765,36 @@
 <body>
 
 ```
-<!-- =========================================================
-     ZETSU PACKZ HEADER
-========================================================== -->
-
 <header id="hud" class="hud"></header>
 
-
-<!-- =========================================================
-     MAIN
-========================================================== -->
-
-<main>
+<main class="page">
 
     <section class="heading">
-
         <div class="eyebrow">
             Zetsumetsu Card Network
         </div>
 
-        <h1>
-            POPULARITY
-        </h1>
+        <h2>POPULARITY</h2>
 
         <div class="description">
-            The cards currently leading the Zetsu popularity
-            ledger.
+            The cards currently leading the Zetsu popularity ledger.
         </div>
-
     </section>
 
-
-    <!-- =====================================================
-         LEDGER HEADER
-    ====================================================== -->
-
     <section class="ledger-header">
-
         <div class="ledger-heading">
-            Current Leaders
-
-            <span
-                class="ledger-count"
-                id="ledgerCount"
-            >
+            <span>Current Leaders</span>
+            <span class="ledger-count" id="ledgerCount">
                 Loading...
             </span>
         </div>
-
     </section>
-
-
-    <!-- =====================================================
-         LEADERBOARD
-    ====================================================== -->
 
     <section
         class="leaderboard"
         id="leaderboard"
     >
-
         <div class="message">
-
             <div class="message-title">
                 Loading ledger
             </div>
@@ -813,22 +802,13 @@
             <div class="message-copy">
                 Reading the current popularity data.
             </div>
-
         </div>
-
     </section>
 
 </main>
 
-
-<!-- =========================================================
-     FOOTER
-========================================================== -->
-
 <footer>
-
     <div class="footer-inner">
-
         <div class="footer-copy">
             ZETSUMETSU CORPORATION
         </div>
@@ -836,19 +816,31 @@
         <div class="footer-copy">
             POPULARITY LEDGER
         </div>
-
     </div>
-
 </footer>
 
-
 <script>
-    /* =========================================================
-       ZETSU PACKZ HEADER
-    ========================================================== */
+    const SUPABASE_URL =
+        "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
 
-    function renderHud(currentPage) {
+    const SUPABASE_ANON_KEY =
+        "sb_publishable_jmEahTk4OssD_IrOq_6iQ_P6QFFJr6";
 
+    const { createClient } = supabase;
+
+    const client = createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+    let state = {
+        collection: [],
+        firstVisit: true
+    };
+
+    window.state = state;
+
+    function renderHud(state, currentPage) {
         const mount =
             document.getElementById("hud");
 
@@ -875,10 +867,7 @@
         ];
 
         mount.innerHTML = `
-            <a
-                class="brand"
-                href="start.html"
-            >
+            <a class="brand" href="start.html">
                 <span class="mark">
                     Zetsumetsu EOe
                 </span>
@@ -902,73 +891,203 @@
                     </a>
                 `).join("")}
             </nav>
+
+            <div class="hud-stats">
+                <div id="walletMount"></div>
+            </div>
         `;
+
+        if (window.walletNode) {
+            const walletMount =
+                document.getElementById("walletMount");
+
+            if (walletMount) {
+                walletMount.appendChild(
+                    window.walletNode
+                );
+            }
+
+            if (
+                typeof renderWallet ===
+                "function"
+            ) {
+                renderWallet(state);
+            }
+        }
     }
 
-    renderHud("leaderboard");
+    renderHud(state, "leaderboard");
 
+    fetch("wallet-ledger.html")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(
+                    `wallet-ledger.html failed: ${response.status}`
+                );
+            }
 
-    /* =========================================================
-       SUPABASE
-    ========================================================== */
+            return response.text();
+        })
+        .then(html => {
+            const parsed =
+                new DOMParser().parseFromString(
+                    html,
+                    "text/html"
+                );
 
-    const SUPABASE_URL =
-        "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
+            const walletDiv =
+                parsed.getElementById("wallet");
 
-    const SUPABASE_ANON_KEY =
-        "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
+            const walletMount =
+                document.getElementById("walletMount");
 
-    const {
-        createClient
-    } = supabase;
+            if (walletDiv && walletMount) {
+                window.walletNode = walletDiv;
 
-    const client = createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-    );
+                walletMount.appendChild(
+                    walletDiv
+                );
+            }
 
+            const ledgerOverlay =
+                parsed.getElementById(
+                    "ledgerOverlay"
+                );
 
-    /* =========================================================
-       DOM
-    ========================================================== */
+            if (ledgerOverlay) {
+                document.body.appendChild(
+                    ledgerOverlay
+                );
+            }
 
-    const leaderboard =
-        document.getElementById("leaderboard");
+            const signupOverlay =
+                parsed.getElementById(
+                    "signupOverlay"
+                );
+
+            if (signupOverlay) {
+                document.body.appendChild(
+                    signupOverlay
+                );
+            }
+
+            const parsedStyle =
+                parsed.querySelector("style");
+
+            if (parsedStyle) {
+                let css =
+                    parsedStyle.textContent;
+
+                css = css.replace(
+                    /:root\{[^}]*\}/,
+                    ""
+                );
+
+                css = css.replace(
+                    /\*\{box-sizing:border-box;\}/,
+                    ""
+                );
+
+                css = css.replace(
+                    /html,body\{margin:0;padding:0;\}/,
+                    ""
+                );
+
+                css = css.replace(
+                    /body\{[^}]*\}/,
+                    ""
+                );
+
+                const styleTag =
+                    document.createElement(
+                        "style"
+                    );
+
+                styleTag.textContent = css;
+
+                document.head.appendChild(
+                    styleTag
+                );
+            }
+
+            const parsedScript =
+                parsed.querySelector("script");
+
+            if (parsedScript) {
+                const newScript =
+                    document.createElement(
+                        "script"
+                    );
+
+                newScript.textContent =
+                    parsedScript.textContent;
+
+                document.body.appendChild(
+                    newScript
+                );
+            }
+
+            if (
+                typeof renderWallet ===
+                "function"
+            ) {
+                renderWallet(state);
+            }
+        })
+        .catch(error => {
+            console.error(
+                "Failed to load wallet-ledger.html:",
+                error
+            );
+        });
 
     const ledgerCount =
-        document.getElementById("ledgerCount");
+        document.getElementById(
+            "ledgerCount"
+        );
 
-
-    /* =========================================================
-       HELPERS
-    ========================================================== */
+    const leaderboard =
+        document.getElementById(
+            "leaderboard"
+        );
 
     function escapeHtml(value) {
-
         return String(value ?? "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
+            .replace(
+                /&/g,
+                "&amp;"
+            )
+            .replace(
+                /</g,
+                "&lt;"
+            )
+            .replace(
+                />/g,
+                "&gt;"
+            )
+            .replace(
+                /"/g,
+                "&quot;"
+            )
+            .replace(
+                /'/g,
+                "&#039;"
+            );
     }
-
 
     function formatNumber(value) {
-
-        return Number(value || 0)
-            .toLocaleString();
+        return Number(
+            value || 0
+        ).toLocaleString();
     }
 
-
     function getTierClass(tier) {
-
         const normalized =
-            String(tier || "common")
-                .toLowerCase();
+            String(
+                tier || "common"
+            ).toLowerCase();
 
         switch (normalized) {
-
             case "rare":
                 return "tier-rare";
 
@@ -986,49 +1105,58 @@
         }
     }
 
-
     function getMovementClass(movement) {
-
         const normalized =
-            String(movement || "stable")
+            String(
+                movement || "stable"
+            )
                 .toLowerCase()
                 .trim();
 
-        if (normalized === "ascending") {
+        if (
+            normalized ===
+            "ascending"
+        ) {
             return "movement-ascending";
         }
 
-        if (normalized === "descending") {
+        if (
+            normalized ===
+            "descending"
+        ) {
             return "movement-descending";
         }
 
         return "movement-stable";
     }
 
-
     function getMovementLabel(movement) {
-
         const normalized =
-            String(movement || "stable")
+            String(
+                movement || "stable"
+            )
                 .toLowerCase()
                 .trim();
 
-        if (normalized === "ascending") {
+        if (
+            normalized ===
+            "ascending"
+        ) {
             return "ASCENDING ↑";
         }
 
-        if (normalized === "descending") {
+        if (
+            normalized ===
+            "descending"
+        ) {
             return "DESCENDING ↓";
         }
 
         return "STABLE";
     }
 
-
     function renderCardImage(row) {
-
         if (!row.image) {
-
             return `
                 <div class="card-placeholder">
                     No Image
@@ -1046,18 +1174,7 @@
         `;
     }
 
-
-    /* =========================================================
-       LOAD CARD IMAGES
-
-       popularity_ledger remains the source of truth for
-       popularity data.
-
-       decks is only read for the card image.
-    ========================================================== */
-
     async function loadCardImages(rows) {
-
         if (!rows.length) {
             return rows;
         }
@@ -1074,7 +1191,6 @@
             `);
 
         if (error) {
-
             console.error(
                 "Deck image lookup error:",
                 error
@@ -1083,13 +1199,12 @@
             return rows;
         }
 
+        const imageMap = new Map();
 
-        const imageMap =
-            new Map();
-
-
-        for (const deckRow of data || []) {
-
+        for (
+            const deckRow
+            of data || []
+        ) {
             const key =
                 `${deckRow.card}::${deckRow.deck}`;
 
@@ -1099,42 +1214,26 @@
             );
         }
 
-
         return rows.map(row => {
-
             const key =
                 `${row.card}::${row.deck}`;
 
             return {
                 ...row,
                 image:
-                    imageMap.get(key) || null
+                    imageMap.get(key) ||
+                    null
             };
         });
     }
 
-
-    /* =========================================================
-       RENDER LEADERBOARD
-
-       THE LEDGER IS THE AUTHORITY.
-
-       popularity_points is READ.
-       movement is READ.
-
-       This page does not calculate either one.
-    ========================================================== */
-
     function renderLeaderboard(rows) {
-
         if (!rows.length) {
-
             ledgerCount.textContent =
                 "0 cards";
 
             leaderboard.innerHTML = `
                 <div class="message">
-
                     <div class="message-title">
                         No popularity data
                     </div>
@@ -1143,242 +1242,183 @@
                         The popularity ledger currently
                         contains no cards.
                     </div>
-
                 </div>
             `;
 
             return;
         }
 
-
         ledgerCount.textContent =
             `${rows.length} cards`;
 
-
         leaderboard.innerHTML =
-            rows.map((row, index) => {
+            rows.map(
+                (row, index) => {
+                    const rank =
+                        index + 1;
 
-                const rank =
-                    index + 1;
+                    const rankClass =
+                        rank <= 3
+                            ? "rank top-three"
+                            : "rank";
 
-                const rankClass =
-                    rank <= 3
-                        ? "rank top-three"
-                        : "rank";
+                    const movementClass =
+                        getMovementClass(
+                            row.movement
+                        );
 
+                    const movementLabel =
+                        getMovementLabel(
+                            row.movement
+                        );
 
-                const movementClass =
-                    getMovementClass(
-                        row.movement
-                    );
+                    return `
+                        <article class="leader-row">
 
+                            <div class="${rankClass}">
+                                #${rank}
+                            </div>
 
-                const movementLabel =
-                    getMovementLabel(
-                        row.movement
-                    );
+                            <div class="card-cell">
+                                ${renderCardImage(row)}
 
+                                <div class="card-info">
 
-                return `
-                    <article class="leader-row">
-
-                        <div class="${rankClass}">
-                            #${rank}
-                        </div>
-
-
-                        <div class="card-cell">
-
-                            ${renderCardImage(row)}
-
-                            <div class="card-info">
-
-                                <div class="card-name">
-                                    ${escapeHtml(row.card)}
-                                </div>
-
-                                <div class="card-deck">
-                                    ${escapeHtml(row.deck)}
-                                </div>
-
-                                <span
-                                    class="
-                                        tier
-                                        ${getTierClass(
-                                            row.current_tier
+                                    <div class="card-name">
+                                        ${escapeHtml(
+                                            row.card
                                         )}
+                                    </div>
+
+                                    <div class="card-deck">
+                                        ${escapeHtml(
+                                            row.deck
+                                        )}
+                                    </div>
+
+                                    <span
+                                        class="
+                                            tier
+                                            ${getTierClass(
+                                                row.current_tier
+                                            )}
+                                        "
+                                    >
+                                        ${escapeHtml(
+                                            row.current_tier ||
+                                            "common"
+                                        )}
+                                    </span>
+
+                                </div>
+                            </div>
+
+                            <div class="popularity-cell">
+                                <div class="popularity-label">
+                                    Popularity
+                                </div>
+
+                                <div class="popularity-value">
+                                    ${formatNumber(
+                                        row.popularity_points
+                                    )}
+                                </div>
+                            </div>
+
+                            <div class="movement-cell">
+                                <div class="movement-label">
+                                    Movement
+                                </div>
+
+                                <div
+                                    class="
+                                        movement-value
+                                        ${movementClass}
                                     "
                                 >
-                                    ${escapeHtml(
-                                        row.current_tier ||
-                                        "common"
+                                    ${movementLabel}
+                                </div>
+                            </div>
+
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Buys
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.buys
                                     )}
-                                </span>
-
+                                </div>
                             </div>
 
-                        </div>
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Sales
+                                </div>
 
-
-                        <!-- POPULARITY -->
-
-                        <div class="popularity-cell">
-
-                            <div class="popularity-label">
-                                Popularity
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.sales
+                                    )}
+                                </div>
                             </div>
 
-                            <div class="popularity-value">
-                                ${formatNumber(
-                                    row.popularity_points
-                                )}
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Collections
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.total_in_collections
+                                    )}
+                                </div>
                             </div>
 
-                        </div>
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Fused
+                                </div>
 
-
-                        <!-- MOVEMENT -->
-
-                        <div class="movement-cell">
-
-                            <div class="movement-label">
-                                Movement
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.fused
+                                    )}
+                                </div>
                             </div>
 
-                            <div
-                                class="
-                                    movement-value
-                                    ${movementClass}
-                                "
-                            >
-                                ${movementLabel}
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Ascensions
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.ascensions
+                                    )}
+                                </div>
                             </div>
 
-                        </div>
+                            <div class="stat">
+                                <div class="stat-label">
+                                    Dissections
+                                </div>
 
-
-                        <!-- BUYS -->
-
-                        <div class="stat">
-
-                            <div class="stat-label">
-                                Buys
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.dissections
+                                    )}
+                                </div>
                             </div>
 
-                            <div class="stat-value">
-                                ${formatNumber(
-                                    row.buys
-                                )}
-                            </div>
-
-                        </div>
-
-
-                        <!-- SALES -->
-
-                        <div class="stat">
-
-                            <div class="stat-label">
-                                Sales
-                            </div>
-
-                            <div class="stat-value">
-                                ${formatNumber(
-                                    row.sales
-                                )}
-                            </div>
-
-                        </div>
-
-
-                        <!-- COLLECTIONS -->
-
-                        <div class="stat">
-
-                            <div class="stat-label">
-                                Collections
-                            </div>
-
-                            <div class="stat-value">
-                                ${formatNumber(
-                                    row.total_in_collections
-                                )}
-                            </div>
-
-                        </div>
-
-
-                        <!-- FUSED -->
-
-                        <div class="stat">
-
-                            <div class="stat-label">
-                                Fused
-                            </div>
-
-                            <div class="stat-value">
-                                ${formatNumber(
-                                    row.fused
-                                )}
-                            </div>
-
-                        </div>
-
-
-                        <!-- ASCENSIONS -->
-
-                        <div class="stat">
-
-                            <div class="stat-label">
-                                Ascensions
-                            </div>
-
-                            <div class="stat-value">
-                                ${formatNumber(
-                                    row.ascensions
-                                )}
-                            </div>
-
-                        </div>
-
-
-                        <!-- DISSECTIONS -->
-
-                        <div class="stat">
-
-                            <div class="stat-label">
-                                Dissections
-                            </div>
-
-                            <div class="stat-value">
-                                ${formatNumber(
-                                    row.dissections
-                                )}
-                            </div>
-
-                        </div>
-
-                    </article>
-                `;
-            }).join("");
+                        </article>
+                    `;
+                }
+            ).join("");
     }
 
-
-    /* =========================================================
-       LOAD PUBLIC LEDGER
-
-       READ ONLY.
-
-       No INSERT.
-       No UPDATE.
-       No DELETE.
-       No RPC.
-
-       popularity_ledger is the source of truth.
-    ========================================================== */
-
     async function loadLedger() {
-
         const {
             data,
             error
@@ -1401,9 +1441,7 @@
                 updated_at
             `);
 
-
         if (error) {
-
             console.error(
                 "Popularity ledger error:",
                 error
@@ -1414,53 +1452,30 @@
 
             leaderboard.innerHTML = `
                 <div class="message">
-
                     <div class="message-title">
                         Ledger unavailable
                     </div>
 
                     <div class="message-copy">
-                        ${escapeHtml(error.message)}
+                        ${escapeHtml(
+                            error.message
+                        )}
                     </div>
-
                 </div>
             `;
 
             return;
         }
 
-
-        /*
-         * The database decides the popularity state.
-         *
-         * popularity_points comes directly from
-         * popularity_ledger.
-         *
-         * movement comes directly from
-         * popularity_ledger.
-         *
-         * No formula is recreated here.
-         *
-         * The rows are displayed in the order returned
-         * by the ledger.
-         */
-
         const rows =
             await loadCardImages(
                 data || []
             );
 
-
         renderLeaderboard(rows);
     }
 
-
-    /* =========================================================
-       INITIAL LOAD
-    ========================================================== */
-
     loadLedger();
-
 </script>
 ```
 
