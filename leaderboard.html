@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,11 +15,13 @@
         rel="preconnect"
         href="https://fonts.googleapis.com"
     >
+
     <link
         rel="preconnect"
         href="https://fonts.gstatic.com"
         crossorigin
     >
+
     <link
         href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap"
         rel="stylesheet"
@@ -30,15 +31,14 @@
         :root {
             --bg: #050505;
             --panel: #0d0d0d;
-            --panel-2: #111111;
-            --border: #252525;
+            --panel-hover: #111111;
+
+            --border: #242424;
             --border-bright: #3a3a3a;
 
             --text: #f5f5f5;
             --muted: #858585;
             --dim: #555555;
-
-            --accent: #ffffff;
 
             --common: #bdbdbd;
             --epic: #a875ff;
@@ -53,19 +53,17 @@
         html,
         body {
             margin: 0;
-            width: 100%;
             min-height: 100%;
+            width: 100%;
+
             background: var(--bg);
             color: var(--text);
+
             font-family: "Fredoka", sans-serif;
         }
 
         body {
             min-height: 100vh;
-        }
-
-        button {
-            font: inherit;
         }
 
         /* =========================================================
@@ -74,18 +72,22 @@
 
         header {
             width: 100%;
+
             border-bottom: 1px solid var(--border);
-            background: rgba(5, 5, 5, 0.96);
+
+            background: #050505;
         }
 
         .header-inner {
             width: min(1400px, calc(100% - 40px));
-            margin: 0 auto;
             min-height: 82px;
+
+            margin: 0 auto;
 
             display: flex;
             align-items: center;
             justify-content: space-between;
+
             gap: 24px;
         }
 
@@ -109,12 +111,6 @@
             font-weight: 700;
         }
 
-        .brand-copy {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
         .brand-name {
             font-size: 20px;
             font-weight: 700;
@@ -122,41 +118,50 @@
         }
 
         .brand-sub {
+            margin-top: 2px;
+
             color: var(--muted);
+
             font-size: 11px;
             letter-spacing: 0.16em;
             text-transform: uppercase;
         }
 
-        .status {
+        .live-status {
             display: flex;
             align-items: center;
             gap: 8px;
 
             color: var(--muted);
-            font-size: 12px;
-            letter-spacing: 0.08em;
+
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
         }
 
-        .status-dot {
+        .live-dot {
             width: 7px;
             height: 7px;
+
             border-radius: 50%;
+
             background: #ffffff;
         }
 
         /* =========================================================
-           PAGE
+           MAIN
         ========================================================= */
 
         main {
             width: min(1400px, calc(100% - 40px));
+
             margin: 0 auto;
-            padding: 44px 0 70px;
+
+            padding: 48px 0 70px;
         }
 
-        .page-heading {
+        .heading {
             margin-bottom: 34px;
         }
 
@@ -164,7 +169,8 @@
             margin-bottom: 10px;
 
             color: var(--muted);
-            font-size: 12px;
+
+            font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.18em;
             text-transform: uppercase;
@@ -173,76 +179,56 @@
         h1 {
             margin: 0;
 
-            font-size: clamp(36px, 5vw, 68px);
+            font-size: clamp(40px, 6vw, 72px);
+            font-weight: 700;
             line-height: 0.95;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.045em;
         }
 
-        .heading-description {
-            max-width: 700px;
+        .description {
+            max-width: 720px;
+
             margin-top: 18px;
 
             color: var(--muted);
+
             font-size: 15px;
             line-height: 1.6;
         }
 
         /* =========================================================
-           LEADERBOARD CONTROLS
+           LEDGER HEADER
         ========================================================= */
 
-        .ledger-bar {
-            min-height: 64px;
-            margin-bottom: 18px;
-            padding: 12px 16px;
+        .ledger-header {
+            min-height: 58px;
+
+            padding: 0 18px;
 
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 20px;
 
             border: 1px solid var(--border);
             background: var(--panel);
         }
 
-        .ledger-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
+        .ledger-heading {
             font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
+            font-weight: 700;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
         }
 
         .ledger-count {
+            margin-left: 8px;
+
             color: var(--muted);
-            font-size: 12px;
+
+            font-size: 11px;
             font-weight: 400;
-        }
-
-        .refresh-button {
-            padding: 9px 14px;
-
-            border: 1px solid var(--border-bright);
-            background: #111111;
-            color: var(--text);
-
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-
-            transition:
-                background 0.15s ease,
-                border-color 0.15s ease;
-        }
-
-        .refresh-button:hover {
-            background: #181818;
-            border-color: #555555;
+            letter-spacing: 0;
+            text-transform: none;
         }
 
         /* =========================================================
@@ -250,21 +236,23 @@
         ========================================================= */
 
         .leaderboard {
+            margin-top: 8px;
+
             display: flex;
             flex-direction: column;
+
             gap: 8px;
         }
 
         .leader-row {
-            position: relative;
+            min-height: 112px;
 
             display: grid;
+
             grid-template-columns:
-                74px
+                72px
                 minmax(280px, 1.8fr)
                 repeat(6, minmax(80px, 0.7fr));
-
-            min-height: 112px;
 
             border: 1px solid var(--border);
             background: var(--panel);
@@ -277,7 +265,7 @@
         }
 
         .leader-row:hover {
-            background: var(--panel-2);
+            background: var(--panel-hover);
             border-color: var(--border-bright);
         }
 
@@ -293,6 +281,7 @@
             border-right: 1px solid var(--border);
 
             color: var(--muted);
+
             font-size: 22px;
             font-weight: 700;
         }
@@ -307,37 +296,44 @@
 
         .card-cell {
             min-width: 0;
+
             padding: 14px 18px;
 
             display: flex;
             align-items: center;
+
             gap: 16px;
         }
 
         .card-image {
             width: 64px;
             height: 84px;
+
             flex: 0 0 auto;
 
             object-fit: cover;
 
             border: 1px solid var(--border-bright);
+
             background: #080808;
         }
 
-        .card-image-placeholder {
+        .card-placeholder {
             width: 64px;
             height: 84px;
+
             flex: 0 0 auto;
 
             display: grid;
             place-items: center;
 
             border: 1px solid var(--border-bright);
+
             background: #080808;
 
             color: var(--dim);
-            font-size: 10px;
+
+            font-size: 9px;
             text-align: center;
             text-transform: uppercase;
         }
@@ -349,9 +345,12 @@
         .card-name {
             overflow: hidden;
 
+            color: var(--text);
+
             font-size: 18px;
             font-weight: 700;
             line-height: 1.1;
+
             text-overflow: ellipsis;
             white-space: nowrap;
         }
@@ -362,13 +361,16 @@
             overflow: hidden;
 
             color: var(--muted);
+
             font-size: 12px;
+
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
         .tier {
             display: inline-block;
+
             margin-top: 8px;
             padding: 3px 7px;
 
@@ -397,11 +399,12 @@
         }
 
         /* =========================================================
-           STAT CELLS
+           STATS
         ========================================================= */
 
         .stat {
             min-width: 0;
+
             padding: 14px 12px;
 
             display: flex;
@@ -413,9 +416,10 @@
 
         .stat-label {
             color: var(--dim);
+
             font-size: 9px;
             font-weight: 600;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
         }
 
@@ -423,16 +427,18 @@
             margin-top: 5px;
 
             color: var(--text);
+
             font-size: 20px;
             font-weight: 700;
         }
 
         /* =========================================================
-           EMPTY / LOADING / ERROR
+           STATES
         ========================================================= */
 
         .message {
             min-height: 220px;
+
             padding: 40px;
 
             display: flex;
@@ -453,9 +459,11 @@
 
         .message-copy {
             max-width: 500px;
+
             margin-top: 8px;
 
             color: var(--muted);
+
             font-size: 13px;
             line-height: 1.5;
         }
@@ -466,50 +474,57 @@
 
         footer {
             width: 100%;
+
             border-top: 1px solid var(--border);
+
             background: #050505;
         }
 
         .footer-inner {
             width: min(1400px, calc(100% - 40px));
             min-height: 64px;
+
             margin: 0 auto;
 
             display: flex;
             align-items: center;
             justify-content: space-between;
+
             gap: 20px;
         }
 
         .footer-copy {
             color: var(--dim);
-            font-size: 11px;
-            letter-spacing: 0.08em;
+
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
         }
 
         /* =========================================================
-           RESPONSIVE
+           TABLET
         ========================================================= */
 
-        @media (max-width: 1050px) {
+        @media (max-width: 1100px) {
+
             .leader-row {
                 grid-template-columns:
-                    62px
+                    64px
                     minmax(240px, 1.5fr)
                     repeat(3, minmax(80px, 0.7fr));
             }
 
-            .stat:nth-of-type(n + 6) {
+            .stat:nth-of-type(n + 4) {
                 display: none;
             }
         }
 
+        /* =========================================================
+           MOBILE
+        ========================================================= */
+
         @media (max-width: 720px) {
-            main {
-                width: min(100% - 24px, 1400px);
-                padding-top: 28px;
-            }
 
             .header-inner,
             .footer-inner {
@@ -520,22 +535,30 @@
                 min-height: 68px;
             }
 
+            main {
+                width: calc(100% - 24px);
+
+                padding-top: 30px;
+            }
+
             .brand-sub {
                 display: none;
             }
 
-            .status {
+            .live-status {
                 font-size: 9px;
             }
 
-            .ledger-bar {
-                align-items: flex-start;
-                flex-direction: column;
+            .ledger-header {
+                padding: 0 12px;
             }
 
             .leader-row {
-                grid-template-columns: 52px minmax(0, 1fr);
-                min-height: 100px;
+                min-height: 96px;
+
+                grid-template-columns:
+                    52px
+                    minmax(0, 1fr);
             }
 
             .rank {
@@ -547,7 +570,7 @@
             }
 
             .card-image,
-            .card-image-placeholder {
+            .card-placeholder {
                 width: 52px;
                 height: 68px;
             }
@@ -565,12 +588,20 @@
 
 <body>
 
+    <!-- =========================================================
+         HEADER
+    ========================================================== -->
+
     <header>
         <div class="header-inner">
-            <div class="brand">
-                <div class="brand-mark">Z</div>
 
-                <div class="brand-copy">
+            <div class="brand">
+
+                <div class="brand-mark">
+                    Z
+                </div>
+
+                <div>
                     <div class="brand-name">
                         ZETSU
                     </div>
@@ -579,19 +610,26 @@
                         Public Popularity Ledger
                     </div>
                 </div>
+
             </div>
 
-            <div class="status">
-                <span class="status-dot"></span>
+            <div class="live-status">
+                <span class="live-dot"></span>
                 Live Ledger
             </div>
+
         </div>
     </header>
 
 
+    <!-- =========================================================
+         MAIN
+    ========================================================== -->
+
     <main>
 
-        <section class="page-heading">
+        <section class="heading">
+
             <div class="eyebrow">
                 Zetsumetsu Card Network
             </div>
@@ -600,17 +638,22 @@
                 POPULARITY
             </h1>
 
-            <div class="heading-description">
-                A public view of the cards currently leading the
-                Zetsu popularity ledger.
+            <div class="description">
+                The cards currently leading the Zetsu popularity
+                ledger.
             </div>
+
         </section>
 
 
-        <section class="ledger-bar">
+        <!-- =====================================================
+             LEDGER HEADER
+        ====================================================== -->
 
-            <div class="ledger-title">
-                <span>Current Leaders</span>
+        <section class="ledger-header">
+
+            <div class="ledger-heading">
+                Current Leaders
 
                 <span
                     class="ledger-count"
@@ -620,27 +663,28 @@
                 </span>
             </div>
 
-            <button
-                class="refresh-button"
-                id="refreshButton"
-                type="button"
-            >
-                Refresh
-            </button>
-
         </section>
 
 
-        <section id="leaderboard">
+        <!-- =====================================================
+             LEADERBOARD
+        ====================================================== -->
+
+        <section
+            class="leaderboard"
+            id="leaderboard"
+        >
 
             <div class="message">
+
                 <div class="message-title">
                     Loading ledger
                 </div>
 
                 <div class="message-copy">
-                    Reading the current public popularity data.
+                    Reading the current popularity data.
                 </div>
+
             </div>
 
         </section>
@@ -648,7 +692,12 @@
     </main>
 
 
+    <!-- =========================================================
+         FOOTER
+    ========================================================== -->
+
     <footer>
+
         <div class="footer-inner">
 
             <div class="footer-copy">
@@ -660,13 +709,14 @@
             </div>
 
         </div>
+
     </footer>
 
 
     <script>
         /* =========================================================
            SUPABASE
-        ========================================================= */
+        ========================================================== */
 
         const SUPABASE_URL =
             "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
@@ -674,8 +724,9 @@
         const SUPABASE_ANON_KEY =
             "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
 
-        const { createClient } =
-            supabase;
+        const {
+            createClient
+        } = supabase;
 
         const client = createClient(
             SUPABASE_URL,
@@ -685,7 +736,7 @@
 
         /* =========================================================
            DOM
-        ========================================================= */
+        ========================================================== */
 
         const leaderboard =
             document.getElementById("leaderboard");
@@ -693,15 +744,13 @@
         const ledgerCount =
             document.getElementById("ledgerCount");
 
-        const refreshButton =
-            document.getElementById("refreshButton");
-
 
         /* =========================================================
            HELPERS
-        ========================================================= */
+        ========================================================== */
 
         function escapeHtml(value) {
+
             return String(value ?? "")
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")
@@ -712,35 +761,41 @@
 
 
         function formatNumber(value) {
-            return Number(value || 0).toLocaleString();
+
+            return Number(value || 0)
+                .toLocaleString();
         }
 
 
         function getTierClass(tier) {
+
             const normalized =
                 String(tier || "common")
                     .toLowerCase();
 
-            if (normalized === "epic") {
-                return "tier-epic";
-            }
+            switch (normalized) {
 
-            if (normalized === "legendary") {
-                return "tier-legendary";
-            }
+                case "epic":
+                    return "tier-epic";
 
-            if (normalized === "mythic") {
-                return "tier-mythic";
-            }
+                case "legendary":
+                    return "tier-legendary";
 
-            return "tier-common";
+                case "mythic":
+                    return "tier-mythic";
+
+                default:
+                    return "tier-common";
+            }
         }
 
 
-        function renderCardImage(card) {
-            if (!card.image) {
+        function renderCardImage(row) {
+
+            if (!row.image) {
+
                 return `
-                    <div class="card-image-placeholder">
+                    <div class="card-placeholder">
                         No Image
                     </div>
                 `;
@@ -749,8 +804,8 @@
             return `
                 <img
                     class="card-image"
-                    src="${escapeHtml(card.image)}"
-                    alt="${escapeHtml(card.card)}"
+                    src="${escapeHtml(row.image)}"
+                    alt="${escapeHtml(row.card)}"
                     loading="lazy"
                 >
             `;
@@ -758,14 +813,13 @@
 
 
         /* =========================================================
-           RENDER
+           RENDER LEADERBOARD
            
-           IMPORTANT:
-           This does NOT decide how cards move.
+           Ranking is intentionally NOT calculated here yet.
            
-           Ranking behavior will be added after the user defines
-           the actual popularity movement system.
-        ========================================================= */
+           The ordering rules will be added after the popularity
+           movement system is defined.
+        ========================================================== */
 
         function renderLeaderboard(rows) {
 
@@ -776,14 +830,16 @@
 
                 leaderboard.innerHTML = `
                     <div class="message">
+
                         <div class="message-title">
                             No popularity data
                         </div>
 
                         <div class="message-copy">
-                            The public popularity ledger is
-                            currently empty.
+                            The popularity ledger currently
+                            contains no cards.
                         </div>
+
                     </div>
                 `;
 
@@ -796,7 +852,7 @@
 
 
             leaderboard.innerHTML =
-                rows.map((card, index) => {
+                rows.map((row, index) => {
 
                     const rank =
                         index + 1;
@@ -805,6 +861,7 @@
                         rank <= 3
                             ? "rank top-three"
                             : "rank";
+
 
                     return `
                         <article class="leader-row">
@@ -816,23 +873,29 @@
 
                             <div class="card-cell">
 
-                                ${renderCardImage(card)}
+                                ${renderCardImage(row)}
 
                                 <div class="card-info">
 
                                     <div class="card-name">
-                                        ${escapeHtml(card.card)}
+                                        ${escapeHtml(row.card)}
                                     </div>
 
                                     <div class="card-deck">
-                                        ${escapeHtml(card.deck)}
+                                        ${escapeHtml(row.deck)}
                                     </div>
 
                                     <span
-                                        class="tier ${getTierClass(card.current_tier)}"
+                                        class="
+                                            tier
+                                            ${getTierClass(
+                                                row.current_tier
+                                            )}
+                                        "
                                     >
                                         ${escapeHtml(
-                                            card.current_tier || "common"
+                                            row.current_tier ||
+                                            "common"
                                         )}
                                     </span>
 
@@ -842,70 +905,86 @@
 
 
                             <div class="stat">
+
                                 <div class="stat-label">
                                     Buys
                                 </div>
 
                                 <div class="stat-value">
-                                    ${formatNumber(card.buys)}
+                                    ${formatNumber(row.buys)}
                                 </div>
+
                             </div>
 
 
                             <div class="stat">
+
                                 <div class="stat-label">
                                     Sales
                                 </div>
 
                                 <div class="stat-value">
-                                    ${formatNumber(card.sales)}
+                                    ${formatNumber(row.sales)}
                                 </div>
+
                             </div>
 
 
                             <div class="stat">
+
                                 <div class="stat-label">
                                     Collections
                                 </div>
 
                                 <div class="stat-value">
                                     ${formatNumber(
-                                        card.total_in_collections
+                                        row.total_in_collections
                                     )}
                                 </div>
+
                             </div>
 
 
                             <div class="stat">
+
                                 <div class="stat-label">
                                     Fused
                                 </div>
 
                                 <div class="stat-value">
-                                    ${formatNumber(card.fused)}
+                                    ${formatNumber(row.fused)}
                                 </div>
+
                             </div>
 
 
                             <div class="stat">
+
                                 <div class="stat-label">
                                     Ascensions
                                 </div>
 
                                 <div class="stat-value">
-                                    ${formatNumber(card.ascensions)}
+                                    ${formatNumber(
+                                        row.ascensions
+                                    )}
                                 </div>
+
                             </div>
 
 
                             <div class="stat">
+
                                 <div class="stat-label">
                                     Dissections
                                 </div>
 
                                 <div class="stat-value">
-                                    ${formatNumber(card.dissections)}
+                                    ${formatNumber(
+                                        row.dissections
+                                    )}
                                 </div>
+
                             </div>
 
                         </article>
@@ -915,30 +994,17 @@
 
 
         /* =========================================================
-           LOAD LEDGER
+           LOAD PUBLIC LEDGER
            
            READ ONLY.
            
            No INSERT.
            No UPDATE.
+           No DELETE.
            No RPC.
-           No ranking mutation.
-        ========================================================= */
+        ========================================================== */
 
         async function loadLedger() {
-
-            leaderboard.innerHTML = `
-                <div class="message">
-                    <div class="message-title">
-                        Loading ledger
-                    </div>
-
-                    <div class="message-copy">
-                        Reading the current popularity data.
-                    </div>
-                </div>
-            `;
-
 
             const {
                 data,
@@ -969,7 +1035,7 @@
                 );
 
                 ledgerCount.textContent =
-                    "Error";
+                    "Unavailable";
 
                 leaderboard.innerHTML = `
                     <div class="message">
@@ -990,30 +1056,26 @@
 
 
             /*
-             * At this stage the rows are intentionally NOT
-             * ranked using an invented popularity formula.
+             * IMPORTANT:
              *
-             * The ordering system will be inserted here after
-             * the popularity movement rules are defined.
+             * No popularity formula exists here yet.
+             *
+             * The returned rows are passed through in their
+             * current database order.
+             *
+             * Once the card movement rules are provided,
+             * the ranking logic will be inserted here.
              */
 
-            renderLeaderboard(data || []);
+            renderLeaderboard(
+                data || []
+            );
         }
 
 
         /* =========================================================
-           EVENTS
-        ========================================================= */
-
-        refreshButton.addEventListener(
-            "click",
-            loadLedger
-        );
-
-
-        /* =========================================================
-           START
-        ========================================================= */
+           INITIAL LOAD
+        ========================================================== */
 
         loadLedger();
     </script>
