@@ -854,6 +854,48 @@
         }
 
 
+        function saveState(state) {
+            // No local save.
+            // State is handled by Supabase/sessionStorage.
+        }
+
+
+        function fmt(n) {
+            return Number(n).toLocaleString();
+        }
+
+
+        function uid() {
+            return (
+                Date.now() +
+                "-" +
+                Math.random().toString(36).slice(2, 7)
+            );
+        }
+
+
+        function toast(message) {
+            let element = document.getElementById("toast");
+
+            if (!element) {
+                element = document.createElement("div");
+                element.id = "toast";
+                element.className = "toast";
+
+                document.body.appendChild(element);
+            }
+
+            element.textContent = message;
+            element.classList.add("show");
+
+            clearTimeout(toast._h);
+
+            toast._h = setTimeout(() => {
+                element.classList.remove("show");
+            }, 1800);
+        }
+
+
         let state = loadState();
         window.state = state;
 
