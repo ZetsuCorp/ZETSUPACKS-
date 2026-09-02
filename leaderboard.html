@@ -1,5 +1,4 @@
-
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -50,6 +49,13 @@
 
             --ascending: #65ff9a;
             --descending: #ff5f5f;
+
+            /* ---- brought in from shop.html for the .hud header ---- */
+            --panel-2: #1C1C1C;
+            --line: #333333;
+            --ink: #EDE6DC;
+            --brass: #D4AF6A;
+            --brass-dim: #8A7245;
         }
 
         * {
@@ -73,86 +79,112 @@
         }
 
         /* =========================================================
-           HEADER
+           HEADER (ZETSU PACKZ shop header, moved from shop.html)
         ========================================================== */
 
-        header {
-            width: 100%;
+        .hud {
+            position: sticky;
+            top: 0;
+            z-index: 50;
 
-            border-bottom: 1px solid var(--border);
+            background: rgba(0, 0, 0, .92);
+            backdrop-filter: blur(6px);
 
-            background: #050505;
-        }
+            border-bottom: 3px solid var(--line);
 
-        .header-inner {
-            width: min(1400px, calc(100% - 40px));
-            min-height: 82px;
-
-            margin: 0 auto;
+            padding: 14px 20px;
 
             display: flex;
-            align-items: center;
             justify-content: space-between;
-
-            gap: 24px;
-        }
-
-        .brand {
-            display: flex;
             align-items: center;
-            gap: 14px;
+
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
-        .brand-mark {
-            width: 42px;
-            height: 42px;
+        .hud .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
+        }
 
-            display: grid;
-            place-items: center;
-
-            border: 1px solid var(--border-bright);
-            background: #0b0b0b;
-
-            font-size: 18px;
+        .hud .brand .mark {
+            font-size: 10px;
+            letter-spacing: .28em;
+            color: var(--brass);
+            text-transform: uppercase;
             font-weight: 700;
         }
 
-        .brand-name {
+        .hud .brand h1 {
+            margin: 0;
             font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-        }
-
-        .brand-sub {
-            margin-top: 2px;
-
-            color: var(--muted);
-
-            font-size: 11px;
-            letter-spacing: 0.16em;
+            font-weight: 900;
+            letter-spacing: .02em;
             text-transform: uppercase;
         }
 
-        .live-status {
+        .hud .brand h1 span {
+            color: var(--brass);
+        }
+
+        .hud nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .hud .navlink {
+            padding: 8px 14px;
+            border-radius: 3px;
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--muted);
+            border: 3px solid transparent;
+        }
+
+        .hud .navlink:hover {
+            color: var(--ink);
+        }
+
+        .hud .navlink.current {
+            background: var(--brass);
+            color: #141414;
+        }
+
+        .hud .hud-stats {
             display: flex;
             align-items: center;
-            gap: 8px;
-
-            color: var(--muted);
-
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
+            gap: 18px;
         }
 
-        .live-dot {
-            width: 7px;
-            height: 7px;
+        .hud .packs-count {
+            display: flex;
+            align-items: center;
+            gap: 6px;
 
-            border-radius: 50%;
+            color: var(--ink);
 
-            background: #ffffff;
+            border: 3px solid var(--line);
+            border-radius: 20px;
+
+            padding: 6px 12px;
+        }
+
+        .hud .packs-count .icon {
+            font-size: 14px;
+            color: var(--brass);
+        }
+
+        .hud .packs-count .num {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .hud .packs-count:hover {
+            border-color: var(--brass-dim);
         }
 
         /* =========================================================
@@ -632,27 +664,14 @@
 
         @media (max-width: 720px) {
 
-            .header-inner,
             .footer-inner {
                 width: calc(100% - 24px);
-            }
-
-            .header-inner {
-                min-height: 68px;
             }
 
             main {
                 width: calc(100% - 24px);
 
                 padding-top: 30px;
-            }
-
-            .brand-sub {
-                display: none;
-            }
-
-            .live-status {
-                font-size: 9px;
             }
 
             .ledger-header {
@@ -714,37 +733,10 @@
 <body>
 
     <!-- =========================================================
-         HEADER
+         HEADER (populated by renderHud(), same component as shop.html)
     ========================================================== -->
 
-    <header>
-        <div class="header-inner">
-
-            <div class="brand">
-
-                <div class="brand-mark">
-                    Z
-                </div>
-
-                <div>
-                    <div class="brand-name">
-                        ZETSU PACKZ
-                    </div>
-
-                    <div class="brand-sub">
-                        ZETSU Popularity Ledger
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="live-status">
-                <span class="live-dot"></span>
-                Live Ledger
-            </div>
-
-        </div>
-    </header>
+    <header id="hud" class="hud"></header>
 
 
     <!-- =========================================================
@@ -836,6 +828,260 @@
         </div>
 
     </footer>
+
+
+    <!-- =========================================================
+         HEADER STATE / RENDER (moved from shop.html)
+    ========================================================== -->
+
+    <script>
+        function defaultState() {
+            return {
+                collection: [],
+                firstVisit: true
+            };
+        }
+
+
+        function loadState() {
+            return defaultState();
+        }
+
+
+        let state = loadState();
+        window.state = state;
+
+
+        function renderHud(state, currentPage) {
+            const mount = document.getElementById("hud");
+
+            if (!mount) {
+                return;
+            }
+
+            const pages = [
+                {
+                    id: "leaderboard",
+                    href: "leaderboard.html",
+                    label: "Leaderboard"
+                },
+                {
+                    id: "start",
+                    href: "start.html",
+                    label: "Start"
+                },
+                {
+                    id: "shop",
+                    href: "shop.html",
+                    label: "Pack Shop"
+                }
+            ];
+
+            mount.innerHTML = `
+                <a class="brand" href="start.html">
+                    <span class="mark">Zetsumetsu EOe</span>
+                    <h1>ZETSU PACKZ</h1>
+                </a>
+
+                <nav>
+                    ${pages.map(page => `
+                        <a
+                            class="navlink ${page.id === currentPage ? "current" : ""}"
+                            href="${page.href}"
+                        >
+                            ${page.label}
+                        </a>
+                    `).join("")}
+                </nav>
+
+                <div class="hud-stats">
+                    <div id="walletMount"></div>
+                </div>
+            `;
+
+
+            /*
+             * wallet-ledger.html supplies this node.
+             *
+             * renderHud() rebuilds the HUD after purchases, so the
+             * existing wallet node must be moved back into the new mount.
+             */
+
+            if (window.walletNode) {
+                const walletMount =
+                    document.getElementById("walletMount");
+
+                if (walletMount) {
+                    walletMount.appendChild(window.walletNode);
+                }
+
+                if (typeof renderWallet === "function") {
+                    renderWallet(state);
+                }
+            }
+        }
+
+
+        renderHud(state, "leaderboard");
+    </script>
+
+
+    <!-- =========================================================
+         LOAD WALLET LEDGER (moved from shop.html, same include)
+    ========================================================== -->
+
+    <script>
+        fetch("wallet-ledger.html")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(
+                        `wallet-ledger.html failed: ${response.status}`
+                    );
+                }
+
+                return response.text();
+            })
+            .then(html => {
+
+                const parsed =
+                    new DOMParser()
+                        .parseFromString(
+                            html,
+                            "text/html"
+                        );
+
+
+                /*
+                 * Wallet button.
+                 */
+
+                const walletDiv =
+                    parsed.getElementById(
+                        "wallet"
+                    );
+
+                const walletMount =
+                    document.getElementById(
+                        "walletMount"
+                    );
+
+
+                if (walletDiv && walletMount) {
+                    window.walletNode =
+                        walletDiv;
+
+                    walletMount.appendChild(
+                        walletDiv
+                    );
+                }
+
+
+                /*
+                 * Ledger overlay.
+                 */
+
+                const ledgerOverlay =
+                    parsed.getElementById(
+                        "ledgerOverlay"
+                    );
+
+
+                if (ledgerOverlay) {
+                    document.body.appendChild(
+                        ledgerOverlay
+                    );
+                }
+
+
+                /*
+                 * Signup overlay.
+                 */
+
+                const signupOverlay =
+                    parsed.getElementById(
+                        "signupOverlay"
+                    );
+
+
+                if (signupOverlay) {
+                    document.body.appendChild(
+                        signupOverlay
+                    );
+                }
+
+
+                /*
+                 * Wallet CSS.
+                 */
+
+                const parsedStyle =
+                    parsed.querySelector("style");
+
+
+                if (parsedStyle) {
+                    let css =
+                        parsedStyle.textContent;
+
+
+                    css = css.replace(
+                        /:root\{[^}]*\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /\*\{box-sizing:border-box;\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /html,body\{margin:0;padding:0;\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /body\{[^}]*\}/,
+                        ""
+                    );
+
+
+                    const styleTag =
+                        document.createElement("style");
+
+                    styleTag.textContent = css;
+
+                    document.head.appendChild(
+                        styleTag
+                    );
+                }
+
+
+                /*
+                 * Execute wallet-ledger.html script.
+                 */
+
+                const parsedScript =
+                    parsed.querySelector("script");
+
+
+                if (parsedScript) {
+                    const newScript =
+                        document.createElement("script");
+
+                    newScript.textContent =
+                        parsedScript.textContent;
+
+                    document.body.appendChild(
+                        newScript
+                    );
+                }
+            })
+            .catch(error => {
+                console.error(
+                    "Failed to load wallet-ledger.html:",
+                    error
+                );
+            });
+    </script>
 
 
     <script>
@@ -1396,4 +1642,3 @@
 
 </body>
 </html>
- 
