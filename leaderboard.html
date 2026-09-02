@@ -2,45 +2,61 @@
 
 <html lang="en">
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
 
 ```
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
 
-<title>ZETSU POPULARITY — Leaderboard</title>
+<title>ZETSU POPULARITY Ledger</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+>
+
+<link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+>
 
 <link
     href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap"
     rel="stylesheet"
 >
+```
 
 <style>
     :root {
-        --bg: #0A0A0A;
-        --panel: #141414;
-        --panel-2: #1C1C1C;
-        --line: #333333;
+        --bg: #050505;
+        --panel: #0d0d0d;
+        --panel-hover: #111111;
 
-        --ink: #EDE6DC;
-        --muted: #9A958E;
+        --border: #242424;
+        --border-bright: #3a3a3a;
+        --line: #ffffff;
 
+        --text: #f5f5f5;
+        --muted: #858585;
+        --dim: #555555;
+
+        --common: #bdbdbd;
+        --rare: #63b3ff;
+        --epic: #a875ff;
+        --legendary: #ffb347;
+        --mythic: #ff4d8d;
+
+        --ascending: #65ff9a;
+        --descending: #ff5f5f;
+
+        /* PACK SHOP HEADER */
         --brass: #D4AF6A;
         --brass-dim: #8A7245;
-
-        --common: #8C8880;
-        --rare: #4FB6A8;
-        --epic: #9B6BD6;
-        --legendary: #E8A23D;
-
-        --mythic-a: #FF6B9D;
-        --mythic-b: #C77DFF;
-        --mythic-c: #4FD1E5;
-
-        --danger: #E8636B;
     }
 
     * {
@@ -50,54 +66,22 @@
     html,
     body {
         margin: 0;
-        padding: 0;
+        min-height: 100%;
+        width: 100%;
+
+        background: var(--bg);
+        color: var(--text);
+
+        font-family: "Fredoka", sans-serif;
     }
 
     body {
-        background:
-            url('assets/packzbg.jpg') center / cover no-repeat,
-            var(--bg);
-
-        background-attachment: fixed;
-
-        color: var(--ink);
-
-        font-family:
-            -apple-system,
-            BlinkMacSystemFont,
-            "Segoe UI",
-            Roboto,
-            Helvetica,
-            Arial,
-            sans-serif;
-
         min-height: 100vh;
-    }
-
-    @media (min-width: 768px) {
-        body {
-            zoom: 0.60;
-        }
-    }
-
-    a {
-        color: inherit;
-        text-decoration: none;
-    }
-
-    .mono {
-        font-family: 'Fredoka', sans-serif;
-        font-weight: 700;
-    }
-
-    .glow-num {
-        color: #FFFFFF;
-        letter-spacing: .02em;
     }
 
     /* =========================================================
        ZETSU PACKZ HEADER
-    ========================================================= */
+    ========================================================== */
 
     .hud {
         position: sticky;
@@ -107,7 +91,7 @@
         background: rgba(0, 0, 0, .92);
         backdrop-filter: blur(6px);
 
-        border-bottom: 3px solid var(--line);
+        border-bottom: 3px solid #333333;
 
         padding: 14px 20px;
 
@@ -124,6 +108,9 @@
         flex-direction: column;
         align-items: flex-start;
         gap: 0;
+
+        color: #EDE6DC;
+        text-decoration: none;
     }
 
     .hud .brand .mark {
@@ -136,10 +123,15 @@
 
     .hud .brand h1 {
         margin: 0;
+
         font-size: 20px;
         font-weight: 900;
         letter-spacing: .02em;
+
+        line-height: normal;
         text-transform: uppercase;
+
+        color: #EDE6DC;
     }
 
     .hud .brand h1 span {
@@ -153,17 +145,27 @@
 
     .hud .navlink {
         padding: 8px 14px;
+
         border-radius: 3px;
+
         font-size: 11px;
         letter-spacing: .12em;
         text-transform: uppercase;
         font-weight: 700;
-        color: var(--muted);
+
+        color: #9A958E;
+
         border: 3px solid transparent;
+
+        text-decoration: none;
+
+        transition:
+            color .15s ease,
+            background .15s ease;
     }
 
     .hud .navlink:hover {
-        color: var(--ink);
+        color: #EDE6DC;
     }
 
     .hud .navlink.current {
@@ -181,9 +183,12 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        color: var(--ink);
-        border: 3px solid var(--line);
+
+        color: #EDE6DC;
+
+        border: 3px solid #333333;
         border-radius: 20px;
+
         padding: 6px 12px;
     }
 
@@ -202,249 +207,237 @@
     }
 
     /* =========================================================
-       PAGE
-    ========================================================= */
+       MAIN
+    ========================================================== */
 
-    .page {
-        max-width: 1080px;
+    main {
+        width: min(1400px, calc(100% - 40px));
+
         margin: 0 auto;
-        padding: 28px 16px 110px;
+
+        padding: 48px 0 70px;
     }
 
     .heading {
-        margin-bottom: 18px;
+        margin-bottom: 34px;
     }
 
     .eyebrow {
-        font-size: 11px;
-        letter-spacing: .2em;
-        text-transform: uppercase;
+        margin-bottom: 10px;
+
         color: var(--muted);
-        font-weight: 700;
-        margin: 0 0 8px;
+
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
     }
 
-    .heading h2 {
+    main h1 {
         margin: 0;
-        font-size: 36px;
-        line-height: 1;
-        font-weight: 900;
-        letter-spacing: .02em;
-        text-transform: uppercase;
 
-        color: var(--ink);
+        font-size: clamp(40px, 6vw, 72px);
+        font-weight: 700;
+        line-height: 0.95;
+        letter-spacing: -0.045em;
     }
 
     .description {
-        margin-top: 10px;
+        max-width: 720px;
+
+        margin-top: 18px;
+
         color: var(--muted);
-        font-size: 12px;
-        line-height: 1.5;
+
+        font-size: 15px;
+        line-height: 1.6;
     }
 
     /* =========================================================
        LEDGER HEADER
-    ========================================================= */
+    ========================================================== */
 
     .ledger-header {
-        margin-top: 20px;
-        margin-bottom: 6px;
+        min-height: 58px;
 
-        background: var(--panel-2);
-        border: 3px solid var(--line);
-        border-radius: 6px;
+        padding: 0 18px;
 
-        padding: 14px 18px;
-    }
-
-    .ledger-heading {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 12px;
 
+        border: 1px solid var(--border);
+        background: var(--panel);
+    }
+
+    .ledger-heading {
         font-size: 13px;
-        font-weight: 800;
-        letter-spacing: .12em;
+        font-weight: 700;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
     }
 
     .ledger-count {
+        margin-left: 8px;
+
         color: var(--muted);
-        font-size: 10px;
-        letter-spacing: .08em;
+
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0;
+        text-transform: none;
     }
 
     /* =========================================================
        LEADERBOARD
-    ========================================================= */
+    ========================================================== */
 
     .leaderboard {
+        margin-top: 8px;
+
         display: flex;
         flex-direction: column;
-        gap: 6px;
+
+        gap: 8px;
     }
 
     .leader-row {
+        min-height: 112px;
+
         display: grid;
 
         grid-template-columns:
-            54px
-            minmax(235px, 1.7fr)
-            92px
-            104px
-            repeat(6, minmax(62px, .6fr));
+            72px
+            minmax(280px, 1.8fr)
+            125px
+            125px
+            repeat(6, minmax(75px, 0.65fr));
 
-        align-items: center;
-
-        min-height: 96px;
-
+        border: 1px solid var(--border);
         background: var(--panel);
-
-        border: 3px solid var(--line);
-        border-radius: 6px;
 
         overflow: hidden;
 
         transition:
-            border-color .15s ease,
-            background .15s ease;
+            background 0.15s ease,
+            border-color 0.15s ease;
     }
 
     .leader-row:hover {
-        background: var(--panel-2);
-        border-color: var(--brass-dim);
+        background: var(--panel-hover);
+        border-color: var(--border-bright);
     }
 
     /* =========================================================
        RANK
-    ========================================================= */
+    ========================================================== */
 
     .rank {
-        height: 100%;
-
         display: flex;
         align-items: center;
         justify-content: center;
 
+        border-right: 1px solid var(--border);
+
         color: var(--muted);
 
-        font-family: 'Fredoka', sans-serif;
-        font-size: 14px;
+        font-size: 22px;
         font-weight: 700;
     }
 
     .rank.top-three {
-        color: var(--brass);
-        font-size: 16px;
+        color: var(--text);
     }
 
     /* =========================================================
        CARD
-    ========================================================= */
+    ========================================================== */
 
     .card-cell {
         min-width: 0;
 
+        padding: 14px 18px;
+
         display: flex;
         align-items: center;
-        gap: 12px;
 
-        padding: 10px 8px;
+        gap: 16px;
     }
 
-    .card-image,
-    .card-placeholder {
-        width: 54px;
-        height: 72px;
+    .card-image {
+        width: 64px;
+        height: 84px;
 
-        flex: 0 0 54px;
+        flex: 0 0 auto;
 
         object-fit: cover;
 
-        background: var(--panel-2);
+        border: 1px solid var(--border-bright);
 
-        border: 3px solid var(--line);
-        border-radius: 4px;
+        background: #080808;
     }
 
     .card-placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 64px;
+        height: 84px;
 
+        flex: 0 0 auto;
+
+        display: grid;
+        place-items: center;
+
+        border: 1px solid var(--border-bright);
+
+        background: #080808;
+
+        color: var(--dim);
+
+        font-size: 9px;
         text-align: center;
-
-        color: var(--muted);
-
-        font-size: 7px;
-        font-weight: 700;
-
         text-transform: uppercase;
-        letter-spacing: .06em;
     }
 
     .card-info {
         min-width: 0;
-
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
     }
 
     .card-name {
-        max-width: 100%;
-
         overflow: hidden;
+
+        color: var(--text);
+
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.1;
+
         text-overflow: ellipsis;
         white-space: nowrap;
-
-        color: var(--ink);
-
-        font-family: 'Fredoka', sans-serif;
-        font-size: 17px;
-        font-weight: 700;
-
-        letter-spacing: .01em;
     }
 
     .card-deck {
-        max-width: 100%;
+        margin-top: 5px;
 
         overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
 
         color: var(--muted);
 
-        font-size: 10px;
-        font-weight: 700;
+        font-size: 12px;
 
-        text-transform: uppercase;
-        letter-spacing: .08em;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
-    /* =========================================================
-       TIERS
-    ========================================================= */
-
     .tier {
-        display: inline-flex;
-        align-items: center;
+        display: inline-block;
 
-        min-height: 20px;
-
+        margin-top: 8px;
         padding: 3px 7px;
 
-        border: 2px solid currentColor;
-        border-radius: 3px;
+        border: 1px solid currentColor;
 
-        font-size: 8px;
-        line-height: 1;
-
-        font-weight: 800;
-        letter-spacing: .1em;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
     }
 
@@ -465,60 +458,83 @@
     }
 
     .tier-mythic {
-        color: var(--mythic-b);
+        color: var(--mythic);
     }
 
     /* =========================================================
-       POPULARITY / MOVEMENT
-    ========================================================= */
+       POPULARITY
+    ========================================================== */
 
-    .popularity-cell,
-    .movement-cell {
+    .popularity-cell {
         min-width: 0;
-        padding: 8px;
+
+        padding: 14px 12px;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        border-left: 1px solid var(--border);
     }
 
-    .popularity-label,
-    .movement-label,
-    .stat-label {
-        margin-bottom: 5px;
+    .popularity-label {
+        color: var(--dim);
 
-        color: var(--muted);
-
-        font-size: 8px;
-        font-weight: 700;
-
-        letter-spacing: .1em;
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
     }
 
     .popularity-value {
-        color: var(--brass);
+        margin-top: 5px;
 
-        font-family: 'Fredoka', sans-serif;
-        font-size: 20px;
+        color: var(--text);
+
+        font-size: 22px;
         font-weight: 700;
+    }
 
-        white-space: nowrap;
+    /* =========================================================
+       MOVEMENT
+    ========================================================== */
+
+    .movement-cell {
+        min-width: 0;
+
+        padding: 14px 12px;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        border-left: 1px solid var(--border);
+    }
+
+    .movement-label {
+        color: var(--dim);
+
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
     }
 
     .movement-value {
-        font-family: 'Fredoka', sans-serif;
+        margin-top: 5px;
 
-        font-size: 9px;
+        font-size: 12px;
         font-weight: 700;
-
-        letter-spacing: .04em;
-
-        white-space: nowrap;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
     }
 
     .movement-ascending {
-        color: var(--rare);
+        color: var(--ascending);
     }
 
     .movement-descending {
-        color: var(--danger);
+        color: var(--descending);
     }
 
     .movement-stable {
@@ -527,133 +543,148 @@
 
     /* =========================================================
        STATS
-    ========================================================= */
+    ========================================================== */
 
     .stat {
         min-width: 0;
-        padding: 8px;
+
+        padding: 14px 12px;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        border-left: 1px solid var(--border);
+    }
+
+    .stat-label {
+        color: var(--dim);
+
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
     }
 
     .stat-value {
-        color: var(--ink);
+        margin-top: 5px;
 
-        font-family: 'Fredoka', sans-serif;
-        font-size: 16px;
+        color: var(--text);
+
+        font-size: 20px;
         font-weight: 700;
-
-        white-space: nowrap;
     }
 
     /* =========================================================
-       MESSAGES
-    ========================================================= */
+       STATES
+    ========================================================== */
 
     .message {
-        background: var(--panel-2);
+        min-height: 220px;
 
-        border: 3px dashed var(--line);
-        border-radius: 6px;
+        padding: 40px;
 
-        padding: 42px 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        border: 1px solid var(--border);
+        background: var(--panel);
 
         text-align: center;
     }
 
     .message-title {
-        color: var(--ink);
-
-        font-family: 'Fredoka', sans-serif;
         font-size: 20px;
         font-weight: 700;
-
-        text-transform: uppercase;
-        letter-spacing: .03em;
     }
 
     .message-copy {
+        max-width: 500px;
+
         margin-top: 8px;
 
         color: var(--muted);
 
-        font-size: 12px;
+        font-size: 13px;
         line-height: 1.5;
     }
 
     /* =========================================================
        FOOTER
-    ========================================================= */
+    ========================================================== */
 
     footer {
-        background: rgba(0, 0, 0, .92);
+        width: 100%;
 
-        border-top: 3px solid var(--line);
+        border-top: 1px solid var(--border);
+
+        background: #050505;
     }
 
     .footer-inner {
-        max-width: 1080px;
-        min-height: 54px;
+        width: min(1400px, calc(100% - 40px));
+        min-height: 64px;
 
         margin: 0 auto;
-        padding: 12px 16px;
 
         display: flex;
         align-items: center;
         justify-content: space-between;
 
-        gap: 12px;
+        gap: 20px;
     }
 
     .footer-copy {
-        color: var(--muted);
+        color: var(--dim);
 
-        font-size: 9px;
-        font-weight: 700;
-
-        letter-spacing: .15em;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.1em;
         text-transform: uppercase;
     }
 
     /* =========================================================
-       RESPONSIVE
-    ========================================================= */
+       TABLET
+    ========================================================== */
 
-    @media (max-width: 1050px) {
+    @media (max-width: 1300px) {
+
         .leader-row {
             grid-template-columns:
-                48px
-                minmax(210px, 1.5fr)
-                88px
-                100px
-                repeat(6, minmax(58px, .55fr));
-        }
-
-        .stat {
-            padding-left: 5px;
-            padding-right: 5px;
-        }
-
-        .stat-value {
-            font-size: 14px;
+                64px
+                minmax(230px, 1.5fr)
+                110px
+                110px
+                repeat(6, minmax(65px, 0.6fr));
         }
     }
 
-    @media (max-width: 850px) {
+    @media (max-width: 1100px) {
+
         .leader-row {
             grid-template-columns:
-                48px
-                minmax(200px, 1fr)
-                90px
-                100px;
+                64px
+                minmax(240px, 1.5fr)
+                110px
+                110px
+                repeat(3, minmax(80px, 0.7fr));
         }
 
-        .leader-row .stat {
+        .stat:nth-of-type(n + 4) {
             display: none;
         }
     }
 
-    @media (max-width: 700px) {
+    /* =========================================================
+       MOBILE
+    ========================================================== */
+
+    @media (max-width: 720px) {
+
         .hud {
-            padding: 12px 14px;
+            padding: 12px;
         }
 
         .hud .brand h1 {
@@ -661,186 +692,165 @@
         }
 
         .hud nav {
-            order: 3;
             width: 100%;
+            overflow-x: auto;
         }
 
         .hud .navlink {
-            flex: 1;
-            text-align: center;
-            padding: 8px 6px;
+            padding: 7px 9px;
+            font-size: 9px;
+            white-space: nowrap;
         }
 
-        .hud .hud-stats {
-            margin-left: auto;
+        .footer-inner {
+            width: calc(100% - 24px);
         }
 
-        .page {
-            padding: 22px 12px 80px;
-        }
-
-        .heading h2 {
-            font-size: 30px;
+        main {
+            width: calc(100% - 24px);
+            padding-top: 30px;
         }
 
         .leader-row {
-            grid-template-columns: 42px minmax(0, 1fr);
+            min-height: 96px;
 
-            min-height: 90px;
+            grid-template-columns:
+                52px
+                minmax(0, 1fr);
         }
 
         .rank {
-            font-size: 12px;
-        }
-
-        .rank.top-three {
-            font-size: 14px;
+            grid-row: 1 / span 5;
         }
 
         .card-cell {
-            padding-right: 10px;
+            padding: 12px;
         }
 
         .card-image,
         .card-placeholder {
-            width: 50px;
-            height: 67px;
-            flex-basis: 50px;
+            width: 52px;
+            height: 68px;
         }
 
         .card-name {
-            font-size: 15px;
+            font-size: 16px;
         }
 
         .popularity-cell,
         .movement-cell {
+            grid-column: 2;
+
+            border-left: 0;
+            border-top: 1px solid var(--border);
+
+            padding: 10px 12px;
+
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .popularity-value,
+        .movement-value {
+            margin-top: 0;
+        }
+
+        .stat {
             display: none;
-        }
-
-        .ledger-heading {
-            font-size: 11px;
-        }
-
-        .footer-inner {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-    }
-
-    @media (max-width: 420px) {
-        .hud .brand .mark {
-            font-size: 8px;
-        }
-
-        .hud .brand h1 {
-            font-size: 16px;
-        }
-
-        .hud .navlink {
-            font-size: 9px;
-            letter-spacing: .08em;
-        }
-
-        .heading h2 {
-            font-size: 27px;
-        }
-
-        .description {
-            font-size: 11px;
-        }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-        * {
-            animation-duration: .01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: .01ms !important;
         }
     }
 </style>
-```
 
 </head>
 
 <body>
 
-```
 <header id="hud" class="hud"></header>
 
-<main class="page">
+<main>
 
-    <section class="heading">
-        <div class="eyebrow">
-            Zetsumetsu Card Network
+```
+<section class="heading">
+
+    <div class="eyebrow">
+        Zetsumetsu Card Network
+    </div>
+
+    <h1>
+        POPULARITY
+    </h1>
+
+    <div class="description">
+        The cards currently leading the Zetsu popularity
+        ledger.
+    </div>
+
+</section>
+
+<section class="ledger-header">
+
+    <div class="ledger-heading">
+        Current Leaders
+
+        <span
+            class="ledger-count"
+            id="ledgerCount"
+        >
+            Loading...
+        </span>
+    </div>
+
+</section>
+
+<section
+    class="leaderboard"
+    id="leaderboard"
+>
+
+    <div class="message">
+
+        <div class="message-title">
+            Loading ledger
         </div>
 
-        <h2>POPULARITY</h2>
-
-        <div class="description">
-            The cards currently leading the Zetsu popularity ledger.
+        <div class="message-copy">
+            Reading the current popularity data.
         </div>
-    </section>
 
-    <section class="ledger-header">
-        <div class="ledger-heading">
-            <span>Current Leaders</span>
-            <span class="ledger-count" id="ledgerCount">
-                Loading...
-            </span>
-        </div>
-    </section>
+    </div>
 
-    <section
-        class="leaderboard"
-        id="leaderboard"
-    >
-        <div class="message">
-            <div class="message-title">
-                Loading ledger
-            </div>
-
-            <div class="message-copy">
-                Reading the current popularity data.
-            </div>
-        </div>
-    </section>
+</section>
+```
 
 </main>
 
 <footer>
-    <div class="footer-inner">
-        <div class="footer-copy">
-            ZETSUMETSU CORPORATION
-        </div>
 
-        <div class="footer-copy">
-            POPULARITY LEDGER
-        </div>
+```
+<div class="footer-inner">
+
+    <div class="footer-copy">
+        ZETSUMETSU CORPORATION
     </div>
+
+    <div class="footer-copy">
+        POPULARITY LEDGER
+    </div>
+
+</div>
+```
+
 </footer>
 
 <script>
-    const SUPABASE_URL =
-        "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
 
-    const SUPABASE_ANON_KEY =
-        "sb_publishable_jmEahTk4OssD_IrOq_6iQ_P6QFFJr6";
+    /* =========================================================
+       ZETSU PACKZ HEADER
+    ========================================================== */
 
-    const { createClient } = supabase;
+    function renderHud(currentPage) {
 
-    const client = createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-    );
-
-    let state = {
-        collection: [],
-        firstVisit: true
-    };
-
-    window.state = state;
-
-    function renderHud(state, currentPage) {
         const mount =
             document.getElementById("hud");
 
@@ -867,7 +877,10 @@
         ];
 
         mount.innerHTML = `
-            <a class="brand" href="start.html">
+            <a
+                class="brand"
+                href="start.html"
+            >
                 <span class="mark">
                     Zetsumetsu EOe
                 </span>
@@ -891,203 +904,73 @@
                     </a>
                 `).join("")}
             </nav>
-
-            <div class="hud-stats">
-                <div id="walletMount"></div>
-            </div>
         `;
-
-        if (window.walletNode) {
-            const walletMount =
-                document.getElementById("walletMount");
-
-            if (walletMount) {
-                walletMount.appendChild(
-                    window.walletNode
-                );
-            }
-
-            if (
-                typeof renderWallet ===
-                "function"
-            ) {
-                renderWallet(state);
-            }
-        }
     }
 
-    renderHud(state, "leaderboard");
+    renderHud("leaderboard");
 
-    fetch("wallet-ledger.html")
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(
-                    `wallet-ledger.html failed: ${response.status}`
-                );
-            }
 
-            return response.text();
-        })
-        .then(html => {
-            const parsed =
-                new DOMParser().parseFromString(
-                    html,
-                    "text/html"
-                );
+    /* =========================================================
+       SUPABASE
+    ========================================================== */
 
-            const walletDiv =
-                parsed.getElementById("wallet");
+    const SUPABASE_URL =
+        "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
 
-            const walletMount =
-                document.getElementById("walletMount");
+    const SUPABASE_ANON_KEY =
+        "sb_publishable_jmEahTk4OssD_IrOq_6iQ_P6QFFJr6";
 
-            if (walletDiv && walletMount) {
-                window.walletNode = walletDiv;
+    const {
+        createClient
+    } = supabase;
 
-                walletMount.appendChild(
-                    walletDiv
-                );
-            }
+    const client = createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
 
-            const ledgerOverlay =
-                parsed.getElementById(
-                    "ledgerOverlay"
-                );
 
-            if (ledgerOverlay) {
-                document.body.appendChild(
-                    ledgerOverlay
-                );
-            }
-
-            const signupOverlay =
-                parsed.getElementById(
-                    "signupOverlay"
-                );
-
-            if (signupOverlay) {
-                document.body.appendChild(
-                    signupOverlay
-                );
-            }
-
-            const parsedStyle =
-                parsed.querySelector("style");
-
-            if (parsedStyle) {
-                let css =
-                    parsedStyle.textContent;
-
-                css = css.replace(
-                    /:root\{[^}]*\}/,
-                    ""
-                );
-
-                css = css.replace(
-                    /\*\{box-sizing:border-box;\}/,
-                    ""
-                );
-
-                css = css.replace(
-                    /html,body\{margin:0;padding:0;\}/,
-                    ""
-                );
-
-                css = css.replace(
-                    /body\{[^}]*\}/,
-                    ""
-                );
-
-                const styleTag =
-                    document.createElement(
-                        "style"
-                    );
-
-                styleTag.textContent = css;
-
-                document.head.appendChild(
-                    styleTag
-                );
-            }
-
-            const parsedScript =
-                parsed.querySelector("script");
-
-            if (parsedScript) {
-                const newScript =
-                    document.createElement(
-                        "script"
-                    );
-
-                newScript.textContent =
-                    parsedScript.textContent;
-
-                document.body.appendChild(
-                    newScript
-                );
-            }
-
-            if (
-                typeof renderWallet ===
-                "function"
-            ) {
-                renderWallet(state);
-            }
-        })
-        .catch(error => {
-            console.error(
-                "Failed to load wallet-ledger.html:",
-                error
-            );
-        });
-
-    const ledgerCount =
-        document.getElementById(
-            "ledgerCount"
-        );
+    /* =========================================================
+       DOM
+    ========================================================== */
 
     const leaderboard =
-        document.getElementById(
-            "leaderboard"
-        );
+        document.getElementById("leaderboard");
+
+    const ledgerCount =
+        document.getElementById("ledgerCount");
+
+
+    /* =========================================================
+       HELPERS
+    ========================================================== */
 
     function escapeHtml(value) {
+
         return String(value ?? "")
-            .replace(
-                /&/g,
-                "&amp;"
-            )
-            .replace(
-                /</g,
-                "&lt;"
-            )
-            .replace(
-                />/g,
-                "&gt;"
-            )
-            .replace(
-                /"/g,
-                "&quot;"
-            )
-            .replace(
-                /'/g,
-                "&#039;"
-            );
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
+
 
     function formatNumber(value) {
-        return Number(
-            value || 0
-        ).toLocaleString();
+
+        return Number(value || 0)
+            .toLocaleString();
     }
 
+
     function getTierClass(tier) {
+
         const normalized =
-            String(
-                tier || "common"
-            ).toLowerCase();
+            String(tier || "common")
+                .toLowerCase();
 
         switch (normalized) {
+
             case "rare":
                 return "tier-rare";
 
@@ -1105,58 +988,49 @@
         }
     }
 
+
     function getMovementClass(movement) {
+
         const normalized =
-            String(
-                movement || "stable"
-            )
+            String(movement || "stable")
                 .toLowerCase()
                 .trim();
 
-        if (
-            normalized ===
-            "ascending"
-        ) {
+        if (normalized === "ascending") {
             return "movement-ascending";
         }
 
-        if (
-            normalized ===
-            "descending"
-        ) {
+        if (normalized === "descending") {
             return "movement-descending";
         }
 
         return "movement-stable";
     }
 
+
     function getMovementLabel(movement) {
+
         const normalized =
-            String(
-                movement || "stable"
-            )
+            String(movement || "stable")
                 .toLowerCase()
                 .trim();
 
-        if (
-            normalized ===
-            "ascending"
-        ) {
+        if (normalized === "ascending") {
             return "ASCENDING ↑";
         }
 
-        if (
-            normalized ===
-            "descending"
-        ) {
+        if (normalized === "descending") {
             return "DESCENDING ↓";
         }
 
         return "STABLE";
     }
 
+
     function renderCardImage(row) {
+
         if (!row.image) {
+
             return `
                 <div class="card-placeholder">
                     No Image
@@ -1174,7 +1048,9 @@
         `;
     }
 
+
     async function loadCardImages(rows) {
+
         if (!rows.length) {
             return rows;
         }
@@ -1191,6 +1067,7 @@
             `);
 
         if (error) {
+
             console.error(
                 "Deck image lookup error:",
                 error
@@ -1199,12 +1076,11 @@
             return rows;
         }
 
-        const imageMap = new Map();
+        const imageMap =
+            new Map();
 
-        for (
-            const deckRow
-            of data || []
-        ) {
+        for (const deckRow of data || []) {
+
             const key =
                 `${deckRow.card}::${deckRow.deck}`;
 
@@ -1215,25 +1091,29 @@
         }
 
         return rows.map(row => {
+
             const key =
                 `${row.card}::${row.deck}`;
 
             return {
                 ...row,
                 image:
-                    imageMap.get(key) ||
-                    null
+                    imageMap.get(key) || null
             };
         });
     }
 
+
     function renderLeaderboard(rows) {
+
         if (!rows.length) {
+
             ledgerCount.textContent =
                 "0 cards";
 
             leaderboard.innerHTML = `
                 <div class="message">
+
                     <div class="message-title">
                         No popularity data
                     </div>
@@ -1242,6 +1122,7 @@
                         The popularity ledger currently
                         contains no cards.
                     </div>
+
                 </div>
             `;
 
@@ -1252,173 +1133,188 @@
             `${rows.length} cards`;
 
         leaderboard.innerHTML =
-            rows.map(
-                (row, index) => {
-                    const rank =
-                        index + 1;
+            rows.map((row, index) => {
 
-                    const rankClass =
-                        rank <= 3
-                            ? "rank top-three"
-                            : "rank";
+                const rank =
+                    index + 1;
 
-                    const movementClass =
-                        getMovementClass(
-                            row.movement
-                        );
+                const rankClass =
+                    rank <= 3
+                        ? "rank top-three"
+                        : "rank";
 
-                    const movementLabel =
-                        getMovementLabel(
-                            row.movement
-                        );
+                const movementClass =
+                    getMovementClass(
+                        row.movement
+                    );
 
-                    return `
-                        <article class="leader-row">
+                const movementLabel =
+                    getMovementLabel(
+                        row.movement
+                    );
 
-                            <div class="${rankClass}">
-                                #${rank}
-                            </div>
+                return `
+                    <article class="leader-row">
 
-                            <div class="card-cell">
-                                ${renderCardImage(row)}
+                        <div class="${rankClass}">
+                            #${rank}
+                        </div>
 
-                                <div class="card-info">
+                        <div class="card-cell">
 
-                                    <div class="card-name">
-                                        ${escapeHtml(
-                                            row.card
-                                        )}
-                                    </div>
+                            ${renderCardImage(row)}
 
-                                    <div class="card-deck">
-                                        ${escapeHtml(
-                                            row.deck
-                                        )}
-                                    </div>
+                            <div class="card-info">
 
-                                    <span
-                                        class="
-                                            tier
-                                            ${getTierClass(
-                                                row.current_tier
-                                            )}
-                                        "
-                                    >
-                                        ${escapeHtml(
-                                            row.current_tier ||
-                                            "common"
-                                        )}
-                                    </span>
-
-                                </div>
-                            </div>
-
-                            <div class="popularity-cell">
-                                <div class="popularity-label">
-                                    Popularity
+                                <div class="card-name">
+                                    ${escapeHtml(row.card)}
                                 </div>
 
-                                <div class="popularity-value">
-                                    ${formatNumber(
-                                        row.popularity_points
-                                    )}
-                                </div>
-                            </div>
-
-                            <div class="movement-cell">
-                                <div class="movement-label">
-                                    Movement
+                                <div class="card-deck">
+                                    ${escapeHtml(row.deck)}
                                 </div>
 
-                                <div
+                                <span
                                     class="
-                                        movement-value
-                                        ${movementClass}
+                                        tier
+                                        ${getTierClass(
+                                            row.current_tier
+                                        )}
                                     "
                                 >
-                                    ${movementLabel}
-                                </div>
-                            </div>
-
-                            <div class="stat">
-                                <div class="stat-label">
-                                    Buys
-                                </div>
-
-                                <div class="stat-value">
-                                    ${formatNumber(
-                                        row.buys
+                                    ${escapeHtml(
+                                        row.current_tier ||
+                                        "common"
                                     )}
-                                </div>
+                                </span>
+
                             </div>
 
-                            <div class="stat">
-                                <div class="stat-label">
-                                    Sales
-                                </div>
+                        </div>
 
-                                <div class="stat-value">
-                                    ${formatNumber(
-                                        row.sales
-                                    )}
-                                </div>
+                        <div class="popularity-cell">
+
+                            <div class="popularity-label">
+                                Popularity
                             </div>
 
-                            <div class="stat">
-                                <div class="stat-label">
-                                    Collections
-                                </div>
-
-                                <div class="stat-value">
-                                    ${formatNumber(
-                                        row.total_in_collections
-                                    )}
-                                </div>
+                            <div class="popularity-value">
+                                ${formatNumber(
+                                    row.popularity_points
+                                )}
                             </div>
 
-                            <div class="stat">
-                                <div class="stat-label">
-                                    Fused
-                                </div>
+                        </div>
 
-                                <div class="stat-value">
-                                    ${formatNumber(
-                                        row.fused
-                                    )}
-                                </div>
+                        <div class="movement-cell">
+
+                            <div class="movement-label">
+                                Movement
                             </div>
 
-                            <div class="stat">
-                                <div class="stat-label">
-                                    Ascensions
-                                </div>
-
-                                <div class="stat-value">
-                                    ${formatNumber(
-                                        row.ascensions
-                                    )}
-                                </div>
+                            <div
+                                class="
+                                    movement-value
+                                    ${movementClass}
+                                "
+                            >
+                                ${movementLabel}
                             </div>
 
-                            <div class="stat">
-                                <div class="stat-label">
-                                    Dissections
-                                </div>
+                        </div>
 
-                                <div class="stat-value">
-                                    ${formatNumber(
-                                        row.dissections
-                                    )}
-                                </div>
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                Buys
                             </div>
 
-                        </article>
-                    `;
-                }
-            ).join("");
+                            <div class="stat-value">
+                                ${formatNumber(
+                                    row.buys
+                                )}
+                            </div>
+
+                        </div>
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                Sales
+                            </div>
+
+                            <div class="stat-value">
+                                ${formatNumber(
+                                    row.sales
+                                )}
+                            </div>
+
+                        </div>
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                Collections
+                            </div>
+
+                            <div class="stat-value">
+                                ${formatNumber(
+                                    row.total_in_collections
+                                )}
+                            </div>
+
+                        </div>
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                Fused
+                            </div>
+
+                            <div class="stat-value">
+                                ${formatNumber(
+                                    row.fused
+                                )}
+                            </div>
+
+                        </div>
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                Ascensions
+                            </div>
+
+                            <div class="stat-value">
+                                ${formatNumber(
+                                    row.ascensions
+                                )}
+                            </div>
+
+                        </div>
+
+                        <div class="stat">
+
+                            <div class="stat-label">
+                                Dissections
+                            </div>
+
+                            <div class="stat-value">
+                                ${formatNumber(
+                                    row.dissections
+                                )}
+                            </div>
+
+                        </div>
+
+                    </article>
+                `;
+            }).join("");
     }
 
+
     async function loadLedger() {
+
         const {
             data,
             error
@@ -1442,6 +1338,7 @@
             `);
 
         if (error) {
+
             console.error(
                 "Popularity ledger error:",
                 error
@@ -1452,15 +1349,15 @@
 
             leaderboard.innerHTML = `
                 <div class="message">
+
                     <div class="message-title">
                         Ledger unavailable
                     </div>
 
                     <div class="message-copy">
-                        ${escapeHtml(
-                            error.message
-                        )}
+                        ${escapeHtml(error.message)}
                     </div>
+
                 </div>
             `;
 
@@ -1475,9 +1372,10 @@
         renderLeaderboard(rows);
     }
 
+
     loadLedger();
+
 </script>
-```
 
 </body>
 </html>
