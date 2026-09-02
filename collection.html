@@ -1,455 +1,1460 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZETSU PACKZ — Collection</title>
-<style>
-@property --k {
-  syntax: '<number>';
-  initial-value: -1;
-  inherits: true;
-}
-@property --ang {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
+    <meta charset="UTF-8">
 
-:root{
-  --bg:#140F1F;
-  --panel:#1D1730;
-  --panel-2:#251D3B;
-  --line:#352A50;
-  --ink:#EDE6DC;
-  --muted:#9C93AE;
-  --brass:#D4AF6A;
-  --brass-dim:#8A7245;
-  --common:#8A8698;
-  --rare:#4FB6A8;
-  --epic:#9B6BD6;
-  --legendary:#E8A23D;
-  --mythic-a:#FF6B9D;
-  --mythic-b:#C77DFF;
-  --mythic-c:#4FD1E5;
-  --danger:#E8636B;
-}
-*{box-sizing:border-box;margin:0;}
-html,body{padding:0;height:100%;}
-body{
-  background:
-    radial-gradient(ellipse 80% 60% at 50% -10%, #241C3C 0%, transparent 60%),
-    var(--bg);
-  color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  height:100vh;
-  height:100dvh;
-  overflow:hidden;
-  display:flex;flex-direction:column;
-}
-a{color:inherit;text-decoration:none;}
-.mono{font-family:"SF Mono",ui-monospace,"Cascadia Code",Consolas,monospace;}
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-/* ---------- HUD ---------- */
-.hud{
-  position:relative;z-index:50;flex:none;
-  background:rgba(20,15,31,.92);backdrop-filter:blur(6px);
-  border-bottom:1px solid var(--line);
-  padding:14px 20px;
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
-}
-.hud .brand{display:flex;align-items:baseline;gap:8px;}
-.hud .brand .mark{font-size:10px;letter-spacing:.28em;color:var(--brass);text-transform:uppercase;font-weight:700;}
-.hud .brand h1{margin:0;font-size:20px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;}
-.hud nav{display:flex;gap:4px;}
-.hud .navlink{
-  padding:8px 14px;border-radius:3px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-  font-weight:700;color:var(--muted);border:1px solid transparent;
-}
-.hud .navlink:hover{color:var(--ink);}
-.hud .navlink.current{background:var(--brass);color:#1A1425;}
-.hud .balance{text-align:right;}
-.hud .balance .label{font-size:9px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;}
-.hud .balance .amt{font-size:20px;font-weight:700;color:var(--brass);}
+    <title>ZETSU PACKZ — Collection</title>
 
-/* ---------- Buttons ---------- */
-.btn{
-  border:none;border-radius:3px;padding:12px 20px;font-size:13px;font-weight:800;
-  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:filter .15s ease, transform .1s ease;
-}
-.btn:active{transform:scale(.98);}
-.btn-brass{background:var(--brass);color:#1A1425;}
-.btn-brass:hover{filter:brightness(1.08);}
-.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink);}
-.btn-ghost:hover{border-color:var(--brass-dim);}
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-.empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;margin:40px auto;max-width:420px;}
-.empty-state .glyph{font-size:32px;margin-bottom:10px;}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-.rar-common{background:linear-gradient(160deg,#2A2836,#1D1B27);}
-.rar-rare{background:linear-gradient(160deg,#173330,#12201F);}
-.rar-epic{background:linear-gradient(160deg,#2B1F42,#1D1530);}
-.rar-legendary{background:linear-gradient(160deg,#3A2A12,#241A0C);}
-.rar-mythic{background:linear-gradient(160deg,#241830,#1A1424);}
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
 
-/* ---------- Toolbar ---------- */
-.toolbar{
-  flex:none;display:flex;justify-content:space-between;align-items:center;
-  padding:12px 20px;flex-wrap:wrap;gap:10px;
-  border-bottom:1px solid var(--line);
-}
-.toolbar .count{font-size:12px;color:var(--muted);letter-spacing:.05em;}
-.toolbar .hint{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;}
+    <style>
+        /* ============================================================
+           TOKENS
+           ============================================================ */
 
-/* ---------- Circular scroll gallery ---------- */
-.gallery-scroll{
-  flex:1 1 auto;
-  min-height:0;
-  overflow-y:scroll;
-  scrollbar-width:none;
-  position:relative;
-  container-type:size;
-  container-name:gallery;
-}
-.gallery-scroll::-webkit-scrollbar{display:none;}
-.gallery-track{
-  height:calc(var(--n, 1)*100%);
-  min-height:100%;
-}
-.scene{
-  position:sticky;top:0;
-  height:100cqh;
-  overflow:hidden;
-  perspective:50em;
-  display:grid;
-  place-items:center;
-  animation:k 1s linear;
-  animation-timeline:scroll();
-}
-@keyframes k{ to{ --k:1; } }
+        :root {
+            /* -- booklet palette -- */
+            --page: #0A0A0A;
+            --page-shadow: #141414;
+            --page-edge: #333333;
+            --binding: #3B2A1E;
+            --binding-2: #2A1D14;
+            --ink: #EDE6DC;
+            --ink-muted: #9A958E;
+            --ink-faint: #6E6A64;
 
-.assembly{
-  --dir:0;
-  --r:calc(2 + var(--dir))/3;
-  --w:clamp(4em, min(46cqh, 26cqw), 15em);
-  --z:calc(-.5*var(--w)/tan(.5turn/var(--n, 1)));
-  display:grid;
-  transform-style:preserve-3d;
-  place-self:center;
-  translate:0 0 var(--z);
-  rotate:var(--dir) calc(1 - var(--dir)) 0 calc((var(--k) + .5)*-1turn);
-}
-@media (max-aspect-ratio: 2/3){ .assembly{ --dir:1; } }
+            /* -- carried over from shop/leaderboard so tiers stay
+                  recognizable across every page -- */
+            --common: #8C8880;
+            --rare: #4FB6A8;
+            --epic: #9B6BD6;
+            --legendary: #E8A23D;
+            --mythic-a: #FF6B9D;
+            --mythic-b: #C77DFF;
 
-.card-node{
-  grid-area:1/1;
-  --j:calc(var(--i, 0)/var(--n, 1));
-  --dif-lin:calc(var(--j) - mod(var(--k) + 1, 1));
-  --abs-lin:abs(var(--dif-lin));
-  --dif-mid:calc(.5 - var(--abs-lin));
-  --abs-mid:abs(var(--dif-mid));
-  --dif-arc:calc(2*(.5 - var(--abs-mid)));
-  --lim:.35;
-  --sel:max(0, calc((var(--lim) - var(--dif-arc))/var(--lim)));
-  --out:calc(1 - var(--sel));
-  width:var(--w);
-  aspect-ratio:var(--r);
-  transform:
-    rotate3d(var(--dir), calc(1 - var(--dir)), 0, calc(var(--j)*1turn))
-    translatez(var(--z));
-  transform-style:preserve-3d;
-  cursor:pointer;
-}
+            /* -- reused header vars (unchanged from shop.html /
+                  leaderboard.html so the .hud component matches) -- */
+            --panel-2: #1C1C1C;
+            --line: #333333;
+            --hud-ink: #EDE6DC;
+            --brass: #D4AF6A;
+            --brass-dim: #8A7245;
+        }
 
-.card-face{
-  --ang:calc(-45deg + 0deg);
-  grid-area:1/1;
-  width:100%;height:100%;
-  overflow:hidden;
-  position:relative;
-  border-radius:.6em;
-  border:solid 2px #0000;
-  box-shadow:5px 5px 18px rgba(0,0,0,.55);
-  background:
-    linear-gradient(#0000 0 0) padding-box,
-    repeating-conic-gradient(from var(--ang),
-      #0000 0% 15%,
-      color-mix(in srgb, var(--brass) calc(var(--sel)*100%), #333) 20% 30%,
-      #0000 35% 50%)
-    border-box;
-  display:grid;grid-template-rows:1fr auto;
-  padding:16px;gap:8px;
-  transition:.35s ease-out;
-  isolation:isolate;
-}
-.card-face::before{
-  content:"";position:absolute;inset:0;z-index:-1;
-}
-.card-face.rar-common::before{background:linear-gradient(160deg,#2A2836,#1D1B27);}
-.card-face.rar-rare::before{background:linear-gradient(160deg,#173330,#12201F);}
-.card-face.rar-epic::before{background:linear-gradient(160deg,#2B1F42,#1D1530);}
-.card-face.rar-legendary::before{background:linear-gradient(160deg,#3A2A12,#241A0C);}
-.card-face.rar-mythic::before{background:linear-gradient(160deg,#241830,#1A1424);}
-.card-face::after{
-  content:"";position:absolute;inset:0;
-  opacity:var(--out);
-  background:#03071e;mix-blend-mode:color;
-  pointer-events:none;
-}
+        * {
+            box-sizing: border-box;
+        }
 
-.c-glyph{
-  align-self:center;justify-self:center;font-size:3em;
-  filter:drop-shadow(0 6px 12px rgba(0,0,0,.4));
-}
-.c-info{opacity:round(up, var(--sel));text-shadow:1px 1px 1px #0006;}
-.c-tier{font-size:.6em;letter-spacing:.2em;text-transform:uppercase;font-weight:800;color:var(--brass);}
-.c-name{font-size:.85em;font-weight:900;text-transform:uppercase;line-height:1.1;}
-.c-foot{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
-.c-value{font-size:.7em;opacity:.85;}
-.c-sell{
-  background:transparent;border:1px solid var(--brass);color:var(--brass);
-  padding:3px 8px;border-radius:3px;cursor:pointer;font-size:.6em;
-  letter-spacing:.08em;text-transform:uppercase;font-weight:700;
-  pointer-events:auto;
-}
-.c-sell:hover{background:var(--brass);color:#1A1425;}
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
 
-.gallery-hint{
-  position:absolute;bottom:14px;left:50%;transform:translateX(-50%);
-  font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);
-  pointer-events:none;
-}
+        body {
+            background: var(--page);
+            color: var(--ink);
 
-/* ---------- Toast ---------- */
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--panel-2);border:1px solid var(--brass-dim);color:var(--ink);
-  padding:12px 20px;border-radius:6px;font-size:13px;
-  opacity:0;pointer-events:none;transition:all .25s ease;z-index:100;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+            font-family: 'Karla', sans-serif;
 
-@media (prefers-reduced-motion: reduce){
-  .scene{animation:none;}
-}
-@supports not (animation-timeline: scroll()){
-  .fallback-warning{display:block !important;}
-}
-.fallback-warning{
-  flex:none;
-  display:none;margin:16px 20px;padding:12px 16px;border-left:3px solid var(--brass-dim);
-  background:var(--panel-2);font-size:12px;color:var(--muted);border-radius:3px;
-}
-</style>
+            min-height: 100vh;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                zoom: 0.60;
+            }
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .display {
+            font-family: 'Fraunces', serif;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
+
+        /* ============================================================
+           HEADER — same .hud component as shop.html / leaderboard.html
+           ============================================================ */
+
+        .hud {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+
+            background: rgba(0, 0, 0, .92);
+            backdrop-filter: blur(6px);
+
+            border-bottom: 3px solid var(--line);
+
+            padding: 14px 20px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .hud .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
+        }
+
+        .hud .brand .mark {
+            font-size: 10px;
+            letter-spacing: .28em;
+            color: var(--brass);
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: 'Karla', sans-serif;
+        }
+
+        .hud .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: .02em;
+            text-transform: uppercase;
+            color: var(--hud-ink);
+            font-family: 'Karla', sans-serif;
+        }
+
+        .hud nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .hud .navlink {
+            padding: 8px 14px;
+            border-radius: 3px;
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: #9A958E;
+            border: 3px solid transparent;
+            font-family: 'Karla', sans-serif;
+        }
+
+        .hud .navlink:hover {
+            color: var(--hud-ink);
+        }
+
+        .hud .navlink.current {
+            background: var(--brass);
+            color: #141414;
+        }
+
+        .hud .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+
+        /* ============================================================
+           PAGE FRAME — the booklet page sitting under the leather
+           binding header. This margin + texture is the one deliberate
+           "physical object" move the rest of the page stays quiet for.
+           ============================================================ */
+
+        .booklet {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 40px 28px 50px;
+        }
+
+        .book-heading {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+
+            margin-bottom: 22px;
+
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--page-edge);
+        }
+
+        .book-heading h2 {
+            margin: 0;
+            font-size: 34px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            line-height: 1;
+        }
+
+        .book-heading .book-sub {
+            margin-top: 6px;
+            color: var(--ink-muted);
+            font-size: 13px;
+            max-width: 46ch;
+            line-height: 1.5;
+        }
+
+        .book-count {
+            font-family: 'Fraunces', serif;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--ink-muted);
+            white-space: nowrap;
+        }
+
+        .book-count strong {
+            color: var(--ink);
+        }
+
+
+        /* ============================================================
+           FILTER STRIP — a tab, not a toolbar
+           ============================================================ */
+
+        .filter-strip {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-tab {
+            padding: 9px 18px;
+            border: 2px solid var(--page-edge);
+            background: transparent;
+            color: var(--ink-muted);
+
+            font-family: 'Karla', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+
+            cursor: pointer;
+            transition: background .15s ease, color .15s ease, border-color .15s ease;
+        }
+
+        .filter-tab:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+
+        .filter-tab:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+
+        .filter-tab + .filter-tab {
+            border-left: none;
+        }
+
+        .filter-tab.active {
+            background: var(--brass);
+            border-color: var(--brass);
+            color: #141414;
+        }
+
+        .filter-tab:not(.active):hover {
+            color: var(--ink);
+            border-color: var(--ink-faint);
+        }
+
+
+        /* ============================================================
+           SHOWCASE — the pedestal display for the selected card.
+           This is the page's main visual event; the grid below is
+           just how you pick what stands on it.
+           ============================================================ */
+
+        .showcase {
+            --tier-a: var(--brass);
+            --tier-b: var(--brass-dim);
+
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
+
+            border-radius: 10px;
+            border: 1px solid var(--page-edge);
+            background: #050505;
+
+            padding: 54px 20px 34px;
+            margin-bottom: 24px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .showcase::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+
+            background-image:
+                repeating-linear-gradient(0deg, rgba(120,170,220,.08) 0 1px, transparent 1px 42px),
+                repeating-linear-gradient(90deg, rgba(120,170,220,.08) 0 1px, transparent 1px 42px);
+        }
+
+        .showcase::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+
+            background: radial-gradient(ellipse 55% 50% at 50% 38%, var(--tier-a), transparent 72%);
+            opacity: .22;
+
+            transition: background .3s ease;
+        }
+
+        .showcase-card {
+            position: relative;
+            z-index: 2;
+
+            width: 190px;
+            aspect-ratio: 5 / 7;
+
+            border-radius: 10px;
+            overflow: hidden;
+
+            border: 3px solid var(--tier-a);
+            box-shadow:
+                0 0 46px -6px var(--tier-a),
+                0 22px 40px rgba(0,0,0,.6);
+
+            margin-bottom: -30px;
+
+            background: #0A0A0A;
+
+            transition: border-color .3s ease, box-shadow .3s ease;
+        }
+
+        .showcase-face {
+            position: absolute;
+            inset: 0;
+
+            background:
+                linear-gradient(180deg, transparent 55%, rgba(0,0,0,.7) 100%),
+                linear-gradient(180deg, transparent 70%, var(--tier-a) 220%);
+        }
+
+        .showcase-platform {
+            position: relative;
+            z-index: 1;
+
+            width: 250px;
+            height: 60px;
+        }
+
+        .showcase-platform .ring {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+
+        .showcase-platform .ring-outer {
+            width: 250px;
+            height: 60px;
+            border: 2px solid var(--tier-a);
+            opacity: .55;
+            box-shadow: 0 0 34px var(--tier-a);
+        }
+
+        .showcase-platform .ring-inner {
+            width: 180px;
+            height: 40px;
+            background: radial-gradient(ellipse at center, var(--tier-a), transparent 72%);
+            opacity: .4;
+            filter: blur(1px);
+        }
+
+        .showcase-plaque {
+            position: relative;
+            z-index: 2;
+
+            margin-top: 18px;
+            text-align: center;
+        }
+
+        .showcase-name {
+            font-family: 'Fraunces', serif;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: .01em;
+            color: var(--ink);
+        }
+
+        .showcase-tags {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .showcase-tier-badge {
+            padding: 3px 11px;
+            border-radius: 20px;
+            border: 1px solid var(--tier-a);
+
+            font-family: 'Karla', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: var(--tier-a);
+        }
+
+        .showcase-deck {
+            font-size: 12px;
+            color: var(--ink-muted);
+        }
+
+        .showcase.empty .showcase-card,
+        .showcase.empty .showcase-platform,
+        .showcase.empty .showcase-fuse-btn {
+            display: none;
+        }
+
+        .showcase-empty-note {
+            position: relative;
+            z-index: 2;
+
+            display: none;
+            color: var(--ink-muted);
+            font-size: 13px;
+            padding: 30px 0;
+        }
+
+        .showcase.empty .showcase-empty-note {
+            display: block;
+        }
+
+        .showcase-fuse-btn {
+            position: absolute;
+            left: 14px;
+            bottom: 14px;
+            z-index: 3;
+
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            padding: 8px 14px;
+            border-radius: 20px;
+
+            background: rgba(0,0,0,.5);
+            border: 1px solid var(--tier-a, var(--brass));
+            color: var(--ink);
+
+            font-family: 'Karla', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+
+            cursor: pointer;
+            backdrop-filter: blur(3px);
+
+            transition: background .15s ease, transform .1s ease;
+        }
+
+        .showcase-fuse-btn:hover {
+            background: rgba(0,0,0,.68);
+        }
+
+        .showcase-fuse-btn:active {
+            transform: scale(.97);
+        }
+
+        .showcase-fuse-btn .fuse-icon {
+            color: var(--tier-a, var(--brass));
+            font-size: 13px;
+            line-height: 1;
+        }
+
+
+        /* ============================================================
+           GRID — a compact picker panel, not the whole page. It
+           scrolls within itself so the showcase stays put.
+           ============================================================ */
+
+        .grid-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .grid-heading .grid-label {
+            font-family: 'Fraunces', serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .page-surface {
+            background: var(--page-shadow);
+            border: 1px solid var(--page-edge);
+            border-radius: 6px;
+
+            padding: 22px 22px;
+
+            max-height: 260px;
+            overflow-y: auto;
+
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,.25);
+        }
+
+        .page-surface::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .page-surface::-webkit-scrollbar-thumb {
+            background: var(--page-edge);
+            border-radius: 4px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 16px 12px;
+        }
+
+        
+
+        /* ---- card slot ---- */
+
+        .slot {
+            position: relative;
+            aspect-ratio: 5 / 7;
+
+            border-radius: 6px;
+            overflow: hidden;
+
+            cursor: default;
+        }
+
+        .slot.owned {
+            cursor: pointer;
+            box-shadow:
+                0 2px 4px rgba(42,32,24,.25),
+                0 8px 18px rgba(42,32,24,.18);
+            transition: transform .15s ease, box-shadow .15s ease;
+        }
+
+        .slot.owned:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 4px 8px rgba(42,32,24,.3),
+                0 14px 26px rgba(42,32,24,.24);
+        }
+
+        .slot.owned:active {
+            transform: translateY(-1px) scale(.98);
+        }
+
+        .slot.owned {
+            background: #0A0A0A;
+            border: 2px solid var(--tier-a);
+        }
+
+        .slot-face {
+            position: absolute;
+            inset: 0;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+
+            padding: 10px;
+
+            background:
+                linear-gradient(180deg, transparent 55%, rgba(0,0,0,.7) 100%),
+                linear-gradient(180deg, transparent 70%, var(--tier-a) 220%);
+        }
+
+        .slot-name {
+            font-family: 'Fraunces', serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1.15;
+
+            text-shadow: 0 1px 3px rgba(0,0,0,.5);
+        }
+
+        .slot-deck {
+            margin-top: 3px;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: .05em;
+            color: rgba(255,255,255,.75);
+        }
+
+        .slot-tier-mark {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+
+            background: var(--tier-a);
+            box-shadow: 0 0 0 2px rgba(255,255,255,.4);
+        }
+
+        /* ---- missing slot: debossed silhouette ---- */
+
+        .slot.missing {
+            background: #0A0A0A;
+            border: 1.5px dashed rgba(255,255,255,.14);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            box-shadow: inset 0 2px 6px rgba(0,0,0,.4);
+        }
+
+        .slot.missing .silhouette {
+            width: 58%;
+            height: 68%;
+            border-radius: 4px;
+
+            background: var(--tier-a);
+            opacity: .22;
+        }
+
+        .slot.shake {
+            animation: shake .35s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        .empty-note {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 50px 20px;
+            color: var(--ink-muted);
+            font-size: 14px;
+        }
+
+
+        /* ============================================================
+           SELECTED SLOT — the card currently standing on the pedestal
+           ============================================================ */
+
+        .slot.selected {
+            outline: 2px solid var(--brass);
+            outline-offset: 2px;
+        }
+
+        .showcase.empty .showcase-card {
+            cursor: default;
+        }
+
+        .showcase-card {
+            cursor: pointer;
+        }
+
+
+        /* ============================================================
+           CARD OVERLAY — opened from the showcase pedestal
+           ============================================================ */
+
+        .card-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+
+            background: rgba(5, 4, 3, .78);
+            backdrop-filter: blur(4px);
+
+            display: none;
+            align-items: center;
+            justify-content: center;
+
+            padding: 30px;
+        }
+
+        .card-overlay.show {
+            display: flex;
+        }
+
+        .overlay-panel {
+            width: min(360px, 90vw);
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            position: relative;
+        }
+
+        .overlay-close {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            z-index: 3;
+
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+
+            border: none;
+            background: var(--page-shadow);
+            color: var(--ink);
+
+            font-size: 16px;
+            cursor: pointer;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            box-shadow: 0 4px 10px rgba(0,0,0,.5);
+        }
+
+        .overlay-close:hover {
+            background: var(--page-edge);
+        }
+
+        .overlay-card {
+            width: 100%;
+            aspect-ratio: 5 / 7;
+
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+
+            border: 3px solid var(--tier-a, var(--brass));
+            box-shadow:
+                0 0 50px -6px var(--tier-a, var(--brass)),
+                0 24px 50px rgba(0,0,0,.6);
+
+            background: #0A0A0A;
+        }
+
+        .overlay-face {
+            position: absolute;
+            inset: 0;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+
+            padding: 22px;
+
+            background:
+                linear-gradient(180deg, transparent 55%, rgba(0,0,0,.7) 100%),
+                linear-gradient(180deg, transparent 70%, var(--tier-a, var(--brass)) 220%);
+        }
+
+        .overlay-tier {
+            align-self: flex-start;
+            margin-bottom: auto;
+
+            padding: 4px 10px;
+            border-radius: 20px;
+
+            background: rgba(0,0,0,.3);
+
+            font-family: 'Karla', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            color: #fff;
+        }
+
+        .overlay-name {
+            font-family: 'Fraunces', serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1.1;
+
+            text-shadow: 0 2px 6px rgba(0,0,0,.5);
+        }
+
+        .overlay-deck {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255,255,255,.8);
+        }
+
+        .overlay-actions {
+            width: 100%;
+            display: flex;
+            gap: 10px;
+
+            margin-top: 18px;
+        }
+
+        .overlay-btn {
+            flex: 1;
+
+            padding: 13px 16px;
+            border-radius: 6px;
+            border: none;
+
+            font-family: 'Karla', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+
+            cursor: pointer;
+            transition: filter .15s ease, transform .1s ease;
+        }
+
+        .overlay-btn:active {
+            transform: scale(.98);
+        }
+
+        .overlay-btn.save {
+            background: var(--brass);
+            color: #141414;
+        }
+
+        .overlay-btn.save:hover {
+            filter: brightness(1.08);
+        }
+
+        .overlay-btn.sell {
+            background: transparent;
+            border: 2px solid var(--page-edge);
+            color: var(--ink);
+        }
+
+        .overlay-btn.sell:hover {
+            border-color: var(--ink-faint);
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+
+            transform: translateX(-50%) translateY(20px);
+
+            background: var(--page-shadow);
+            border: 2px solid var(--page-edge);
+            color: var(--ink);
+
+            padding: 12px 20px;
+            border-radius: 6px;
+
+            font-family: 'Karla', sans-serif;
+            font-size: 13px;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: all .25s ease;
+
+            z-index: 210;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+
+        /* ============================================================
+           MOBILE
+           ============================================================ */
+
+        @media (max-width: 640px) {
+            .booklet {
+                padding: 24px 14px 40px;
+            }
+
+            .book-heading h2 {
+                font-size: 26px;
+            }
+
+            .showcase {
+                padding: 40px 14px 24px;
+            }
+
+            .showcase-card {
+                width: 150px;
+            }
+
+            .showcase-platform {
+                width: 190px;
+                height: 48px;
+            }
+
+            .showcase-platform .ring-outer {
+                width: 190px;
+                height: 48px;
+            }
+
+            .showcase-platform .ring-inner {
+                width: 140px;
+                height: 32px;
+            }
+
+            .page-surface {
+                padding: 16px 12px;
+                max-height: 220px;
+            }
+
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+                gap: 12px 8px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div id="hud" class="hud"></div>
 
-<div class="toolbar">
-  <div class="count" id="collSummary"></div>
-  <div class="hint">Scroll, or use ↑ / ↓, to rotate the collection</div>
-</div>
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
 
-<div class="fallback-warning">Your browser doesn't support CSS scroll-driven animation yet, so this rotating view may not animate smoothly. Try a recent Chrome or Firefox (with the scroll-driven-animation flag) build.</div>
+    <header id="hud" class="hud"></header>
 
-<div id="galleryWrap" style="flex:1 1 auto;display:flex;flex-direction:column;min-height:0;">
-  <!-- filled by JS: either the gallery, or an empty state -->
-</div>
 
-<script>
-/* ==========================================================
-   VAULT — shared data, state, and helpers
-   ========================================================== */
+    <main class="booklet">
 
-const RARITIES = [
-  { id:"common",    label:"Common",    glyphs:["●","▪","○"], valueRange:[8,20]    },
-  { id:"rare",      label:"Rare",      glyphs:["◆","✦","◈"], valueRange:[25,60]   },
-  { id:"epic",      label:"Epic",      glyphs:["✷","❖","✸"], valueRange:[70,160]  },
-  { id:"legendary", label:"Legendary", glyphs:["★","☆","✹"], valueRange:[200,450] },
-  { id:"mythic",    label:"Mythic",    glyphs:["◉","✺","❉"], valueRange:[600,1500]}
-];
-const RARITY_ORDER = ["mythic","legendary","epic","rare","common"];
-
-const NAME_PARTS = {
-  prefix:["Iron","Void","Solar","Ashen","Crimson","Gilded","Hollow","Storm","Obsidian","Wraith","Ember","Frost","Rogue","Sable","Verdant"],
-  noun:["Warden","Cipher","Relic","Sentinel","Oracle","Marauder","Construct","Effigy","Harbinger","Specter","Engine","Totem","Wyrm","Vanguard","Idol"]
-};
-
-function makeCardPool(){
-  const pool = [];
-  RARITIES.forEach(r=>{
-    NAME_PARTS.prefix.forEach((p,i)=>{
-      const step = r.id==="mythic"?5: r.id==="legendary"?3: r.id==="epic"?2:1;
-      if (i % step === 0){
-        const n = NAME_PARTS.noun[(i+RARITIES.indexOf(r)) % NAME_PARTS.noun.length];
-        pool.push({ id:r.id+"-"+p+"-"+n, name:p+" "+n, rarity:r.id, glyph:r.glyphs[i % r.glyphs.length] });
-      }
-    });
-  });
-  return pool;
-}
-const CARD_POOL = makeCardPool();
-
-const PACKS = [
-  { id:"standard", name:"Standard Pack", tier:"Entry",      price:50,  ceiling:60,   odds:{common:70,rare:23,epic:6,legendary:0.9,mythic:0.1} },
-  { id:"premium",  name:"Premium Pack",  tier:"Mid-Tier",   price:150, ceiling:450,  odds:{common:45,rare:35,epic:16,legendary:3.5,mythic:0.5} },
-  { id:"elite",    name:"Elite Pack",    tier:"High Roller",price:400, ceiling:1500, odds:{common:20,rare:35,epic:32,legendary:11,mythic:2} }
-];
-
-const STORAGE_KEY = "vault_state_v1";
-
-function defaultState(){
-  return { balance: 1000, collection: [], unopened: [], firstVisit: true };
-}
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return defaultState();
-    return Object.assign(defaultState(), JSON.parse(raw));
-  } catch(e){ return defaultState(); }
-}
-function saveState(state){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
-}
-function fmt(n){ return n.toLocaleString(); }
-function rarityMeta(id){ return RARITIES.find(r=>r.id===id); }
-
-function toast(msg){
-  let t = document.getElementById("toast");
-  if (!t){ t = document.createElement("div"); t.id="toast"; t.className="toast"; document.body.appendChild(t); }
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(toast._h);
-  toast._h = setTimeout(()=>t.classList.remove("show"), 1800);
-}
-
-function renderHud(state, currentPage){
-  const mount = document.getElementById("hud");
-  if (!mount) return;
-  const pages = [
-    {id:"start", href:"start.html", label:"Start"},
-    {id:"shop", href:"shop.html", label:"Pack Shop"},
-    {id:"rip", href:"index.html", label:"Rip Pack"},
-    {id:"collection", href:"collection.html", label:"Collection"}
-  ];
-  mount.innerHTML = `
-    <a class="brand" href="start.html">
-      <span class="mark">Zetsumetsu</span>
-      <h1>ZETSU PACKZ</h1>
-    </a>
-    <nav>
-      ${pages.map(p=>`<a class="navlink ${p.id===currentPage?'current':''}" href="${p.href}">${p.label}</a>`).join("")}
-    </nav>
-    <div class="balance">
-      <div class="label">Chips</div>
-      <div class="amt mono">${fmt(state.balance)}</div>
-    </div>
-  `;
-}
-
-/* ==========================================================
-   Collection page — circular scroll gallery
-   ========================================================== */
-
-let state = loadState();
-renderHud(state, "collection");
-
-const wrap = document.getElementById("galleryWrap");
-const summary = document.getElementById("collSummary");
-
-function buildGallery(){
-  if (!state.collection.length){
-    wrap.innerHTML = `<div class="empty-state">
-      <div class="glyph">◇</div>
-      Nothing kept yet — rip a pack and choose "Keep card".
-      <div style="margin-top:16px;"><a class="btn btn-brass" href="shop.html">Go to Pack Shop</a></div>
-    </div>`;
-    summary.textContent = "0 cards collected";
-    return;
-  }
-
-  const sorted = [...state.collection].sort(
-    (a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity)
-  );
-  const n = sorted.length;
-  const totalValue = state.collection.reduce((s,c)=>s+c.value,0);
-  summary.textContent = n + " card" + (n===1?"":"s") + " collected · worth " + fmt(totalValue) + " chips";
-
-  wrap.innerHTML = `
-    <div class="gallery-scroll" id="galleryScroll" style="--n:${n};">
-      <div class="gallery-track" style="--n:${n};">
-        <div class="scene">
-          <div class="assembly" style="--n:${n};">
-            ${sorted.map((card,i)=>`
-              <div class="card-node" style="--i:${i};--n:${n};" data-uid="${card.uid}">
-                <div class="card-face rar-${card.rarity}">
-                  <div class="c-glyph">${card.glyph}</div>
-                  <div class="c-info">
-                    <div class="c-tier">${rarityMeta(card.rarity).label}</div>
-                    <div class="c-name">${card.name}</div>
-                    <div class="c-foot">
-                      <span class="c-value mono">${fmt(card.value)}</span>
-                      <button class="c-sell" data-sell="${card.uid}">Sell</button>
-                    </div>
-                  </div>
+        <div class="book-heading">
+            <div>
+                <h2 class="display">Collection</h2>
+                <div class="book-sub">
+                    Pick a card below and it takes the pedestal.
                 </div>
-              </div>
-            `).join("")}
-          </div>
+            </div>
+
+            <div class="book-count">
+                <strong id="ownedCount">0</strong> / <span id="totalCount">0</span> collected
+            </div>
         </div>
-      </div>
-      <div class="gallery-hint">↑ / ↓ to browse</div>
+
+        <div class="showcase empty" id="showcase">
+            <div class="showcase-card" id="showcaseCard">
+                <div class="showcase-face"></div>
+            </div>
+
+            <div class="showcase-platform">
+                <div class="ring ring-outer"></div>
+                <div class="ring ring-inner"></div>
+            </div>
+
+            <div class="showcase-plaque">
+                <div class="showcase-name" id="showcaseName"></div>
+                <div class="showcase-tags">
+                    <span class="showcase-tier-badge" id="showcaseTier"></span>
+                    <span class="showcase-deck" id="showcaseDeck"></span>
+                </div>
+            </div>
+
+            <div class="showcase-empty-note">
+                Nothing on display yet — select a card below.
+            </div>
+
+            <button class="showcase-fuse-btn" id="fuseBtn">
+                <span class="fuse-icon">&#10022;</span>
+                Fuse
+            </button>
+        </div>
+
+        <div class="grid-heading">
+            <div class="grid-label">Your cards</div>
+            <div class="filter-strip" id="filterStrip">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="owned">Owned</button>
+                <button class="filter-tab" data-filter="missing">Missing</button>
+            </div>
+        </div>
+
+        <div class="page-surface">
+            <div class="grid" id="grid"></div>
+        </div>
+
+    </main>
+
+
+    <!-- ============================================================
+         CARD OVERLAY — opened from the showcase pedestal
+         ============================================================ -->
+
+    <div class="card-overlay" id="cardOverlay">
+        <div class="overlay-panel">
+            <button class="overlay-close" id="overlayClose">&times;</button>
+
+            <div class="overlay-card" id="overlayCard">
+                <div class="overlay-face" id="overlayFace">
+                    <span class="overlay-tier" id="overlayTier"></span>
+                    <div class="overlay-name" id="overlayName"></div>
+                    <div class="overlay-deck" id="overlayDeck"></div>
+                </div>
+            </div>
+
+            <div class="overlay-actions">
+                <button class="overlay-btn sell" id="overlaySell">Sell</button>
+                <button class="overlay-btn save" id="overlaySave">Save</button>
+            </div>
+        </div>
     </div>
-  `;
 
-  const galleryScroll = document.getElementById("galleryScroll");
-  const scene = wrap.querySelector(".scene");
 
-  // infinite-loop snap-back, adapted from the scroll-driven-animation source
-  function snapIfNeeded(k){
-    if (Math.abs(k) > .5){
-      galleryScroll.scrollTo(
-        0,
-        .5*(k - Math.sign(k) + 1)*(galleryScroll.scrollHeight - galleryScroll.clientHeight)
-      );
-    }
-  }
-  snapIfNeeded(-1);
-  galleryScroll.addEventListener("scroll", ()=>{
-    const k = parseFloat(getComputedStyle(scene).getPropertyValue("--k")) || 0;
-    snapIfNeeded(k);
-  });
+    <!-- ============================================================
+         BASIC STATE / HELPERS — same shape as shop.html / leaderboard.html
+         ============================================================ -->
 
-  // keyboard support
-  galleryScroll.tabIndex = 0;
-  galleryScroll.addEventListener("keydown", (e)=>{
-    const step = galleryScroll.clientHeight / n;
-    if (e.key === "ArrowDown"){ galleryScroll.scrollBy({top:step, behavior:"smooth"}); e.preventDefault(); }
-    if (e.key === "ArrowUp"){ galleryScroll.scrollBy({top:-step, behavior:"smooth"}); e.preventDefault(); }
-  });
+    <script>
+        function defaultState() {
+            return {
+                collection: [],
+                firstVisit: true
+            };
+        }
 
-  wrap.querySelectorAll("[data-sell]").forEach(btn=>{
-    btn.addEventListener("click", (e)=>{
-      e.stopPropagation();
-      sellCard(btn.dataset.sell);
-    });
-  });
-}
+        function loadState() {
+            return defaultState();
+        }
 
-function sellCard(cardUid){
-  const idx = state.collection.findIndex(c=>c.uid===cardUid);
-  if (idx === -1) return;
-  const card = state.collection[idx];
-  if (!confirm("Sell " + card.name + " for " + fmt(card.value) + " chips? This can't be undone.")) return;
-  state.collection.splice(idx,1);
-  state.balance += card.value;
-  saveState(state);
-  renderHud(state, "collection");
-  toast("Sold " + card.name + " for " + fmt(card.value) + " chips.");
-  buildGallery();
-}
+        function saveState(state) {
+            // No local save.
+            // State is handled by Supabase/sessionStorage.
+        }
 
-buildGallery();
-</script>
+        function fmt(n) {
+            return Number(n).toLocaleString();
+        }
+
+        function uid() {
+            return (
+                Date.now() +
+                "-" +
+                Math.random().toString(36).slice(2, 7)
+            );
+        }
+
+        function toast(message) {
+            let element = document.getElementById("toast");
+
+            if (!element) {
+                element = document.createElement("div");
+                element.id = "toast";
+                element.className = "toast";
+                document.body.appendChild(element);
+            }
+
+            element.textContent = message;
+            element.classList.add("show");
+
+            clearTimeout(toast._h);
+
+            toast._h = setTimeout(() => {
+                element.classList.remove("show");
+            }, 1800);
+        }
+
+        let state = loadState();
+        window.state = state;
+    </script>
+
+
+    <!-- ============================================================
+         HEADER RENDER — same component as shop.html / leaderboard.html
+         ============================================================ -->
+
+    <script>
+        function renderHud(state, currentPage) {
+            const mount = document.getElementById("hud");
+
+            if (!mount) {
+                return;
+            }
+
+            const pages = [
+                {
+                    id: "leaderboard",
+                    href: "leaderboard.html",
+                    label: "Leaderboard"
+                },
+                {
+                    id: "start",
+                    href: "start.html",
+                    label: "Start"
+                },
+                {
+                    id: "shop",
+                    href: "shop.html",
+                    label: "Pack Shop"
+                },
+                {
+                    id: "collection",
+                    href: "collection.html",
+                    label: "Collection"
+                }
+            ];
+
+            mount.innerHTML = `
+                <div class="brand">
+                    <span class="mark">Zetsumetsu EOe</span>
+                    <h1>ZETSU PACKZ</h1>
+                </div>
+
+                <nav>
+                    ${pages.map(page => `
+                        <a
+                            class="navlink ${page.id === currentPage ? "current" : ""}"
+                            href="${page.href}"
+                        >
+                            ${page.label}
+                        </a>
+                    `).join("")}
+                </nav>
+
+                <div class="hud-stats">
+                    <div id="walletMount"></div>
+                </div>
+            `;
+
+            if (window.walletNode) {
+                const walletMount = document.getElementById("walletMount");
+
+                if (walletMount) {
+                    walletMount.appendChild(window.walletNode);
+                }
+
+                if (typeof renderWallet === "function") {
+                    renderWallet(state);
+                }
+            }
+        }
+
+        renderHud(state, "collection");
+    </script>
+
+
+    <!-- ============================================================
+         LOAD WALLET LEDGER — same include as shop.html / leaderboard.html
+         ============================================================ -->
+
+    <script>
+        fetch("wallet-ledger.html")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`wallet-ledger.html failed: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                const parsed = new DOMParser().parseFromString(html, "text/html");
+
+                const walletDiv = parsed.getElementById("wallet");
+                const walletMount = document.getElementById("walletMount");
+
+                if (walletDiv && walletMount) {
+                    window.walletNode = walletDiv;
+                    walletMount.appendChild(walletDiv);
+                }
+
+                const ledgerOverlay = parsed.getElementById("ledgerOverlay");
+                if (ledgerOverlay) {
+                    document.body.appendChild(ledgerOverlay);
+                }
+
+                const signupOverlay = parsed.getElementById("signupOverlay");
+                if (signupOverlay) {
+                    document.body.appendChild(signupOverlay);
+                }
+
+                const parsedStyle = parsed.querySelector("style");
+                if (parsedStyle) {
+                    let css = parsedStyle.textContent;
+
+                    css = css.replace(/:root\{[^}]*\}/, "");
+                    css = css.replace(/\*\{box-sizing:border-box;\}/, "");
+                    css = css.replace(/html,body\{margin:0;padding:0;\}/, "");
+                    css = css.replace(/body\{[^}]*\}/, "");
+
+                    const styleTag = document.createElement("style");
+                    styleTag.textContent = css;
+                    document.head.appendChild(styleTag);
+                }
+
+                const parsedScript = parsed.querySelector("script");
+                if (parsedScript) {
+                    const newScript = document.createElement("script");
+                    newScript.textContent = parsedScript.textContent;
+                    document.body.appendChild(newScript);
+                }
+            })
+            .catch(error => {
+                console.error("Failed to load wallet-ledger.html:", error);
+            });
+    </script>
+
+
+    <!-- ============================================================
+         MOCK COLLECTION DATA + GRID / FILTER / SHOWCASE LOGIC
+
+         Demo only — swap MOCK_CARDS for a Supabase read against
+         `decks` (+ a per-user ownership join) when this goes live.
+         ============================================================ -->
+
+    <script>
+        const TIER_COLORS = {
+            common:    ["#8C8880", "#6E6A64"],
+            rare:      ["#4FB6A8", "#2F8078"],
+            epic:      ["#9B6BD6", "#6B47A0"],
+            legendary: ["#E8A23D", "#B8781F"],
+            mythic:    ["#FF6B9D", "#C77DFF"]
+        };
+
+        const DECKS = [
+            "Ashfall Requiem",
+            "Glasswing Ledger",
+            "Neon Choir",
+            "Marrow & Marquee"
+        ];
+
+        const TIERS = ["common", "rare", "epic", "legendary", "mythic"];
+
+        function buildMockCards() {
+            const names = [
+                "Ember Warden", "Hollow Pact", "Tideglass Oracle",
+                "Riftbound Choir", "Ashen Vow", "Loam Sentinel",
+                "Static Requiem", "Marrow Lantern", "Verdigris Saint",
+                "Fracture Hymn", "Gilded Undertow", "Cindercourt Regent",
+                "Wraithlight Herald", "Copper Litany", "Duskthread Weaver",
+                "Bramble Choirmaster", "Ferrous Nocturne", "Salt Cathedral",
+                "Amberfall Sentry", "Thornbound Muse", "Glasswing Prophet",
+                "Emberline Cantor", "Nightloom Warden", "Vellum Insurgent"
+            ];
+
+            return names.map((name, i) => {
+                const tier = TIERS[i % TIERS.length];
+                const deck = DECKS[i % DECKS.length];
+
+                return {
+                    id: uid(),
+                    name,
+                    deck,
+                    tier,
+                    owned: (i % 5 !== 0 && i % 7 !== 0)
+                };
+            });
+        }
+
+        const MOCK_CARDS = buildMockCards();
+
+        let activeFilter = "all";
+
+        function filteredCards() {
+            if (activeFilter === "owned") {
+                return MOCK_CARDS.filter(c => c.owned);
+            }
+            if (activeFilter === "missing") {
+                return MOCK_CARDS.filter(c => !c.owned);
+            }
+            return MOCK_CARDS;
+        }
+
+        function renderCounts() {
+            document.getElementById("ownedCount").textContent =
+                fmt(MOCK_CARDS.filter(c => c.owned).length);
+            document.getElementById("totalCount").textContent =
+                fmt(MOCK_CARDS.length);
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById("grid");
+            const cards = filteredCards();
+
+            if (!cards.length) {
+                grid.innerHTML = `
+                    <div class="empty-note">
+                        No cards in this view yet.
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = cards.map((card) => {
+                const [tierA, tierB] = TIER_COLORS[card.tier];
+                const isSelected = card.id === selectedId;
+
+                if (card.owned) {
+                    return `
+                        <div
+                            class="slot owned ${isSelected ? "selected" : ""}"
+                            data-id="${card.id}"
+                            style="--tier-a:${tierA}; --tier-b:${tierB};"
+                        >
+                            <div class="slot-face">
+                                <div class="slot-name">${card.name}</div>
+                                <div class="slot-deck">${card.deck}</div>
+                            </div>
+                            <div class="slot-tier-mark"></div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div
+                        class="slot missing"
+                        data-id="${card.id}"
+                        style="--tier-a:${tierA};"
+                    >
+                        <div class="silhouette"></div>
+                    </div>
+                `;
+            }).join("");
+
+            grid.querySelectorAll(".slot.owned").forEach(el => {
+                el.addEventListener("click", () => {
+                    const card = MOCK_CARDS.find(c => c.id === el.dataset.id);
+                    if (card) {
+                        selectCard(card);
+                    }
+                });
+            });
+
+            grid.querySelectorAll(".slot.missing").forEach(el => {
+                el.addEventListener("click", () => {
+                    el.classList.remove("shake");
+                    void el.offsetWidth;
+                    el.classList.add("shake");
+                });
+            });
+        }
+
+        let selectedId = null;
+        let selectedCard = null;
+
+        function selectCard(card) {
+            selectedId = card.id;
+            selectedCard = card;
+
+            const [tierA, tierB] = TIER_COLORS[card.tier];
+
+            const showcase = document.getElementById("showcase");
+            showcase.style.setProperty("--tier-a", tierA);
+            showcase.style.setProperty("--tier-b", tierB);
+            showcase.classList.remove("empty");
+
+            document.getElementById("showcaseName").textContent = card.name;
+            document.getElementById("showcaseDeck").textContent = card.deck;
+            document.getElementById("showcaseTier").textContent = card.tier;
+
+            // re-render so the picked slot gets its selected outline
+            renderGrid();
+        }
+
+        document.getElementById("filterStrip").addEventListener("click", (e) => {
+            const btn = e.target.closest(".filter-tab");
+            if (!btn) return;
+
+            document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+            btn.classList.add("active");
+
+            activeFilter = btn.dataset.filter;
+            renderGrid();
+        });
+
+
+        /* ==========================================================
+           CARD OVERLAY
+           ========================================================== */
+
+        function openCardOverlay() {
+            if (!selectedCard) {
+                return;
+            }
+
+            const [tierA, tierB] = TIER_COLORS[selectedCard.tier];
+
+            document.getElementById("overlayCard").style.setProperty("--tier-a", tierA);
+            document.getElementById("overlayCard").style.setProperty("--tier-b", tierB);
+            document.getElementById("overlayName").textContent = selectedCard.name;
+            document.getElementById("overlayDeck").textContent = selectedCard.deck;
+            document.getElementById("overlayTier").textContent = selectedCard.tier;
+
+            document.getElementById("cardOverlay").classList.add("show");
+        }
+
+        function closeCardOverlay() {
+            document.getElementById("cardOverlay").classList.remove("show");
+        }
+
+        document.getElementById("showcaseCard").addEventListener("click", openCardOverlay);
+
+        document.getElementById("overlayClose").addEventListener("click", closeCardOverlay);
+
+        document.getElementById("cardOverlay").addEventListener("click", (e) => {
+            if (e.target.id === "cardOverlay") {
+                closeCardOverlay();
+            }
+        });
+
+        document.getElementById("overlaySave").addEventListener("click", () => {
+            if (!selectedCard) return;
+            toast(`${selectedCard.name} saved to collection.`);
+            closeCardOverlay();
+        });
+
+        document.getElementById("overlaySell").addEventListener("click", () => {
+            if (!selectedCard) return;
+            toast(`${selectedCard.name} sold.`);
+            closeCardOverlay();
+        });
+
+        document.getElementById("fuseBtn").addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (!selectedCard) return;
+            toast(`Fuse ${selectedCard.name} — coming soon.`);
+        });
+
+        renderCounts();
+        renderGrid();
+
+        const firstOwned = MOCK_CARDS.find(c => c.owned);
+        if (firstOwned) {
+            selectCard(firstOwned);
+        }
+    </script>
+
 </body>
 </html>
