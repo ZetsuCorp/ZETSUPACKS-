@@ -1,635 +1,1659 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZETSU PACKZ — Pack Shop</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
-<style>
-/* ============================================================
-   TOKENS — shared design variables, base reset
-   ============================================================ */
-:root{
-  --bg:#0A0A0A;
-  --panel:#141414;
-  --panel-2:#1C1C1C;
-  --line:#333333;
-  --ink:#EDE6DC;
-  --muted:#9A958E;
-  --brass:#D4AF6A;
-  --brass-dim:#8A7245;
-  --common:#8C8880;
-  --rare:#4FB6A8;
-  --epic:#9B6BD6;
-  --legendary:#E8A23D;
-  --mythic-a:#FF6B9D;
-  --mythic-b:#C77DFF;
-  --mythic-c:#4FD1E5;
-  --danger:#E8636B;
-}
-*{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
-body{
-  background:
-    url('assets/packzbg.jpg') center / cover no-repeat,
-    var(--bg);
-  color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  min-height:100vh;
-}
-@media (min-width:768px){
-  body{
-    zoom:0.60; /* starting zoom level on desktop/tablet widths only — browser's
-                  native zoom, not a CSS transform, so layout, sticky header, and
-                  fixed footer all behave normally at this scale. Left out below
-                  768px so phones render at their normal, already-mobile-sized scale. */
-  }
-}
-a{color:inherit;text-decoration:none;}
-.mono{font-family:'Fredoka',sans-serif;font-weight:700;}
-.glow-num{
-  color:#FFFFFF;
-  letter-spacing:.02em;
-}
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-/* ============================================================
-   SECTION: HEADER — top brand / nav / packs counter / balance
-   ============================================================ */
-.hud{
-  position:sticky;top:0;z-index:50;
-  background:rgba(0,0,0,.92);backdrop-filter:blur(6px);
-  border-bottom:3px solid var(--line);
-  padding:14px 20px;
-  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
-}
-.hud .brand{display:flex;flex-direction:column;align-items:flex-start;gap:0;}
-.hud .brand .mark{font-size:10px;letter-spacing:.28em;color:var(--brass);text-transform:uppercase;font-weight:700;}
-.hud .brand h1{margin:0;font-size:20px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;}
-.hud .brand h1 span{color:var(--brass);}
-.hud nav{display:flex;gap:4px;}
-.hud .navlink{
-  padding:8px 14px;border-radius:3px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-  font-weight:700;color:var(--muted);border:3px solid transparent;
-}
-.hud .navlink:hover{color:var(--ink);}
-.hud .navlink.current{background:var(--brass);color:#141414;}
-.hud .hud-stats{display:flex;align-items:center;gap:18px;}
-.hud .packs-count{
-  display:flex;align-items:center;gap:6px;
-  color:var(--ink);border:3px solid var(--line);border-radius:20px;
-  padding:6px 12px;
-}
-.hud .packs-count .icon{font-size:14px;color:var(--brass);}
-.hud .packs-count .num{font-size:18px;font-weight:800;}
-.hud .packs-count:hover{border-color:var(--brass-dim);}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-/* ============================================================
-   SHARED — buttons, empty state, rarity theming, toast, modal
-   (used across Main/Info/Packs, not section-specific)
-   ============================================================ */
-.page{max-width:1080px;margin:0 auto;padding:28px 16px 60px;}
+    <title>ZETSU PACKZ — Pack Shop</title>
 
-.btn{
-  border:none;border-radius:3px;padding:12px 20px;font-size:13px;font-weight:800;
-  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:filter .15s ease, transform .1s ease;
-}
-.btn:active{transform:scale(.98);}
-.btn-brass{background:var(--brass);color:#141414;}
-.btn-brass:hover{filter:brightness(1.08);}
-.btn-brass:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;}
-.btn-ghost{background:transparent;border:3px solid var(--line);color:var(--ink);}
-.btn-ghost:hover{border-color:var(--brass-dim);}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-.empty-state{text-align:center;padding:60px 20px;color:var(--muted);border:3px dashed var(--line);border-radius:8px;}
-.empty-state .glyph{font-size:32px;margin-bottom:10px;}
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap"
+        rel="stylesheet"
+    >
 
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--panel-2);border:3px solid var(--brass-dim);color:var(--ink);
-  padding:12px 20px;border-radius:6px;font-size:13px;
-  opacity:0;pointer-events:none;transition:all .25s ease;z-index:100;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+    <style>
+        /* ============================================================
+           TOKENS — shared design variables, base reset
+           ============================================================ */
 
-@media (prefers-reduced-motion: reduce){
-  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
-}
-</style>
+        :root {
+            --bg: #0A0A0A;
+            --panel: #141414;
+            --panel-2: #1C1C1C;
+            --line: #333333;
+            --ink: #EDE6DC;
+            --muted: #9A958E;
+            --brass: #D4AF6A;
+            --brass-dim: #8A7245;
+            --common: #8C8880;
+            --rare: #4FB6A8;
+            --epic: #9B6BD6;
+            --legendary: #E8A23D;
+            --mythic-a: #FF6B9D;
+            --mythic-b: #C77DFF;
+            --mythic-c: #4FD1E5;
+            --danger: #E8636B;
+        }
 
-<style>
-.section-label{
-  font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;
-  margin:0 0 14px;
-}
+        * {
+            box-sizing: border-box;
+        }
 
-/* ============================================================
-   SECTION: MAIN > INFO — big rarity/tier header, right under the page header
-   ============================================================ */
-#info{margin-bottom:6px;}
-.info-strip{
-  display:flex;justify-content:space-between;align-items:center;
-  background:var(--panel-2);border:3px solid var(--line);border-radius:6px;
-  padding:14px 18px;margin-top:4px;
-}
-.info-strip .info-name{
-  font-size:36px;font-weight:900;letter-spacing:.02em;text-transform:uppercase;line-height:1;
-  background-image:linear-gradient(100deg,
-    var(--tier-a, #8C8880) 0%, var(--tier-a, #8C8880) 35%,
-    #FFFFFF 48%,
-    var(--tier-c, #6E6A64) 58%, var(--tier-c, #6E6A64) 100%);
-  background-size:250% 100%;
-  background-clip:text; -webkit-background-clip:text;
-  color:transparent; -webkit-text-fill-color:transparent;
-  animation:name-sheen 3s linear infinite;
-}
-@keyframes name-sheen{
-  0%{ background-position:200% 0; }
-  100%{ background-position:-100% 0; }
-}
-.info-strip .info-price{font-size:20px;font-weight:700;}
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
 
-/* ============================================================
-   SECTION: MAIN > PACKS — now lives entirely in packs-section.html,
-   fetched and injected at runtime. Its CSS/markup/JS are self-contained
-   over there, not duplicated here.
-   ============================================================ */
+        body {
+            background:
+                url('assets/packzbg.jpg') center / cover no-repeat,
+                var(--bg);
 
-.page{padding-bottom:110px;} /* leave room for the fixed bottom hud */
+            color: var(--ink);
 
-/* ============================================================
-   SECTION: HUD / FOOTER — fixed bottom bar, buys the active pack
-   ============================================================ */
-.buy-hud{
-  position:fixed;left:0;right:0;bottom:0;z-index:60;
-  background:rgba(0,0,0,.96);backdrop-filter:blur(6px);
-  border-top:3px solid var(--line);
-  padding:14px 20px;
-  display:flex;justify-content:space-between;align-items:center;gap:16px;
-}
-.buy-hud .buy-hud-info{display:flex;flex-direction:column;gap:2px;}
-.buy-hud .buy-hud-label{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
-.buy-hud .buy-hud-name{
-  font-size:15px;font-weight:900;text-transform:uppercase;
-  background-image:linear-gradient(100deg,
-    var(--tier-a, #8C8880) 0%, var(--tier-a, #8C8880) 35%,
-    #FFFFFF 48%,
-    var(--tier-c, #6E6A64) 58%, var(--tier-c, #6E6A64) 100%);
-  background-size:250% 100%;
-  background-clip:text; -webkit-background-clip:text;
-  color:transparent; -webkit-text-fill-color:transparent;
-  animation:name-sheen 3s linear infinite;
-}
-.buy-hud .buy-hud-buy{flex:none;padding:12px 22px;}
-.buy-hud .buy-hud-buy:not(:disabled){
-  animation:buy-pulse 1.8s ease-in-out infinite;
-}
-@keyframes buy-pulse{
-  0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(212,175,106,.55); }
-  50%{ transform:scale(1.045); box-shadow:0 0 20px 5px rgba(212,175,106,.5); }
-}
-.buy-hud-num{font-size:16px;}
-</style>
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif;
+
+            min-height: 100vh;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                zoom: 0.60;
+            }
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .mono {
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+        }
+
+        .glow-num {
+            color: #FFFFFF;
+            letter-spacing: .02em;
+        }
+
+
+        /* ============================================================
+           SECTION: HEADER
+           ============================================================ */
+
+        .hud {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+
+            background: rgba(0, 0, 0, .92);
+            backdrop-filter: blur(6px);
+
+            border-bottom: 3px solid var(--line);
+
+            padding: 14px 20px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .hud .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
+        }
+
+        .hud .brand .mark {
+            font-size: 10px;
+            letter-spacing: .28em;
+            color: var(--brass);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .hud .brand h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: .02em;
+            text-transform: uppercase;
+        }
+
+        .hud .brand h1 span {
+            color: var(--brass);
+        }
+
+        .hud nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .hud .navlink {
+            padding: 8px 14px;
+            border-radius: 3px;
+            font-size: 11px;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--muted);
+            border: 3px solid transparent;
+        }
+
+        .hud .navlink:hover {
+            color: var(--ink);
+        }
+
+        .hud .navlink.current {
+            background: var(--brass);
+            color: #141414;
+        }
+
+        .hud .hud-stats {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .hud .packs-count {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            color: var(--ink);
+
+            border: 3px solid var(--line);
+            border-radius: 20px;
+
+            padding: 6px 12px;
+        }
+
+        .hud .packs-count .icon {
+            font-size: 14px;
+            color: var(--brass);
+        }
+
+        .hud .packs-count .num {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .hud .packs-count:hover {
+            border-color: var(--brass-dim);
+        }
+
+
+        /* ============================================================
+           SHARED
+           ============================================================ */
+
+        .page {
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: 28px 16px 110px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 3px;
+
+            padding: 12px 20px;
+
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+
+            cursor: pointer;
+
+            transition:
+                filter .15s ease,
+                transform .1s ease;
+        }
+
+        .btn:active {
+            transform: scale(.98);
+        }
+
+        .btn-brass {
+            background: var(--brass);
+            color: #141414;
+        }
+
+        .btn-brass:hover {
+            filter: brightness(1.08);
+        }
+
+        .btn-brass:disabled {
+            background: var(--line);
+            color: var(--muted);
+            cursor: not-allowed;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 3px solid var(--line);
+            color: var(--ink);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--brass-dim);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+            border: 3px dashed var(--line);
+            border-radius: 8px;
+        }
+
+        .empty-state .glyph {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+
+            transform: translateX(-50%) translateY(20px);
+
+            background: var(--panel-2);
+            border: 3px solid var(--brass-dim);
+            color: var(--ink);
+
+            padding: 12px 20px;
+            border-radius: 6px;
+
+            font-size: 13px;
+
+            opacity: 0;
+            pointer-events: none;
+
+            transition: all .25s ease;
+
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
+
+        /* ============================================================
+           INFO STRIP
+           ============================================================ */
+
+        .section-label {
+            font-size: 11px;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 700;
+            margin: 0 0 14px;
+        }
+
+        #info {
+            margin-bottom: 6px;
+        }
+
+        .info-strip {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            background: var(--panel-2);
+            border: 3px solid var(--line);
+            border-radius: 6px;
+
+            padding: 14px 18px;
+            margin-top: 4px;
+        }
+
+        .info-strip .info-name {
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: .02em;
+            text-transform: uppercase;
+            line-height: 1;
+
+            background-image: linear-gradient(
+                100deg,
+                var(--tier-a, #8C8880) 0%,
+                var(--tier-a, #8C8880) 35%,
+                #FFFFFF 48%,
+                var(--tier-c, #6E6A64) 58%,
+                var(--tier-c, #6E6A64) 100%
+            );
+
+            background-size: 250% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+
+            animation: name-sheen 3s linear infinite;
+        }
+
+        @keyframes name-sheen {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -100% 0;
+            }
+        }
+
+        .info-strip .info-price {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+
+        /* ============================================================
+           PACK SECTION
+           ============================================================ */
+
+        #packsSectionMount {
+            width: 100%;
+        }
+
+
+        /* ============================================================
+           BUY HUD
+           ============================================================ */
+
+        .buy-hud {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+
+            background: rgba(0, 0, 0, .96);
+            backdrop-filter: blur(6px);
+
+            border-top: 3px solid var(--line);
+
+            padding: 14px 20px;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 16px;
+        }
+
+        .buy-hud .buy-hud-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .buy-hud .buy-hud-label {
+            font-size: 9px;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .buy-hud .buy-hud-name {
+            font-size: 15px;
+            font-weight: 900;
+            text-transform: uppercase;
+
+            background-image: linear-gradient(
+                100deg,
+                var(--tier-a, #8C8880) 0%,
+                var(--tier-a, #8C8880) 35%,
+                #FFFFFF 48%,
+                var(--tier-c, #6E6A64) 58%,
+                var(--tier-c, #6E6A64) 100%
+            );
+
+            background-size: 250% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+
+            animation: name-sheen 3s linear infinite;
+        }
+
+        .buy-hud .buy-hud-buy {
+            flex: none;
+            padding: 12px 22px;
+        }
+
+        .buy-hud .buy-hud-buy:not(:disabled) {
+            animation: buy-pulse 1.8s ease-in-out infinite;
+        }
+
+        @keyframes buy-pulse {
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(212, 175, 106, .55);
+            }
+
+            50% {
+                transform: scale(1.045);
+                box-shadow: 0 0 20px 5px rgba(212, 175, 106, .5);
+            }
+        }
+
+        .buy-hud-num {
+            font-size: 16px;
+        }
+    </style>
 </head>
+
+
 <body>
 
-<!-- ============================================================
-     HEADER
-     ============================================================ -->
-<header id="hud" class="hud"></header>
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
 
-<main class="page">
+    <header id="hud" class="hud"></header>
 
-  <!-- ============================================================
-       MAIN > INFO
-       ============================================================ -->
-  <section id="info">
-    <div class="info-strip" id="infoStrip"></div>
-  </section>
 
-  <!-- ============================================================
-       MAIN > PACKS — content below is the same as packs-section.html.
-       Kept as its own file for editing; merged here directly so the
-       actual page contains it, no runtime fetch required.
-       ============================================================ -->
-<!-- packs-section.html supplies its own <style> for the carousel and
-     the pack containers at runtime (see the fetch/inject script
-     below) — nothing needs to be duplicated here. -->
+    <main class="page">
 
-<div id="packsSectionMount"></div>
+        <!-- ========================================================
+             INFO
+             ======================================================== -->
 
-</main>
+        <section id="info">
+            <div class="info-strip" id="infoStrip"></div>
+        </section>
 
-<!-- ============================================================
-     HUD / FOOTER
-     ============================================================ -->
-<footer class="buy-hud" id="buyHud"></footer>
 
-<script>
-// PACKS and CENTER_PACK_INDEX now live in packs-section.html — fetched
-// and injected at runtime, along with the carousel that uses them.
+        <!-- ========================================================
+             PACKS
+             ======================================================== -->
 
-/* ==========================================================
-   STATE — in-memory only, no local save
-   ========================================================== */
+        <div id="packsSectionMount"></div>
 
-function defaultState(){
-  return {
-    collection: [],   // [{uid,name,rarity,glyph,value,ts}]
-    firstVisit: true
-  };
-}
+    </main>
 
-function loadState(){
-  return defaultState();
-}
 
-function saveState(state){ /* no local save — state is in-memory only */ }
+    <!-- ============================================================
+         BUY HUD
+         ============================================================ -->
 
-/* ==========================================================
-   HELPERS
-   ========================================================== */
+    <footer class="buy-hud" id="buyHud"></footer>
 
-function fmt(n){ return n.toLocaleString(); }
-function uid(){ return Date.now()+"-"+Math.random().toString(36).slice(2,7); }
 
-function toast(msg){
-  let t = document.getElementById("toast");
-  if (!t){
-    t = document.createElement("div");
-    t.id = "toast"; t.className = "toast";
-    document.body.appendChild(t);
-  }
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(toast._h);
-  toast._h = setTimeout(()=>t.classList.remove("show"), 1800);
-}
-</script>
+    <!-- ============================================================
+         BASIC STATE / HELPERS
+         ============================================================ -->
 
-<script>
-/* ==========================================================
-   SECTION: HEADER — render function
-   ========================================================== */
+    <script>
+        function defaultState() {
+            return {
+                collection: [],
+                firstVisit: true
+            };
+        }
 
-function renderHud(state, currentPage){
-  const mount = document.getElementById("hud");
-  if (!mount) return;
-  const pages = [
-    {id:"start", href:"start.html", label:"Start"},
-    {id:"shop", href:"shop.html", label:"Pack Shop"}
-  ];
-  mount.innerHTML = `
-    <a class="brand" href="start.html">
-      <span class="mark">Zetsumetsu EOe</span>
-      <h1>ZETSU PACKZ</h1>
-    </a>
-    <nav>
-      ${pages.map(p=>`<a class="navlink ${p.id===currentPage?'current':''}" href="${p.href}">${p.label}</a>`).join("")}
-    </nav>
-    <div class="hud-stats">
-      <div id="walletMount"></div>
-    </div>
-  `;
-  // The wallet button itself lives in wallet-ledger.html and is fetched/injected
-  // once (see the fetch block near the bottom of this file). renderHud() rebuilds
-  // .hud-stats from scratch on every call (e.g. after buyPack), which would wipe
-  // that injected node out — so if it's already been fetched, move the same node
-  // back into the fresh mount instead of losing it, and refresh its amount.
-  if (window.walletNode){
-    document.getElementById("walletMount").appendChild(window.walletNode);
-    if (typeof renderWallet === "function") renderWallet(state);
-  }
-}
-</script>
 
-<script>
-/* ==========================================================
-   PAGE CONTROLLER — wires INFO, PACKS, and HUD/FOOTER together
-   ========================================================== */
+        function loadState() {
+            return defaultState();
+        }
 
-let state = loadState();
-window.state = state; // wallet-ledger.html checks window.state to know whether
-                       // to use this page's real state or fall back to its own
-                       // standalone demo state — without this it can't see `state`
-                       // (a `let` binding isn't a window property on its own).
-renderHud(state, "shop");
 
-// activePackId is declared by packs-section.html once it loads —
-// renderInfoStrip/renderBuyHud/buyPack below just read it by name.
+        function saveState(state) {
+            // No local save.
+            // State is handled by Supabase/sessionStorage.
+        }
 
-/* ---------------- MAIN > PACKS ----------------
-   Now lives in packs-section.html, fetched and injected below.
-   It owns PACKS, CENTER_PACK_INDEX, and activePackId, and calls
-   renderInfoStrip()/renderBuyHud() (defined right below) whenever
-   the centered card changes. */
 
-/* ---------------- MAIN > INFO ---------------- */
+        function fmt(n) {
+            return Number(n).toLocaleString();
+        }
 
-function renderInfoStrip(){
-  const pack = PACKS.find(p=>p.id===activePackId);
-  const [tierA, , tierC] = pack.tierColors;
-  document.getElementById("infoStrip").innerHTML = `
-    <span class="info-name" style="--tier-a:${tierA}; --tier-c:${tierC};">${pack.name}</span>
-    <span class="info-price mono glow-num">${fmt(pack.price)} chips</span>
-  `;
-}
 
-/* ---------------- HUD / FOOTER ---------------- */
+        function uid() {
+            return (
+                Date.now() +
+                "-" +
+                Math.random().toString(36).slice(2, 7)
+            );
+        }
 
-function renderBuyHud(){
-  const pack = PACKS.find(p=>p.id===activePackId);
-  const affordable = !window.walletRow || window.walletRow.balance >= pack.price;
-  const [tierA, , tierC] = pack.tierColors;
-  document.getElementById("buyHud").innerHTML = `
-    <div class="buy-hud-info">
-      <div class="buy-hud-label">Selected Pack</div>
-      <div class="buy-hud-name" style="--tier-a:${tierA}; --tier-c:${tierC};">${pack.name}</div>
-    </div>
-    <button class="btn btn-brass buy-hud-buy" id="buyHudBtn" ${affordable?'':'disabled'}>
-      Buy for <span class="mono buy-hud-num glow-num">${fmt(pack.price)}</span> chips
-    </button>
-  `;
-  document.getElementById("buyHudBtn").addEventListener("click", ()=>buyPack(activePackId));
-}
 
-const SUPABASE_URL = "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
+        function toast(message) {
+            let element = document.getElementById("toast");
 
-const COMMON_PACK_ODDS = [
-  { tier: "common",    weight: 80 },
-  { tier: "epic",      weight: 10 },
-  { tier: "legendary", weight: 8  },
-  { tier: "mythic",    weight: 2  }
-];
+            if (!element) {
+                element = document.createElement("div");
+                element.id = "toast";
+                element.className = "toast";
 
-function rollTier(tier){
-  if (tier !== "common") return tier; // only common's odds are defined so far
-  const r = Math.random() * 100;
-  let acc = 0;
-  for (const entry of COMMON_PACK_ODDS){
-    acc += entry.weight;
-    if (r < acc) return entry.tier;
-  }
-  return "common";
-}
+                document.body.appendChild(element);
+            }
 
-async function fetchOneCard(client, tier){
-  const rolled = rollTier(tier);
-  const own = await client.from("decks").select("*").eq("current_tier", rolled);
-  let card = null;
-  if (!own.error && own.data && own.data.length){
-    card = own.data[Math.floor(Math.random() * own.data.length)];
-  } else {
-    const any = await client.from("decks").select("*");
-    if (!any.error && any.data && any.data.length){
-      card = any.data[Math.floor(Math.random() * any.data.length)];
-    }
-  }
-  if (card){
-    try {
-      await client.from("decks").update({ sales: (card.sales || 0) + 1 }).eq("id", card.id);
-      card.sales = (card.sales || 0) + 1;
-    } catch (e){
-      // The sales write failing must never cost the player the card
-      // they already found — the draw already succeeded above.
-    }
-  }
-  return card;
-}
+            element.textContent = message;
+            element.classList.add("show");
 
-/* ==========================================================
-   POPULARITY LEDGER — one row per (card, deck). Buying a card
-   that already has a row bumps its buys count; buying a card
-   for the first time creates the row, seeded from that card's
-   own current_tier/previous_tier. Reads/writes go straight
-   against the popularity_ledger table — no RPC layer between
-   this and the actual insert/update, so a failure here shows
-   up directly on whichever call caused it.
-   ========================================================== */
-async function recordCardBuy(client, card){
-  const existing = await client.from("popularity_ledger")
-    .select("*")
-    .eq("card", card.card)
-    .eq("deck", card.deck)
-    .maybeSingle();
+            clearTimeout(toast._h);
 
-  if (existing.data){
-    await client.from("popularity_ledger")
-      .update({ buys: (existing.data.buys || 0) + 1 })
-      .eq("card", card.card)
-      .eq("deck", card.deck);
-  } else {
-    await client.from("popularity_ledger")
-      .insert({
-        card: card.card,
-        deck: card.deck,
-        current_tier: card.current_tier,
-        previous_tier: card.previous_tier,
-        buys: 1
-      });
-  }
-}
+            toast._h = setTimeout(() => {
+                element.classList.remove("show");
+            }, 1800);
+        }
+    </script>
 
-async function buyPack(packId){
-  if (!window.walletRow || window.walletRow.id_type !== "account"){
-    requireAccount(()=>buyPack(packId));
-    return;
-  }
-  const pack = PACKS.find(p=>p.id===packId);
-  if (window.walletRow.balance < pack.price){ toast("Not enough chips."); return; }
 
-  // BUY BUTTON'S ONLY JOB: confirm the pack's price against the wallet
-  // and commit the deduction. That's the whole transaction from here.
-  // No card draw, no redirect — that happens separately, downstream of
-  // the wallet_ledger row actually changing (see onWalletLedgerChanged
-  // below and subscribeToWalletLedger() in wallet-ledger.html), not as
-  // a direct continuation of this click.
-  const client = walletClient(); // shared client from wallet-ledger.html — not a fresh one per call
-  const newBalance = window.walletRow.balance - pack.price;
-  const newBuys = (window.walletRow.buys || 0) + 1;
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
 
-  // Record which pack this deduction was for *before* committing it —
-  // onWalletLedgerChanged has no other way to know which pack a given
-  // balance change was buying.
-  sessionStorage.setItem("zetsu_pending_pack", packId);
+    <script>
+        function renderHud(state, currentPage) {
+            const mount = document.getElementById("hud");
 
-  const { data: updated, error } = await client.from("wallet_ledger")
-    .update({ balance: newBalance, buys: newBuys })
-    .eq("id", window.walletRow.id)
-    .select().single();
+            if (!mount) {
+                return;
+            }
 
-  if (error || !updated){
-    sessionStorage.removeItem("zetsu_pending_pack"); // nothing was actually confirmed
-    toast("Purchase failed — try again.");
-    return;
-  }
+            const pages = [
+                {
+                    id: "start",
+                    href: "start.html",
+                    label: "Start"
+                },
+                {
+                    id: "shop",
+                    href: "shop.html",
+                    label: "Pack Shop"
+                }
+            ];
 
-  window.walletRow = updated;
-  renderWallet();
-  renderBuyHud();
+            mount.innerHTML = `
+                <a class="brand" href="start.html">
+                    <span class="mark">Zetsumetsu EOe</span>
+                    <h1>ZETSU PACKZ</h1>
+                </a>
 
-  // Don't wait on the realtime subscription to notice this — call the
-  // same notify function directly with the row this update just got
-  // back. subscribeToWalletLedger() in wallet-ledger.html can still
-  // also fire onWalletLedgerChanged() for this same change if realtime
-  // is enabled on that table; that's harmless; the pending-pack marker
-  // gets consumed by whichever call reaches it first, so it only ever
-  // draws once.
-  if (typeof window.onWalletLedgerChanged === "function"){
-    window.onWalletLedgerChanged(updated);
-  }
-}
+                <nav>
+                    ${pages.map(page => `
+                        <a
+                            class="navlink ${page.id === currentPage ? "current" : ""}"
+                            href="${page.href}"
+                        >
+                            ${page.label}
+                        </a>
+                    `).join("")}
+                </nav>
 
-/* ==========================================================
-   REACTS TO THE WALLET LEDGER CHANGING — not to the buy click.
-   subscribeToWalletLedger() in wallet-ledger.html calls this any
-   time the current wallet's row updates for any reason. Only a
-   change that this page itself just staged (via the pending-pack
-   marker above) actually draws a card; any other ledger change
-   (e.g. signing up) just refreshes the wallet display and stops.
-   ========================================================== */
-window.onWalletLedgerChanged = async function(updatedRow){
-  window.walletRow = updatedRow;
-  renderWallet();
-  if (typeof renderBuyHud === "function") renderBuyHud();
+                <div class="hud-stats">
+                    <div id="walletMount"></div>
+                </div>
+            `;
 
-  const pendingPackId = sessionStorage.getItem("zetsu_pending_pack");
-  if (!pendingPackId) return; // this ledger change wasn't a pack purchase
 
-  sessionStorage.removeItem("zetsu_pending_pack"); // consume it so it can't fire twice
+            /*
+             * wallet-ledger.html supplies this node.
+             *
+             * renderHud() rebuilds the HUD after purchases, so the
+             * existing wallet node must be moved back into the new mount.
+             */
 
-  const pack = PACKS.find(p => p.id === pendingPackId);
-  if (!pack) return;
+            if (window.walletNode) {
+                const walletMount =
+                    document.getElementById("walletMount");
 
-  // 1 pack = 1 card. Duplicates across purchases are fine — no special
-  // handling needed for that.
-  const client = walletClient();
-  const card = await fetchOneCard(client, pack.id);
+                if (walletMount) {
+                    walletMount.appendChild(window.walletNode);
+                }
 
-  if (card){
-    await recordCardBuy(client, card);
-  }
+                if (typeof renderWallet === "function") {
+                    renderWallet(state);
+                }
+            }
+        }
+    </script>
 
-  const cards = card ? [card] : [];
-  if (cards.length){
-    sessionStorage.setItem("zetsu_drawn_cards", JSON.stringify(cards));
-  } else {
-    sessionStorage.removeItem("zetsu_drawn_cards");
-  }
-  window.location.href = `loading.html?pack=${encodeURIComponent(pack.id)}`;
-};
 
-</script>
+    <!-- ============================================================
+         PAGE CONTROLLER
+         ============================================================ -->
 
-<script>
-fetch("packs-section.html")
-  .then(r => r.text())
-  .then(html => {
-    // packs-section.html is a full standalone document (own doctype/html/head/body).
-    // Dumping that raw string into a div's innerHTML is invalid nested HTML and
-    // browsers mangle it unpredictably — that's what was breaking both the cards
-    // and (via its own body{background} rule leaking in) the page background.
-    // Parse it properly instead, and pull out only what belongs in this page.
-    const parsed = new DOMParser().parseFromString(html, "text/html");
+    <script>
+        let state = loadState();
 
-    // Pull just the #packs section markup — not its <html>/<head>/<body> wrapper.
-    const packsSection = parsed.getElementById("packs");
-    const mount = document.getElementById("packsSectionMount");
-    if (packsSection){
-      mount.appendChild(packsSection);
-    }
+        /*
+         * wallet-ledger.html checks window.state.
+         */
+        window.state = state;
 
-    // Pull its <style>, but strip the page-level rules (:root, *, html/body, body{background})
-    // that only make sense when packs-section.html is opened standalone — those would
-    // otherwise override this page's own tokens and background.
-    const parsedStyle = parsed.querySelector("style");
-    if (parsedStyle){
-      let css = parsedStyle.textContent;
-      css = css.replace(/:root\{[^}]*\}/, "");
-      css = css.replace(/\*\{box-sizing:border-box;\}/, "");
-      css = css.replace(/html,body\{margin:0;padding:0;\}/, "");
-      css = css.replace(/body\{[^}]*\}/, "");
-      const styleTag = document.createElement("style");
-      styleTag.textContent = css;
-      document.head.appendChild(styleTag);
-    }
+        renderHud(state, "shop");
 
-    // Pull its <script> content and execute it in this page's scope
-    // (script tags inserted via innerHTML/appendChild don't auto-run).
-    const parsedScript = parsed.querySelector("script");
-    if (parsedScript){
-      const newScript = document.createElement("script");
-      newScript.textContent = parsedScript.textContent;
-      document.body.appendChild(newScript);
-    }
-  })
-  .catch(err => console.error("Failed to load packs-section.html:", err));
-</script>
 
-<script>
-fetch("wallet-ledger.html")
-  .then(r => r.text())
-  .then(html => {
-    // wallet-ledger.html is its own standalone document too — same reasoning
-    // as packs-section.html above: parse it properly and pull out only what
-    // belongs in this page, instead of dumping the raw string into innerHTML.
-    const parsed = new DOMParser().parseFromString(html, "text/html");
+        /* ==========================================================
+           INFO STRIP
+           ========================================================== */
 
-    // Pull the wallet trigger button (#wallet) into the header's mount point,
-    // and cache the node itself so renderHud() can re-insert this same node
-    // (with its listeners intact) every time it rebuilds .hud-stats.
-    const walletDiv = parsed.getElementById("wallet");
-    const walletMount = document.getElementById("walletMount");
-    if (walletDiv && walletMount){
-      window.walletNode = walletDiv;
-      walletMount.appendChild(walletDiv);
-    }
+        function renderInfoStrip() {
+            if (
+                typeof PACKS === "undefined" ||
+                typeof activePackId === "undefined"
+            ) {
+                return;
+            }
 
-    // Pull the ledger overlay — it's a full-screen takeover, so it just needs
-    // to exist once anywhere in the body, not inside the header.
-    const ledgerOverlay = parsed.getElementById("ledgerOverlay");
-    if (ledgerOverlay){
-      document.body.appendChild(ledgerOverlay);
-    }
+            const pack = PACKS.find(
+                item => item.id === activePackId
+            );
 
-    // Pull the signup modal the same way — it's also a full-screen overlay,
-    // not part of the header markup, so it needs its own explicit pull just
-    // like ledgerOverlay above. Missing this meant openSignupModal() was
-    // calling getElementById on a node that was never actually in the page.
-    const signupOverlay = parsed.getElementById("signupOverlay");
-    if (signupOverlay){
-      document.body.appendChild(signupOverlay);
-    }
+            if (!pack) {
+                return;
+            }
 
-    // Pull its <style>, stripping the standalone-page-only rules the same way
-    // packs-section.html's style is stripped above.
-    const parsedStyle = parsed.querySelector("style");
-    if (parsedStyle){
-      let css = parsedStyle.textContent;
-      css = css.replace(/:root\{[^}]*\}/, "");
-      css = css.replace(/\*\{box-sizing:border-box;\}/, "");
-      css = css.replace(/html,body\{margin:0;padding:0;\}/, "");
-      css = css.replace(/body\{[^}]*\}/, "");
-      const styleTag = document.createElement("style");
-      styleTag.textContent = css;
-      document.head.appendChild(styleTag);
-    }
+            const [tierA, , tierC] = pack.tierColors;
 
-    // Pull its <script> and execute it in this page's scope. window.state
-    // already exists by this point (set above), so its self-boot block is
-    // skipped and it ends by calling renderWallet(window.state) +
-    // wireLedgerControls(window.state) against this page's real state.
-    const parsedScript = parsed.querySelector("script");
-    if (parsedScript){
-      const newScript = document.createElement("script");
-      newScript.textContent = parsedScript.textContent;
-      document.body.appendChild(newScript);
-    }
-  })
-  .catch(err => console.error("Failed to load wallet-ledger.html:", err));
-</script>
+            document.getElementById("infoStrip").innerHTML = `
+                <span
+                    class="info-name"
+                    style="--tier-a:${tierA}; --tier-c:${tierC};"
+                >
+                    ${pack.name}
+                </span>
+
+                <span class="info-price mono glow-num">
+                    ${fmt(pack.price)} chips
+                </span>
+            `;
+        }
+
+
+        /* ==========================================================
+           BUY HUD
+           ========================================================== */
+
+        function renderBuyHud() {
+            if (
+                typeof PACKS === "undefined" ||
+                typeof activePackId === "undefined"
+            ) {
+                return;
+            }
+
+            const pack = PACKS.find(
+                item => item.id === activePackId
+            );
+
+            if (!pack) {
+                return;
+            }
+
+            const balance =
+                Number(window.walletRow?.balance || 0);
+
+            const affordable =
+                !!window.walletRow &&
+                balance >= Number(pack.price);
+
+            const [tierA, , tierC] =
+                pack.tierColors;
+
+            document.getElementById("buyHud").innerHTML = `
+                <div class="buy-hud-info">
+                    <div class="buy-hud-label">
+                        Selected Pack
+                    </div>
+
+                    <div
+                        class="buy-hud-name"
+                        style="--tier-a:${tierA}; --tier-c:${tierC};"
+                    >
+                        ${pack.name}
+                    </div>
+                </div>
+
+                <button
+                    class="btn btn-brass buy-hud-buy"
+                    id="buyHudBtn"
+                    ${affordable ? "" : "disabled"}
+                >
+                    Buy for
+                    <span class="mono buy-hud-num glow-num">
+                        ${fmt(pack.price)}
+                    </span>
+                    chips
+                </button>
+            `;
+
+            document
+                .getElementById("buyHudBtn")
+                .addEventListener(
+                    "click",
+                    () => buyPack(activePackId)
+                );
+        }
+    </script>
+
+
+    <!-- ============================================================
+         SUPABASE / PURCHASE LOGIC
+         ============================================================ -->
+
+    <script>
+        const SUPABASE_URL =
+            "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
+
+        const SUPABASE_ANON_KEY =
+            "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
+
+
+        const COMMON_PACK_ODDS = [
+            {
+                tier: "common",
+                weight: 80
+            },
+            {
+                tier: "epic",
+                weight: 10
+            },
+            {
+                tier: "legendary",
+                weight: 8
+            },
+            {
+                tier: "mythic",
+                weight: 2
+            }
+        ];
+
+
+        /* ==========================================================
+           TIER ROLL
+           ========================================================== */
+
+        function rollTier(tier) {
+            if (tier !== "common") {
+                return tier;
+            }
+
+            const roll =
+                Math.random() * 100;
+
+            let accumulated = 0;
+
+            for (const entry of COMMON_PACK_ODDS) {
+                accumulated += entry.weight;
+
+                if (roll < accumulated) {
+                    return entry.tier;
+                }
+            }
+
+            return "common";
+        }
+
+
+        /* ==========================================================
+           DRAW ONE CARD
+           
+           IMPORTANT:
+           This function ONLY selects the card.
+
+           It does NOT write:
+           - wallet_ledger
+           - decks.sales
+           - popularity_ledger
+         ========================================================== */
+
+        async function fetchOneCard(client, tier) {
+            const rolledTier =
+                rollTier(tier);
+
+            const ownResult = await client
+                .from("decks")
+                .select("*")
+                .eq("current_tier", rolledTier);
+
+
+            if (
+                !ownResult.error &&
+                ownResult.data &&
+                ownResult.data.length
+            ) {
+                return ownResult.data[
+                    Math.floor(
+                        Math.random() *
+                        ownResult.data.length
+                    )
+                ];
+            }
+
+
+            /*
+             * Fallback:
+             * If the requested tier has no cards,
+             * choose from all decks.
+             */
+
+            const fallbackResult = await client
+                .from("decks")
+                .select("*");
+
+
+            if (
+                fallbackResult.error ||
+                !fallbackResult.data ||
+                !fallbackResult.data.length
+            ) {
+                throw (
+                    fallbackResult.error ||
+                    new Error("No cards available.")
+                );
+            }
+
+
+            return fallbackResult.data[
+                Math.floor(
+                    Math.random() *
+                    fallbackResult.data.length
+                )
+            ];
+        }
+
+
+        /* ==========================================================
+           RECORD THE DRAWN CARD
+           
+           Direct table operations only.
+
+           1. decks.sales + 1
+           2. popularity_ledger:
+              - update existing row
+              - otherwise insert new row
+         ========================================================== */
+
+        async function recordCardBuy(client, card) {
+            if (!card) {
+                throw new Error(
+                    "No card was drawn."
+                );
+            }
+
+
+            if (!card.id) {
+                throw new Error(
+                    "Drawn card has no decks.id."
+                );
+            }
+
+
+            if (!card.card || !card.deck) {
+                throw new Error(
+                    "Drawn card is missing card or deck."
+                );
+            }
+
+
+            /* ======================================================
+               1. UPDATE DECK SALES
+               ====================================================== */
+
+            const newDeckSales =
+                Number(card.sales || 0) + 1;
+
+
+            const deckUpdate =
+                await client
+                    .from("decks")
+                    .update({
+                        sales: newDeckSales
+                    })
+                    .eq("id", card.id)
+                    .select()
+                    .single();
+
+
+            if (deckUpdate.error) {
+                console.error(
+                    "decks.sales update failed:",
+                    deckUpdate.error
+                );
+
+                throw deckUpdate.error;
+            }
+
+
+            /*
+             * Keep the local card object synchronized with
+             * the database result.
+             */
+
+            if (deckUpdate.data) {
+                Object.assign(
+                    card,
+                    deckUpdate.data
+                );
+            }
+
+
+            /* ======================================================
+               2. FIND EXISTING POPULARITY LEDGER ROW
+               ====================================================== */
+
+            const ledgerResult =
+                await client
+                    .from("popularity_ledger")
+                    .select("*")
+                    .eq("card", card.card)
+                    .eq("deck", card.deck)
+                    .maybeSingle();
+
+
+            if (ledgerResult.error) {
+                console.error(
+                    "popularity_ledger lookup failed:",
+                    ledgerResult.error
+                );
+
+                throw ledgerResult.error;
+            }
+
+
+            /* ======================================================
+               3A. EXISTING ROW → INCREMENT BUYS
+               ====================================================== */
+
+            if (ledgerResult.data) {
+                const ledger =
+                    ledgerResult.data;
+
+
+                const updatedLedger =
+                    await client
+                        .from("popularity_ledger")
+                        .update({
+                            buys:
+                                Number(ledger.buys || 0) + 1,
+
+                            current_tier:
+                                card.current_tier,
+
+                            previous_tier:
+                                card.previous_tier,
+
+                            updated_at:
+                                new Date().toISOString()
+                        })
+                        .eq("id", ledger.id)
+                        .select()
+                        .single();
+
+
+                if (updatedLedger.error) {
+                    console.error(
+                        "popularity_ledger update failed:",
+                        updatedLedger.error
+                    );
+
+                    throw updatedLedger.error;
+                }
+
+
+                return updatedLedger.data;
+            }
+
+
+            /* ======================================================
+               3B. NO ROW → CREATE LEDGER ROW
+               ====================================================== */
+
+            const newLedger =
+                await client
+                    .from("popularity_ledger")
+                    .insert({
+                        card: card.card,
+                        deck: card.deck,
+
+                        current_tier:
+                            card.current_tier,
+
+                        previous_tier:
+                            card.previous_tier,
+
+                        buys: 1,
+                        sales: 0,
+                        total_in_collections: 0,
+                        fused: 0,
+                        ascensions: 0,
+                        dissections: 0
+                    })
+                    .select()
+                    .single();
+
+
+            if (newLedger.error) {
+                console.error(
+                    "popularity_ledger insert failed:",
+                    newLedger.error
+                );
+
+                throw newLedger.error;
+            }
+
+
+            return newLedger.data;
+        }
+
+
+        /* ==========================================================
+           BUY PACK
+           
+           This function ONLY:
+           - validates wallet
+           - validates balance
+           - deducts chips
+           - increments wallet buys
+           
+           The downstream card chain happens after the wallet
+           ledger changes.
+         ========================================================== */
+
+        async function buyPack(packId) {
+            if (
+                !window.walletRow ||
+                window.walletRow.id_type !== "account"
+            ) {
+                requireAccount(
+                    () => buyPack(packId)
+                );
+
+                return;
+            }
+
+
+            const pack =
+                PACKS.find(
+                    item => item.id === packId
+                );
+
+
+            if (!pack) {
+                toast("Pack not found.");
+                return;
+            }
+
+
+            const balance =
+                Number(window.walletRow.balance || 0);
+
+            const price =
+                Number(pack.price);
+
+
+            if (balance < price) {
+                toast("Not enough chips.");
+                return;
+            }
+
+
+            /*
+             * Remember the pack BEFORE changing the wallet.
+             *
+             * The wallet update is the purchase confirmation.
+             */
+
+            sessionStorage.setItem(
+                "zetsu_pending_pack",
+                packId
+            );
+
+
+            const client =
+                walletClient();
+
+
+            const newBalance =
+                balance - price;
+
+            const newBuys =
+                Number(window.walletRow.buys || 0) + 1;
+
+
+            const walletResult =
+                await client
+                    .from("wallet_ledger")
+                    .update({
+                        balance: newBalance,
+                        buys: newBuys
+                    })
+                    .eq("id", window.walletRow.id)
+                    .select()
+                    .single();
+
+
+            if (
+                walletResult.error ||
+                !walletResult.data
+            ) {
+                console.error(
+                    "wallet_ledger update failed:",
+                    walletResult.error
+                );
+
+                sessionStorage.removeItem(
+                    "zetsu_pending_pack"
+                );
+
+                toast(
+                    "Purchase failed — try again."
+                );
+
+                return;
+            }
+
+
+            /*
+             * Wallet purchase is confirmed.
+             */
+
+            window.walletRow =
+                walletResult.data;
+
+
+            renderWallet();
+            renderBuyHud();
+
+
+            /*
+             * Continue the exact same chain using the
+             * row returned by the wallet update.
+             *
+             * The realtime listener may also see this update,
+             * but the pending-pack marker prevents a duplicate draw.
+             */
+
+            if (
+                typeof window.onWalletLedgerChanged ===
+                "function"
+            ) {
+                await window.onWalletLedgerChanged(
+                    walletResult.data
+                );
+            }
+        }
+
+
+        /* ==========================================================
+           WALLET CHANGE → CARD DRAW → BOOKKEEPING → LOADING
+           ========================================================== */
+
+        window.onWalletLedgerChanged =
+            async function (updatedRow) {
+
+                window.walletRow =
+                    updatedRow;
+
+
+                if (typeof renderWallet === "function") {
+                    renderWallet();
+                }
+
+
+                if (typeof renderBuyHud === "function") {
+                    renderBuyHud();
+                }
+
+
+                /*
+                 * Only a wallet change carrying a pending pack
+                 * marker belongs to the pack purchase chain.
+                 */
+
+                const pendingPackId =
+                    sessionStorage.getItem(
+                        "zetsu_pending_pack"
+                    );
+
+
+                if (!pendingPackId) {
+                    return;
+                }
+
+
+                /*
+                 * Consume immediately so realtime + direct
+                 * notification cannot both draw a card.
+                 */
+
+                sessionStorage.removeItem(
+                    "zetsu_pending_pack"
+                );
+
+
+                try {
+                    const pack =
+                        PACKS.find(
+                            item =>
+                                item.id === pendingPackId
+                        );
+
+
+                    if (!pack) {
+                        throw new Error(
+                            `Pack not found: ${pendingPackId}`
+                        );
+                    }
+
+
+                    /*
+                     * 1 PACK = 1 CARD
+                     */
+
+                    const client =
+                        walletClient();
+
+
+                    /*
+                     * Draw the card.
+                     *
+                     * The drawn card is the event.
+                     */
+
+                    const card =
+                        await fetchOneCard(
+                            client,
+                            pack.id
+                        );
+
+
+                    if (!card) {
+                        throw new Error(
+                            "No card was drawn."
+                        );
+                    }
+
+
+                    /*
+                     * Record the actual drawn card.
+                     *
+                     * This performs:
+                     *
+                     * decks.sales + 1
+                     *
+                     * popularity_ledger UPDATE
+                     * OR
+                     * popularity_ledger INSERT
+                     */
+
+                    await recordCardBuy(
+                        client,
+                        card
+                    );
+
+
+                    /*
+                     * Only after the database bookkeeping
+                     * succeeds do we store the card that
+                     * loading.html will display.
+                     */
+
+                    sessionStorage.setItem(
+                        "zetsu_drawn_cards",
+                        JSON.stringify([card])
+                    );
+
+
+                    /*
+                     * Continue to card reveal.
+                     */
+
+                    window.location.href =
+                        `loading.html?pack=${encodeURIComponent(
+                            pack.id
+                        )}`;
+
+                } catch (error) {
+
+                    console.error(
+                        "Purchase chain failed:",
+                        error
+                    );
+
+
+                    /*
+                     * Restore the pending marker so the failed
+                     * purchase event is not silently forgotten.
+                     */
+
+                    sessionStorage.setItem(
+                        "zetsu_pending_pack",
+                        pendingPackId
+                    );
+
+
+                    toast(
+                        error.message ||
+                        "Card recording failed."
+                    );
+                }
+            };
+    </script>
+
+
+    <!-- ============================================================
+         LOAD PACKS SECTION
+         ============================================================ -->
+
+    <script>
+        fetch("packs-section.html")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(
+                        `packs-section.html failed: ${response.status}`
+                    );
+                }
+
+                return response.text();
+            })
+            .then(html => {
+
+                const parsed =
+                    new DOMParser()
+                        .parseFromString(
+                            html,
+                            "text/html"
+                        );
+
+
+                const packsSection =
+                    parsed.getElementById("packs");
+
+                const mount =
+                    document.getElementById(
+                        "packsSectionMount"
+                    );
+
+
+                if (packsSection && mount) {
+                    mount.appendChild(
+                        packsSection
+                    );
+                }
+
+
+                /*
+                 * Pull the pack section CSS while removing
+                 * standalone-page rules.
+                 */
+
+                const parsedStyle =
+                    parsed.querySelector("style");
+
+
+                if (parsedStyle) {
+                    let css =
+                        parsedStyle.textContent;
+
+
+                    css = css.replace(
+                        /:root\{[^}]*\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /\*\{box-sizing:border-box;\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /html,body\{margin:0;padding:0;\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /body\{[^}]*\}/,
+                        ""
+                    );
+
+
+                    const styleTag =
+                        document.createElement("style");
+
+                    styleTag.textContent = css;
+
+                    document.head.appendChild(
+                        styleTag
+                    );
+                }
+
+
+                /*
+                 * Execute packs-section.html script.
+                 *
+                 * That script creates:
+                 * PACKS
+                 * CENTER_PACK_INDEX
+                 * activePackId
+                 */
+
+                const parsedScript =
+                    parsed.querySelector("script");
+
+
+                if (parsedScript) {
+                    const newScript =
+                        document.createElement("script");
+
+                    newScript.textContent =
+                        parsedScript.textContent;
+
+                    document.body.appendChild(
+                        newScript
+                    );
+                }
+            })
+            .catch(error => {
+                console.error(
+                    "Failed to load packs-section.html:",
+                    error
+                );
+            });
+    </script>
+
+
+    <!-- ============================================================
+         LOAD WALLET LEDGER
+         ============================================================ -->
+
+    <script>
+        fetch("wallet-ledger.html")
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(
+                        `wallet-ledger.html failed: ${response.status}`
+                    );
+                }
+
+                return response.text();
+            })
+            .then(html => {
+
+                const parsed =
+                    new DOMParser()
+                        .parseFromString(
+                            html,
+                            "text/html"
+                        );
+
+
+                /*
+                 * Wallet button.
+                 */
+
+                const walletDiv =
+                    parsed.getElementById(
+                        "wallet"
+                    );
+
+                const walletMount =
+                    document.getElementById(
+                        "walletMount"
+                    );
+
+
+                if (walletDiv && walletMount) {
+                    window.walletNode =
+                        walletDiv;
+
+                    walletMount.appendChild(
+                        walletDiv
+                    );
+                }
+
+
+                /*
+                 * Ledger overlay.
+                 */
+
+                const ledgerOverlay =
+                    parsed.getElementById(
+                        "ledgerOverlay"
+                    );
+
+
+                if (ledgerOverlay) {
+                    document.body.appendChild(
+                        ledgerOverlay
+                    );
+                }
+
+
+                /*
+                 * Signup overlay.
+                 */
+
+                const signupOverlay =
+                    parsed.getElementById(
+                        "signupOverlay"
+                    );
+
+
+                if (signupOverlay) {
+                    document.body.appendChild(
+                        signupOverlay
+                    );
+                }
+
+
+                /*
+                 * Wallet CSS.
+                 */
+
+                const parsedStyle =
+                    parsed.querySelector("style");
+
+
+                if (parsedStyle) {
+                    let css =
+                        parsedStyle.textContent;
+
+
+                    css = css.replace(
+                        /:root\{[^}]*\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /\*\{box-sizing:border-box;\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /html,body\{margin:0;padding:0;\}/,
+                        ""
+                    );
+
+                    css = css.replace(
+                        /body\{[^}]*\}/,
+                        ""
+                    );
+
+
+                    const styleTag =
+                        document.createElement("style");
+
+                    styleTag.textContent = css;
+
+                    document.head.appendChild(
+                        styleTag
+                    );
+                }
+
+
+                /*
+                 * Execute wallet-ledger.html script.
+                 */
+
+                const parsedScript =
+                    parsed.querySelector("script");
+
+
+                if (parsedScript) {
+                    const newScript =
+                        document.createElement("script");
+
+                    newScript.textContent =
+                        parsedScript.textContent;
+
+                    document.body.appendChild(
+                        newScript
+                    );
+                }
+            })
+            .catch(error => {
+                console.error(
+                    "Failed to load wallet-ledger.html:",
+                    error
+                );
+            });
+    </script>
+
 </body>
+
 </html>
+```
