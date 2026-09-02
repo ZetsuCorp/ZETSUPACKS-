@@ -1,981 +1,1398 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
 
-<title>ZETSU POPULARITY Ledger</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <title>ZETSU POPULARITY Ledger</title>
 
-<style>
-    * {
-        box-sizing: border-box;
-    }
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    html,
-    body {
-        margin: 0;
-        padding: 0;
-        min-height: 100%;
-        background: #050505;
-        color: #f2f2f2;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    >
 
-    body {
-        overflow-x: hidden;
-    }
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
 
-    .page {
-        width: 100%;
-        max-width: 1500px;
-        margin: 0 auto;
-        padding: 28px;
-    }
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
 
-    /* HEADER */
+    <style>
+        :root {
+            --bg: #050505;
+            --panel: #0d0d0d;
+            --panel-hover: #111111;
 
-    .topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 18px 0 24px;
-        border-bottom: 1px solid #202020;
-    }
+            --border: #242424;
+            --border-bright: #3a3a3a;
 
-    .brand {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
+            --text: #f5f5f5;
+            --muted: #858585;
+            --dim: #555555;
 
-    .brand-mark {
-        width: 38px;
-        height: 38px;
-        border: 1px solid #444;
-        display: grid;
-        place-items: center;
-        font-size: 15px;
-        font-weight: 900;
-        letter-spacing: -1px;
-    }
+            --common: #bdbdbd;
+            --rare: #63b3ff;
+            --epic: #a875ff;
+            --legendary: #ffb347;
+            --mythic: #ff4d8d;
 
-    .brand-text {
-        line-height: 1;
-    }
-
-    .brand-main {
-        font-size: 15px;
-        font-weight: 900;
-        letter-spacing: 2px;
-    }
-
-    .brand-sub {
-        margin-top: 5px;
-        color: #666;
-        font-size: 10px;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }
-
-    .live {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #777;
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }
-
-    .live-dot {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: #fff;
-        box-shadow: 0 0 10px rgba(255,255,255,.6);
-    }
-
-    /* INTRO */
-
-    .intro {
-        padding: 48px 0 30px;
-    }
-
-    .eyebrow {
-        color: #666;
-        font-size: 10px;
-        font-weight: 800;
-        letter-spacing: 3px;
-        text-transform: uppercase;
-        margin-bottom: 10px;
-    }
-
-    h1 {
-        margin: 0;
-        font-size: clamp(42px, 7vw, 82px);
-        line-height: .9;
-        letter-spacing: -4px;
-        font-weight: 950;
-    }
-
-    .intro p {
-        max-width: 700px;
-        margin: 20px 0 0;
-        color: #888;
-        font-size: 14px;
-        line-height: 1.7;
-    }
-
-    /* STATUS */
-
-    .status {
-        min-height: 20px;
-        margin: 10px 0 20px;
-        color: #666;
-        font-size: 11px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-
-    .status.error {
-        color: #ff4b4b;
-    }
-
-    /* TABLE */
-
-    .ledger {
-        width: 100%;
-        border-top: 1px solid #262626;
-    }
-
-    .ledger-head,
-    .ledger-row {
-        display: grid;
-        grid-template-columns:
-            70px
-            minmax(250px, 2fr)
-            130px
-            130px
-            120px
-            minmax(280px, 1.5fr);
-        gap: 20px;
-        align-items: center;
-    }
-
-    .ledger-head {
-        min-height: 44px;
-        color: #555;
-        border-bottom: 1px solid #202020;
-        font-size: 9px;
-        font-weight: 900;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }
-
-    .ledger-row {
-        min-height: 110px;
-        border-bottom: 1px solid #181818;
-        transition: background .15s ease;
-    }
-
-    .ledger-row:hover {
-        background: #0a0a0a;
-    }
-
-    .rank {
-        color: #555;
-        font-size: 18px;
-        font-weight: 900;
-    }
-
-    /* CARD */
-
-    .card-info {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        min-width: 0;
-    }
-
-    .card-image {
-        width: 62px;
-        height: 82px;
-        flex: 0 0 62px;
-        object-fit: cover;
-        background: #0c0c0c;
-        border: 1px solid #252525;
-    }
-
-    .card-image.empty {
-        display: grid;
-        place-items: center;
-        color: #444;
-        font-size: 9px;
-        text-transform: uppercase;
-    }
-
-    .card-name {
-        min-width: 0;
-        font-size: 15px;
-        font-weight: 900;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .card-deck {
-        margin-top: 6px;
-        color: #666;
-        font-size: 10px;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-
-    /* TIER */
-
-    .tier {
-        font-size: 11px;
-        font-weight: 900;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }
-
-    .tier.common {
-        color: #999;
-    }
-
-    .tier.rare {
-        color: #4da6ff;
-    }
-
-    .tier.epic {
-        color: #b56cff;
-    }
-
-    .tier.legendary {
-        color: #ff9b3d;
-    }
-
-    .tier.mythic {
-        color: #ff4b81;
-    }
-
-    /* POINTS */
-
-    .points {
-        font-size: 25px;
-        font-weight: 950;
-        letter-spacing: -1px;
-    }
-
-    .points-label {
-        margin-top: 3px;
-        color: #555;
-        font-size: 8px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-    }
-
-    /* MOVEMENT */
-
-    .movement {
-        font-size: 10px;
-        font-weight: 950;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-    }
-
-    .movement.ascending {
-        color: #62ff9b;
-    }
-
-    .movement.descending {
-        color: #ff5555;
-    }
-
-    .movement.stable {
-        color: #777;
-    }
-
-    /* STATS */
-
-    .stats {
-        display: grid;
-        grid-template-columns: repeat(6, minmax(38px, 1fr));
-        gap: 8px;
-    }
-
-    .stat {
-        min-width: 0;
-    }
-
-    .stat-value {
-        font-size: 12px;
-        font-weight: 900;
-    }
-
-    .stat-label {
-        margin-top: 4px;
-        color: #4d4d4d;
-        font-size: 7px;
-        font-weight: 800;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-    }
-
-    /* EMPTY */
-
-    .empty-state {
-        padding: 70px 20px;
-        border-bottom: 1px solid #202020;
-        text-align: center;
-        color: #555;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-    }
-
-    /* FOOTER */
-
-    .footer {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 22px 0 40px;
-        color: #444;
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-    }
-
-    @media (max-width: 1050px) {
-        .ledger-head {
-            display: none;
+            --ascending: #65ff9a;
+            --descending: #ff5f5f;
         }
 
-        .ledger-row {
-            grid-template-columns: 45px 1fr 110px;
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+            width: 100%;
+
+            background: var(--bg);
+            color: var(--text);
+
+            font-family: "Fredoka", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+        }
+
+        /* =========================================================
+           HEADER
+        ========================================================== */
+
+        header {
+            width: 100%;
+
+            border-bottom: 1px solid var(--border);
+
+            background: #050505;
+        }
+
+        .header-inner {
+            width: min(1400px, calc(100% - 40px));
+            min-height: 82px;
+
+            margin: 0 auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 24px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
             gap: 14px;
-            padding: 18px 0;
         }
 
-        .tier,
-        .movement {
-            grid-column: 3;
+        .brand-mark {
+            width: 42px;
+            height: 42px;
+
+            display: grid;
+            place-items: center;
+
+            border: 1px solid var(--border-bright);
+            background: #0b0b0b;
+
+            font-size: 18px;
+            font-weight: 700;
         }
 
-        .points {
-            grid-column: 3;
-            grid-row: 1;
+        .brand-name {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
         }
 
-        .stats {
-            grid-column: 2 / 4;
-            grid-row: 2;
+        .brand-sub {
+            margin-top: 2px;
+
+            color: var(--muted);
+
+            font-size: 11px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
         }
 
-        .card-info {
-            grid-column: 2;
-            grid-row: 1;
-        }
-    }
+        .live-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
 
-    @media (max-width: 650px) {
-        .page {
-            padding: 18px;
-        }
+            color: var(--muted);
 
-        .topbar {
-            padding-top: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
         }
 
-        .intro {
-            padding-top: 35px;
+        .live-dot {
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: #ffffff;
+        }
+
+        /* =========================================================
+           MAIN
+        ========================================================== */
+
+        main {
+            width: min(1400px, calc(100% - 40px));
+
+            margin: 0 auto;
+
+            padding: 48px 0 70px;
+        }
+
+        .heading {
+            margin-bottom: 34px;
+        }
+
+        .eyebrow {
+            margin-bottom: 10px;
+
+            color: var(--muted);
+
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
         }
 
         h1 {
-            letter-spacing: -2px;
+            margin: 0;
+
+            font-size: clamp(40px, 6vw, 72px);
+            font-weight: 700;
+            line-height: 0.95;
+            letter-spacing: -0.045em;
         }
 
-        .ledger-row {
-            grid-template-columns: 35px 1fr;
+        .description {
+            max-width: 720px;
+
+            margin-top: 18px;
+
+            color: var(--muted);
+
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        /* =========================================================
+           LEDGER HEADER
+        ========================================================== */
+
+        .ledger-header {
+            min-height: 58px;
+
+            padding: 0 18px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            border: 1px solid var(--border);
+            background: var(--panel);
+        }
+
+        .ledger-heading {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .ledger-count {
+            margin-left: 8px;
+
+            color: var(--muted);
+
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        /* =========================================================
+           LEADERBOARD
+        ========================================================== */
+
+        .leaderboard {
+            margin-top: 8px;
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 8px;
+        }
+
+        .leader-row {
+            min-height: 112px;
+
+            display: grid;
+
+            grid-template-columns:
+                72px
+                minmax(280px, 1.8fr)
+                125px
+                125px
+                repeat(6, minmax(75px, 0.65fr));
+
+            border: 1px solid var(--border);
+            background: var(--panel);
+
+            overflow: hidden;
+
+            transition:
+                background 0.15s ease,
+                border-color 0.15s ease;
+        }
+
+        .leader-row:hover {
+            background: var(--panel-hover);
+            border-color: var(--border-bright);
+        }
+
+        /* =========================================================
+           RANK
+        ========================================================== */
+
+        .rank {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-right: 1px solid var(--border);
+
+            color: var(--muted);
+
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .rank.top-three {
+            color: var(--text);
+        }
+
+        /* =========================================================
+           CARD
+        ========================================================== */
+
+        .card-cell {
+            min-width: 0;
+
+            padding: 14px 18px;
+
+            display: flex;
+            align-items: center;
+
+            gap: 16px;
+        }
+
+        .card-image {
+            width: 64px;
+            height: 84px;
+
+            flex: 0 0 auto;
+
+            object-fit: cover;
+
+            border: 1px solid var(--border-bright);
+
+            background: #080808;
+        }
+
+        .card-placeholder {
+            width: 64px;
+            height: 84px;
+
+            flex: 0 0 auto;
+
+            display: grid;
+            place-items: center;
+
+            border: 1px solid var(--border-bright);
+
+            background: #080808;
+
+            color: var(--dim);
+
+            font-size: 9px;
+            text-align: center;
+            text-transform: uppercase;
         }
 
         .card-info {
-            grid-column: 2;
+            min-width: 0;
         }
 
-        .points,
-        .tier,
-        .movement {
-            grid-column: 2;
-            grid-row: auto;
+        .card-name {
+            overflow: hidden;
+
+            color: var(--text);
+
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1.1;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .stats {
-            grid-column: 2;
-            grid-row: auto;
-            grid-template-columns: repeat(3, 1fr);
-            padding-top: 8px;
+        .card-deck {
+            margin-top: 5px;
+
+            overflow: hidden;
+
+            color: var(--muted);
+
+            font-size: 12px;
+
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .rank {
-            grid-column: 1;
-            grid-row: 1 / span 5;
+        .tier {
+            display: inline-block;
+
+            margin-top: 8px;
+            padding: 3px 7px;
+
+            border: 1px solid currentColor;
+
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
         }
 
-        .footer {
+        .tier-common {
+            color: var(--common);
+        }
+
+        .tier-rare {
+            color: var(--rare);
+        }
+
+        .tier-epic {
+            color: var(--epic);
+        }
+
+        .tier-legendary {
+            color: var(--legendary);
+        }
+
+        .tier-mythic {
+            color: var(--mythic);
+        }
+
+        /* =========================================================
+           POPULARITY
+        ========================================================== */
+
+        .popularity-cell {
+            min-width: 0;
+
+            padding: 14px 12px;
+
+            display: flex;
             flex-direction: column;
+            justify-content: center;
+
+            border-left: 1px solid var(--border);
         }
-    }
-</style>
+
+        .popularity-label {
+            color: var(--dim);
+
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .popularity-value {
+            margin-top: 5px;
+
+            color: var(--text);
+
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        /* =========================================================
+           MOVEMENT
+        ========================================================== */
+
+        .movement-cell {
+            min-width: 0;
+
+            padding: 14px 12px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            border-left: 1px solid var(--border);
+        }
+
+        .movement-label {
+            color: var(--dim);
+
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .movement-value {
+            margin-top: 5px;
+
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .movement-ascending {
+            color: var(--ascending);
+        }
+
+        .movement-descending {
+            color: var(--descending);
+        }
+
+        .movement-stable {
+            color: var(--muted);
+        }
+
+        /* =========================================================
+           STATS
+        ========================================================== */
+
+        .stat {
+            min-width: 0;
+
+            padding: 14px 12px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            border-left: 1px solid var(--border);
+        }
+
+        .stat-label {
+            color: var(--dim);
+
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            margin-top: 5px;
+
+            color: var(--text);
+
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        /* =========================================================
+           STATES
+        ========================================================== */
+
+        .message {
+            min-height: 220px;
+
+            padding: 40px;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+
+            border: 1px solid var(--border);
+            background: var(--panel);
+
+            text-align: center;
+        }
+
+        .message-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .message-copy {
+            max-width: 500px;
+
+            margin-top: 8px;
+
+            color: var(--muted);
+
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* =========================================================
+           FOOTER
+        ========================================================== */
+
+        footer {
+            width: 100%;
+
+            border-top: 1px solid var(--border);
+
+            background: #050505;
+        }
+
+        .footer-inner {
+            width: min(1400px, calc(100% - 40px));
+            min-height: 64px;
+
+            margin: 0 auto;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+
+            gap: 20px;
+        }
+
+        .footer-copy {
+            color: var(--dim);
+
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* =========================================================
+           TABLET
+        ========================================================== */
+
+        @media (max-width: 1300px) {
+
+            .leader-row {
+                grid-template-columns:
+                    64px
+                    minmax(230px, 1.5fr)
+                    110px
+                    110px
+                    repeat(6, minmax(65px, 0.6fr));
+            }
+        }
+
+        @media (max-width: 1100px) {
+
+            .leader-row {
+                grid-template-columns:
+                    64px
+                    minmax(240px, 1.5fr)
+                    110px
+                    110px
+                    repeat(3, minmax(80px, 0.7fr));
+            }
+
+            .stat:nth-of-type(n + 4) {
+                display: none;
+            }
+        }
+
+        /* =========================================================
+           MOBILE
+        ========================================================== */
+
+        @media (max-width: 720px) {
+
+            .header-inner,
+            .footer-inner {
+                width: calc(100% - 24px);
+            }
+
+            .header-inner {
+                min-height: 68px;
+            }
+
+            main {
+                width: calc(100% - 24px);
+
+                padding-top: 30px;
+            }
+
+            .brand-sub {
+                display: none;
+            }
+
+            .live-status {
+                font-size: 9px;
+            }
+
+            .ledger-header {
+                padding: 0 12px;
+            }
+
+            .leader-row {
+                min-height: 96px;
+
+                grid-template-columns:
+                    52px
+                    minmax(0, 1fr);
+            }
+
+            .rank {
+                grid-row: 1 / span 5;
+            }
+
+            .card-cell {
+                padding: 12px;
+            }
+
+            .card-image,
+            .card-placeholder {
+                width: 52px;
+                height: 68px;
+            }
+
+            .card-name {
+                font-size: 16px;
+            }
+
+            .popularity-cell,
+            .movement-cell {
+                grid-column: 2;
+
+                border-left: 0;
+                border-top: 1px solid var(--border);
+
+                padding: 10px 12px;
+
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .popularity-value,
+            .movement-value {
+                margin-top: 0;
+            }
+
+            .stat {
+                display: none;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="page">
+    <!-- =========================================================
+         HEADER
+    ========================================================== -->
 
-    <header class="topbar">
-        <div class="brand">
-            <div class="brand-mark">Z</div>
+    <header>
+        <div class="header-inner">
 
-            <div class="brand-text">
-                <div class="brand-main">ZETSU PACKZ</div>
-                <div class="brand-sub">ZETSU Popularity Ledger</div>
+            <div class="brand">
+
+                <div class="brand-mark">
+                    Z
+                </div>
+
+                <div>
+                    <div class="brand-name">
+                        ZETSU PACKZ
+                    </div>
+
+                    <div class="brand-sub">
+                        ZETSU Popularity Ledger
+                    </div>
+                </div>
+
             </div>
-        </div>
 
-        <div class="live">
-            <span class="live-dot"></span>
-            Live Card Stats
+            <div class="live-status">
+                <span class="live-dot"></span>
+                Live Ledger
+            </div>
+
         </div>
     </header>
 
 
-    <section class="intro">
-        <div class="eyebrow">Community Card Activity</div>
+    <!-- =========================================================
+         MAIN
+    ========================================================== -->
 
-        <h1>POPULARITY</h1>
+    <main>
 
-        <p>
-            The public ledger tracks card activity across purchases,
-            sales, collections, fusions, ascensions and dissections.
-            The community ledger itself determines the current tier, state
-            and movement of each card.
-        </p>
-    </section>
+        <section class="heading">
+
+            <div class="eyebrow">
+                Zetsumetsu Card Network
+            </div>
+
+            <h1>
+                POPULARITY
+            </h1>
+
+            <div class="description">
+                The cards currently leading the Zetsu popularity
+                ledger.
+            </div>
+
+        </section>
 
 
-    <div id="status" class="status">
-        Reading popularity ledger...
-    </div>
+        <!-- =====================================================
+             LEDGER HEADER
+        ====================================================== -->
+
+        <section class="ledger-header">
+
+            <div class="ledger-heading">
+                Current Leaders
+
+                <span
+                    class="ledger-count"
+                    id="ledgerCount"
+                >
+                    Loading...
+                </span>
+            </div>
+
+        </section>
 
 
-    <section class="ledger">
+        <!-- =====================================================
+             LEADERBOARD
+        ====================================================== -->
 
-        <div class="ledger-head">
-            <div>Rank</div>
-            <div>Card</div>
-            <div>Tier</div>
-            <div>Popularity</div>
-            <div>Movement</div>
-            <div>Activity</div>
+        <section
+            class="leaderboard"
+            id="leaderboard"
+        >
+
+            <div class="message">
+
+                <div class="message-title">
+                    Loading ledger
+                </div>
+
+                <div class="message-copy">
+                    Reading the current popularity data.
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================================================
+         FOOTER
+    ========================================================== -->
+
+    <footer>
+
+        <div class="footer-inner">
+
+            <div class="footer-copy">
+                ZETSUMETSU CORPORATION
+            </div>
+
+            <div class="footer-copy">
+                POPULARITY LEDGER
+            </div>
+
         </div>
 
-        <div id="ledgerRows"></div>
-
-    </section>
-
-
-    <footer class="footer">
-        <span>ZETSU / PUBLIC LEDGER</span>
-        <span id="updatedAt">—</span>
     </footer>
 
-</div>
 
+    <script>
+        /* =========================================================
+           SUPABASE
+        ========================================================== */
 
-<script>
-/* =========================================================
-   SUPABASE
-   ========================================================= */
+        const SUPABASE_URL =
+            "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
 
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+        const SUPABASE_ANON_KEY =
+            "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
 
-const supabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-);
+        const {
+            createClient
+        } = supabase;
 
+        const client = createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
 
-/* =========================================================
-   DOM
-   ========================================================= */
 
-const ledgerRows = document.getElementById("ledgerRows");
-const statusNode = document.getElementById("status");
-const updatedAtNode = document.getElementById("updatedAt");
+        /* =========================================================
+           DOM
+        ========================================================== */
 
+        const leaderboard =
+            document.getElementById("leaderboard");
 
-/* =========================================================
-   HELPERS
-   ========================================================= */
+        const ledgerCount =
+            document.getElementById("ledgerCount");
 
-function escapeHtml(value) {
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
 
+        /* =========================================================
+           HELPERS
+        ========================================================== */
 
-function normalize(value) {
-    return String(value ?? "")
-        .trim()
-        .toLowerCase();
-}
+        function escapeHtml(value) {
 
-
-function formatNumber(value) {
-    const number = Number(value ?? 0);
-
-    if (!Number.isFinite(number)) {
-        return "0";
-    }
-
-    return number.toLocaleString();
-}
-
-
-function formatDate(value) {
-    if (!value) {
-        return "—";
-    }
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-        return "—";
-    }
-
-    return date.toLocaleString([], {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit"
-    });
-}
-
-
-function tierClass(tier) {
-    const value = normalize(tier);
-
-    if (
-        value === "common" ||
-        value === "rare" ||
-        value === "epic" ||
-        value === "legendary" ||
-        value === "mythic"
-    ) {
-        return value;
-    }
-
-    return "";
-}
-
-
-function movementClass(movement) {
-    const value = normalize(movement);
-
-    if (
-        value === "ascending" ||
-        value === "ascend"
-    ) {
-        return "ascending";
-    }
-
-    if (
-        value === "descending" ||
-        value === "descend"
-    ) {
-        return "descending";
-    }
-
-    return "stable";
-}
-
-
-function movementLabel(movement) {
-    const value = normalize(movement);
-
-    if (
-        value === "ascending" ||
-        value === "ascend"
-    ) {
-        return "ASCENDING ↑";
-    }
-
-    if (
-        value === "descending" ||
-        value === "descend"
-    ) {
-        return "DESCENDING ↓";
-    }
-
-    return "STABLE";
-}
-
-
-/* =========================================================
-   LOAD CARD IMAGES
-   =========================================================
-   popularity_ledger is the authority for popularity data.
-
-   decks is only used here to obtain the visual asset because
-   popularity_ledger does not contain an image column.
-   ========================================================= */
-
-async function loadDeckImages() {
-
-    const { data, error } = await supabase
-        .from("decks")
-        .select("id, card, deck, image");
-
-    if (error) {
-        console.error("Deck image lookup failed:", error);
-        return new Map();
-    }
-
-    const imageMap = new Map();
-
-    for (const row of data || []) {
-
-        const key = `${row.card}::${row.deck}`;
-
-        imageMap.set(key, {
-            image: row.image,
-            id: row.id
-        });
-    }
-
-    return imageMap;
-}
-
-
-/* =========================================================
-   READ POPULARITY LEDGER
-   =========================================================
-   IMPORTANT:
-
-   This page does NOT calculate popularity.
-
-   It does NOT calculate movement.
-
-   It does NOT calculate thresholds.
-
-   It does NOT calculate quarterly averages.
-
-   popularity_ledger is the source of truth.
-   ========================================================= */
-
-async function loadPopularityLedger() {
-
-    statusNode.textContent = "Reading popularity ledger...";
-    statusNode.classList.remove("error");
-
-    const { data, error } = await supabase
-        .from("popularity_ledger")
-        .select(`
-            id,
-            card,
-            deck,
-            current_tier,
-            previous_tier,
-            threshold,
-            buys,
-            sales,
-            total_in_collections,
-            fused,
-            ascensions,
-            dissections,
-            popularity_points,
-            movement,
-            updated_at
-        `)
-        .order("updated_at", {
-            ascending: false
-        });
-
-    if (error) {
-        console.error("Popularity ledger error:", error);
-
-        statusNode.textContent =
-            "Unable to read popularity ledger.";
-
-        statusNode.classList.add("error");
-
-        ledgerRows.innerHTML = `
-            <div class="empty-state">
-                Ledger read failed
-            </div>
-        `;
-
-        return;
-    }
-
-    if (!data || data.length === 0) {
-
-        statusNode.textContent =
-            "Popularity ledger is empty.";
-
-        ledgerRows.innerHTML = `
-            <div class="empty-state">
-                No popularity records
-            </div>
-        `;
-
-        updatedAtNode.textContent = "NO DATA";
-
-        return;
-    }
-
-
-    const imageMap = await loadDeckImages();
-
-    renderLedger(data, imageMap);
-}
-
-
-/* =========================================================
-   RENDER
-   =========================================================
-   The ordering uses the value already written to the ledger.
-
-   No popularity formula is recreated here.
-   ========================================================= */
-
-function renderLedger(rows, imageMap) {
-
-    const sorted = [...rows].sort((a, b) => {
-
-        const aPoints = Number(a.popularity_points ?? 0);
-        const bPoints = Number(b.popularity_points ?? 0);
-
-        if (bPoints !== aPoints) {
-            return bPoints - aPoints;
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
-        return String(a.card ?? "")
-            .localeCompare(String(b.card ?? ""));
-    });
+
+        function formatNumber(value) {
+
+            return Number(value || 0)
+                .toLocaleString();
+        }
 
 
-    ledgerRows.innerHTML = sorted.map((row, index) => {
+        function getTierClass(tier) {
 
-        const card = escapeHtml(row.card);
-        const deck = escapeHtml(row.deck);
+            const normalized =
+                String(tier || "common")
+                    .toLowerCase();
 
-        const tier = escapeHtml(
-            row.current_tier || "—"
-        );
+            switch (normalized) {
 
-        const movement = movementClass(row.movement);
-        const movementText = movementLabel(row.movement);
+                case "rare":
+                    return "tier-rare";
 
-        const points = formatNumber(
-            row.popularity_points
-        );
+                case "epic":
+                    return "tier-epic";
 
-        const key = `${row.card}::${row.deck}`;
-        const deckData = imageMap.get(key);
+                case "legendary":
+                    return "tier-legendary";
 
-        const image = deckData?.image;
+                case "mythic":
+                    return "tier-mythic";
 
-        const imageMarkup = image
-            ? `
+                default:
+                    return "tier-common";
+            }
+        }
+
+
+        function getMovementClass(movement) {
+
+            const normalized =
+                String(movement || "stable")
+                    .toLowerCase()
+                    .trim();
+
+            if (normalized === "ascending") {
+                return "movement-ascending";
+            }
+
+            if (normalized === "descending") {
+                return "movement-descending";
+            }
+
+            return "movement-stable";
+        }
+
+
+        function getMovementLabel(movement) {
+
+            const normalized =
+                String(movement || "stable")
+                    .toLowerCase()
+                    .trim();
+
+            if (normalized === "ascending") {
+                return "ASCENDING ↑";
+            }
+
+            if (normalized === "descending") {
+                return "DESCENDING ↓";
+            }
+
+            return "STABLE";
+        }
+
+
+        function renderCardImage(row) {
+
+            if (!row.image) {
+
+                return `
+                    <div class="card-placeholder">
+                        No Image
+                    </div>
+                `;
+            }
+
+            return `
                 <img
                     class="card-image"
-                    src="${escapeHtml(image)}"
-                    alt="${card}"
+                    src="${escapeHtml(row.image)}"
+                    alt="${escapeHtml(row.card)}"
                     loading="lazy"
                 >
-              `
-            : `
-                <div class="card-image empty">
-                    NO IMAGE
-                </div>
-              `;
+            `;
+        }
 
 
-        return `
-            <article class="ledger-row">
+        /* =========================================================
+           LOAD CARD IMAGES
+           
+           popularity_ledger remains the source of truth for
+           popularity data.
+           
+           decks is only read for the card image.
+        ========================================================== */
 
-                <div class="rank">
-                    #${index + 1}
-                </div>
+        async function loadCardImages(rows) {
 
-
-                <div class="card-info">
-
-                    ${imageMarkup}
-
-                    <div>
-                        <div class="card-name">
-                            ${card}
-                        </div>
-
-                        <div class="card-deck">
-                            ${deck}
-                        </div>
-                    </div>
-
-                </div>
-
-
-                <div class="tier ${tierClass(row.current_tier)}">
-                    ${tier}
-                </div>
-
-
-                <div>
-                    <div class="points">
-                        ${points}
-                    </div>
-
-                    <div class="points-label">
-                        Popularity Points
-                    </div>
-                </div>
-
-
-                <div class="movement ${movement}">
-                    ${movementText}
-                </div>
-
-
-                <div class="stats">
-
-                    <div class="stat">
-                        <div class="stat-value">
-                            ${formatNumber(row.buys)}
-                        </div>
-
-                        <div class="stat-label">
-                            Buys
-                        </div>
-                    </div>
-
-
-                    <div class="stat">
-                        <div class="stat-value">
-                            ${formatNumber(row.sales)}
-                        </div>
-
-                        <div class="stat-label">
-                            Sales
-                        </div>
-                    </div>
-
-
-                    <div class="stat">
-                        <div class="stat-value">
-                            ${formatNumber(row.total_in_collections)}
-                        </div>
-
-                        <div class="stat-label">
-                            Collections
-                        </div>
-                    </div>
-
-
-                    <div class="stat">
-                        <div class="stat-value">
-                            ${formatNumber(row.fused)}
-                        </div>
-
-                        <div class="stat-label">
-                            Fused
-                        </div>
-                    </div>
-
-
-                    <div class="stat">
-                        <div class="stat-value">
-                            ${formatNumber(row.ascensions)}
-                        </div>
-
-                        <div class="stat-label">
-                            Ascensions
-                        </div>
-                    </div>
-
-
-                    <div class="stat">
-                        <div class="stat-value">
-                            ${formatNumber(row.dissections)}
-                        </div>
-
-                        <div class="stat-label">
-                            Dissections
-                        </div>
-                    </div>
-
-                </div>
-
-            </article>
-        `;
-
-    }).join("");
-
-
-    const newest = sorted.reduce(
-        (latest, row) => {
-
-            if (!latest) {
-                return row;
+            if (!rows.length) {
+                return rows;
             }
 
-            if (
-                new Date(row.updated_at) >
-                new Date(latest.updated_at)
-            ) {
-                return row;
+            const {
+                data,
+                error
+            } = await client
+                .from("decks")
+                .select(`
+                    card,
+                    deck,
+                    image
+                `);
+
+            if (error) {
+
+                console.error(
+                    "Deck image lookup error:",
+                    error
+                );
+
+                return rows;
             }
 
-            return latest;
 
-        },
-        null
-    );
+            const imageMap =
+                new Map();
 
 
-    statusNode.textContent =
-        `${sorted.length} CARD${sorted.length === 1 ? "" : "S"} IN LEDGER`;
+            for (const deckRow of data || []) {
 
-    updatedAtNode.textContent =
-        newest?.updated_at
-            ? `LAST UPDATED ${formatDate(newest.updated_at)}`
-            : "LIVE LEDGER";
-}
+                const key =
+                    `${deckRow.card}::${deckRow.deck}`;
+
+                imageMap.set(
+                    key,
+                    deckRow.image
+                );
+            }
 
 
-/* =========================================================
-   START
-   ========================================================= */
+            return rows.map(row => {
 
-loadPopularityLedger();
-</script>
+                const key =
+                    `${row.card}::${row.deck}`;
+
+                return {
+                    ...row,
+                    image:
+                        imageMap.get(key) || null
+                };
+            });
+        }
+
+
+        /* =========================================================
+           RENDER LEADERBOARD
+           
+           THE LEDGER IS THE AUTHORITY.
+           
+           popularity_points is READ.
+           movement is READ.
+           
+           This page does not calculate either one.
+        ========================================================== */
+
+        function renderLeaderboard(rows) {
+
+            if (!rows.length) {
+
+                ledgerCount.textContent =
+                    "0 cards";
+
+                leaderboard.innerHTML = `
+                    <div class="message">
+
+                        <div class="message-title">
+                            No popularity data
+                        </div>
+
+                        <div class="message-copy">
+                            The popularity ledger currently
+                            contains no cards.
+                        </div>
+
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            ledgerCount.textContent =
+                `${rows.length} cards`;
+
+
+            leaderboard.innerHTML =
+                rows.map((row, index) => {
+
+                    const rank =
+                        index + 1;
+
+                    const rankClass =
+                        rank <= 3
+                            ? "rank top-three"
+                            : "rank";
+
+
+                    const movementClass =
+                        getMovementClass(
+                            row.movement
+                        );
+
+
+                    const movementLabel =
+                        getMovementLabel(
+                            row.movement
+                        );
+
+
+                    return `
+                        <article class="leader-row">
+
+                            <div class="${rankClass}">
+                                #${rank}
+                            </div>
+
+
+                            <div class="card-cell">
+
+                                ${renderCardImage(row)}
+
+                                <div class="card-info">
+
+                                    <div class="card-name">
+                                        ${escapeHtml(row.card)}
+                                    </div>
+
+                                    <div class="card-deck">
+                                        ${escapeHtml(row.deck)}
+                                    </div>
+
+                                    <span
+                                        class="
+                                            tier
+                                            ${getTierClass(
+                                                row.current_tier
+                                            )}
+                                        "
+                                    >
+                                        ${escapeHtml(
+                                            row.current_tier ||
+                                            "common"
+                                        )}
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- POPULARITY -->
+
+                            <div class="popularity-cell">
+
+                                <div class="popularity-label">
+                                    Popularity
+                                </div>
+
+                                <div class="popularity-value">
+                                    ${formatNumber(
+                                        row.popularity_points
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <!-- MOVEMENT -->
+
+                            <div class="movement-cell">
+
+                                <div class="movement-label">
+                                    Movement
+                                </div>
+
+                                <div
+                                    class="
+                                        movement-value
+                                        ${movementClass}
+                                    "
+                                >
+                                    ${movementLabel}
+                                </div>
+
+                            </div>
+
+
+                            <!-- BUYS -->
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    Buys
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.buys
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <!-- SALES -->
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    Sales
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.sales
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <!-- COLLECTIONS -->
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    Collections
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.total_in_collections
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <!-- FUSED -->
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    Fused
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.fused
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <!-- ASCENSIONS -->
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    Ascensions
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.ascensions
+                                    )}
+                                </div>
+
+                            </div>
+
+
+                            <!-- DISSECTIONS -->
+
+                            <div class="stat">
+
+                                <div class="stat-label">
+                                    Dissections
+                                </div>
+
+                                <div class="stat-value">
+                                    ${formatNumber(
+                                        row.dissections
+                                    )}
+                                </div>
+
+                            </div>
+
+                        </article>
+                    `;
+                }).join("");
+        }
+
+
+        /* =========================================================
+           LOAD PUBLIC LEDGER
+           
+           READ ONLY.
+           
+           No INSERT.
+           No UPDATE.
+           No DELETE.
+           No RPC.
+           
+           popularity_ledger is the source of truth.
+        ========================================================== */
+
+        async function loadLedger() {
+
+            const {
+                data,
+                error
+            } = await client
+                .from("popularity_ledger")
+                .select(`
+                    card,
+                    deck,
+                    current_tier,
+                    previous_tier,
+                    threshold,
+                    buys,
+                    sales,
+                    total_in_collections,
+                    fused,
+                    ascensions,
+                    dissections,
+                    popularity_points,
+                    movement,
+                    updated_at
+                `);
+
+
+            if (error) {
+
+                console.error(
+                    "Popularity ledger error:",
+                    error
+                );
+
+                ledgerCount.textContent =
+                    "Unavailable";
+
+                leaderboard.innerHTML = `
+                    <div class="message">
+
+                        <div class="message-title">
+                            Ledger unavailable
+                        </div>
+
+                        <div class="message-copy">
+                            ${escapeHtml(error.message)}
+                        </div>
+
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            /*
+             * The database decides the popularity state.
+             *
+             * popularity_points comes directly from
+             * popularity_ledger.
+             *
+             * movement comes directly from
+             * popularity_ledger.
+             *
+             * No formula is recreated here.
+             *
+             * The rows are displayed in the order returned
+             * by the ledger.
+             */
+
+            const rows =
+                await loadCardImages(
+                    data || []
+                );
+
+
+            renderLeaderboard(rows);
+        }
+
+
+        /* =========================================================
+           INITIAL LOAD
+        ========================================================== */
+
+        loadLedger();
+
+    </script>
 
 </body>
 </html>
+ 
