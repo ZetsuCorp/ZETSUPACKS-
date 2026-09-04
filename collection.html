@@ -887,7 +887,7 @@
 
             // 3. merge: every deck card, flagged owned/quantity from inventory
             return (deckRows || []).map((deck) => {
-                const cardNumber = deck.card_number || deck.card || deck.id;
+                const cardNumber = deck.card_number;
                 const entry = inventory[cardNumber]; // [owned, quantity, active, equipped, fusion_count]
 
                 const owned = !!(entry && entry[0]);
@@ -896,9 +896,10 @@
                 return {
                     id: cardNumber,
                     card_number: cardNumber,
-                    name: deck.name || deck.card || cardNumber,
+                    name: deck.card,
                     deck: deck.deck,
-                    tier: (deck.current_tier || deck.tier || "common").toLowerCase(),
+                    image: deck.image,
+                    tier: (deck.current_tier || "common").toLowerCase(),
                     owned,
                     quantity
                 };
