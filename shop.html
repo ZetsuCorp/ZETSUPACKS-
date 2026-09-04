@@ -901,6 +901,165 @@
 
 
         /* ==========================================================
+           ADD DRAWN CARD TO PLAYER INVENTORY
+
+           The player receives the actual card that was drawn.
+           card.card_number comes from that drawn decks row.
+
+           Inventory structure:
+           [ owned, quantity, active, equipped, fusion_count ]
+           ========================================================== */
+
+        async function addCardToInventory(client, playerId, card) {
+            if (!playerId) {
+                throw new Error("No player ID.");
+            }
+
+            if (!card || card.card_number == null) {
+                throw new Error("Drawn card has no card_number.");
+            }
+
+            /*
+             * Card number 1 → card_001
+             * Card number 2 → card_002
+             * Card number 3 → card_003
+             */
+
+            const cardKey =
+                `card_${String(card.card_number).padStart(3, "0")}`;
+
+
+            /*
+             * Get this player's existing inventory.
+             */
+
+            const inventoryResult =
+                await client
+                    .from("player_inventory")
+                    .select("inventory")
+                    .eq("player_id", playerId)
+                    .maybeSingle();
+
+
+            if (inventoryResult.error) {
+                console.error(
+                    "player_inventory lookup failed:",
+                    inventoryResult.error
+                );
+
+                throw inventoryResult.error;
+            }
+
+
+            /*
+             * Existing inventory or empty inventory.
+             */
+
+            const inventory =
+                inventoryResult.data?.inventory &&
+                typeof inventoryResult.data.inventory === "object"
+                    ? { ...inventoryResult.data.inventory }
+                    : {};
+
+
+            /*
+             * Existing card:
+             *
+             * [owned, quantity, active, equipped, fusion_count]
+             *
+             * Only quantity changes when another copy is drawn.
+             */
+
+            if (Array.isArray(inventory[cardKey])) {
+
+                const existing =
+                    inventory[cardKey];
+
+                inventory[cardKey] = [
+                    true,
+                    Number(existing[1] || 0) + 1,
+                    Boolean(existing[2]),
+                    Boolean(existing[3]),
+                    Number(existing[4] || 0)
+                ];
+
+            } else {
+
+                /*
+                 * First copy of this card.
+                 */
+
+                inventory[cardKey] = [
+                    true,
+                    1,
+                    false,
+                    false,
+                    0
+                ];
+            }
+
+
+            /*
+             * Player already has an inventory row → UPDATE.
+             */
+
+            if (inventoryResult.data) {
+
+                const updateResult =
+                    await client
+                        .from("player_inventory")
+                        .update({
+                            inventory: inventory
+                        })
+                        .eq("player_id", playerId)
+                        .select()
+                        .single();
+
+
+                if (updateResult.error) {
+                    console.error(
+                        "player_inventory update failed:",
+                        updateResult.error
+                    );
+
+                    throw updateResult.error;
+                }
+
+
+                return updateResult.data;
+            }
+
+
+            /*
+             * Player has no inventory row yet → CREATE one.
+             */
+
+            const insertResult =
+                await client
+                    .from("player_inventory")
+                    .insert({
+                        player_id: playerId,
+                        inventory: inventory
+                    })
+                    .select()
+                    .single();
+
+
+            if (insertResult.error) {
+                console.error(
+                    "player_inventory insert failed:",
+                    insertResult.error
+                );
+
+                throw insertResult.error;
+            }
+
+
+            return insertResult.data;
+        }
+
+
+        /* ==========================================================
            RECORD THE DRAWN CARD
            
            Direct table operations only.
@@ -1310,6 +1469,21 @@
                             "No card was drawn."
                         );
                     }
+
+
+                    /*
+                     * Add the actual drawn card to this player's
+                     * inventory.
+                     *
+                     * updatedRow.id = wallet_ledger.id = player_id
+                     * card.card_number = number of the drawn card
+                     */
+
+                    await addCardToInventory(
+                        client,
+                        updatedRow.id,
+                        card
+                    );
 
 
                     /*
