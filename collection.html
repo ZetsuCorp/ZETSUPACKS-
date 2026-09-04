@@ -565,6 +565,14 @@
         <div id="showcaseMount"></div>
 
         <!-- ========================================================
+             DEBUG PANEL — shows exactly what each data step found,
+             visible on the page (no console needed). Remove once
+             the real data confirms working correctly.
+             ======================================================== -->
+
+        <div id="debugPanel" style="background:#1a0f0f; border:2px solid #a33; color:#eee; padding:14px 16px; margin-bottom:18px; font-family:monospace; font-size:12px; white-space:pre-wrap; line-height:1.5;"></div>
+
+        <!-- ========================================================
              COLLECTION GRID — stays inline in the main page
              ======================================================== -->
 
@@ -884,8 +892,15 @@
             // are zero-padded strings ("card_001") — bridge the two here.
             return (deckRows || []).map((deck) => {
                 const cardNumber = deck.card_number;
-                const inventoryKey = "card_" + String(cardNumber).padStart(3, "0");
-                const entry = inventory[inventoryKey]; // [owned, quantity, active, equipped, fusion_count]
+                // Match this deck card against player_inventory by the
+                // numeric card number embedded in the inventory key,
+                // whatever format that key is actually in — no assumed
+                // padding, no hardcoded prefix width.
+                const matchKey = Object.keys(inventory).find((key) => {
+                    const digits = key.replace(/\D/g, "");
+                    return digits !== "" && parseInt(digits, 10) === Number(cardNumber);
+                });
+                const entry = matchKey ? inventory[matchKey] : undefined; // [owned, quantity, active, equipped, fusion_count]
 
                 const owned = !!(entry && entry[0]);
                 const quantity = entry ? entry[1] : 0;
@@ -1065,6 +1080,7 @@
             CARDS = await loadCollectionCards();
             renderCounts();
             renderGrid();
+            renderDebugPanel();
 
             if (typeof window.selectCard === "function") {
                 const firstOwned = CARDS.find(c => c.owned);
