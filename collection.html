@@ -886,9 +886,12 @@
             const inventory = (invRow && invRow.inventory) || {};
 
             // 3. merge: every deck card, flagged owned/quantity from inventory
+            //    decks.card_number is a plain int (1); player_inventory keys
+            //    are zero-padded strings ("card_001") — bridge the two here.
             return (deckRows || []).map((deck) => {
                 const cardNumber = deck.card_number;
-                const entry = inventory[cardNumber]; // [owned, quantity, active, equipped, fusion_count]
+                const inventoryKey = "card_" + String(cardNumber).padStart(3, "0");
+                const entry = inventory[inventoryKey]; // [owned, quantity, active, equipped, fusion_count]
 
                 const owned = !!(entry && entry[0]);
                 const quantity = entry ? entry[1] : 0;
