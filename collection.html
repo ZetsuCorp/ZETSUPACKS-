@@ -853,26 +853,10 @@
         let currentSelectedId = null;
 
         async function loadCollectionCards() {
-            const playerId = window.walletRow && window.walletRow.id;
-
-            if (!playerId) {
-                console.error("No walletRow.id available — cannot load collection.");
-                return [];
-            }
-
             const client = walletClient();
+            const playerId = window.walletRow.id;
 
-            // 1. full deck catalog — needed to render "missing" slots too
-            const { data: deckRows, error: deckErr } = await client
-                .from("decks")
-                .select("*");
-
-            if (deckErr) {
-                console.error("Failed to load decks:", deckErr);
-                return [];
-            }
-
-            // 2. this player's inventory row (jsonb keyed by card_number)
+            // 1. player_inventory — get this player's card numbers
             const { data: invRow, error: invErr } = await client
                 .from("player_inventory")
                 .select("inventory")
@@ -885,9 +869,19 @@
 
             const inventory = (invRow && invRow.inventory) || {};
 
-            // 3. merge: every deck card, flagged owned/quantity from inventory
-            //    decks.card_number is a plain int (1); player_inventory keys
-            //    are zero-padded strings ("card_001") — bridge the two here.
+            // 2. decks — get the corresponding card info for the full catalog
+            const { data: deckRows, error: deckErr } = await client
+                .from("decks")
+                .select("*");
+
+            if (deckErr) {
+                console.error("Failed to load decks:", deckErr);
+                return [];
+            }
+
+            // merge: every deck card, flagged owned/quantity from inventory.
+            // decks.card_number is a plain int (1); player_inventory keys
+            // are zero-padded strings ("card_001") — bridge the two here.
             return (deckRows || []).map((deck) => {
                 const cardNumber = deck.card_number;
                 const inventoryKey = "card_" + String(cardNumber).padStart(3, "0");
@@ -1040,14 +1034,31 @@
             });
         }
 
-        async function initCollection() {
-            const walletRow = await waitForWalletRow(8000);
+        function waitForWallet(timeoutMs) {
+            return new Promise((resolve) => {
+                if (window.walletRow && window.walletRow.id) {
+                    resolve(true);
+                    return;
+                }
 
-            if (!walletRow) {
-                console.error("Timed out waiting for walletRow — collection cannot load.");
-                CARDS = [];
-                renderCounts();
-                renderGrid();
+                const start = Date.now();
+                const interval = setInterval(() => {
+                    if (window.walletRow && window.walletRow.id) {
+                        clearInterval(interval);
+                        resolve(true);
+                    } else if (Date.now() - start > timeoutMs) {
+                        clearInterval(interval);
+                        resolve(false);
+                    }
+                }, 100);
+            });
+        }
+
+        async function initCollection() {
+            const walletReady = await waitForWallet(8000);
+
+            if (!walletReady) {
+                console.error("Wallet never loaded — not checking collection.");
                 return;
             }
 
