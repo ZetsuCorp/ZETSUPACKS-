@@ -21,12 +21,7 @@
     >
 
     <style>
-        /* ============================================================
-           TOKENS
-           ============================================================ */
-
         :root {
-            /* -- booklet palette -- */
             --page: #0A0A0A;
             --page-shadow: #141414;
             --page-edge: #333333;
@@ -36,8 +31,6 @@
             --ink-muted: #9A958E;
             --ink-faint: #6E6A64;
 
-            /* -- carried over from shop/leaderboard so tiers stay
-                  recognizable across every page -- */
             --common: #8C8880;
             --rare: #4FB6A8;
             --epic: #9B6BD6;
@@ -45,8 +38,6 @@
             --mythic-a: #FF6B9D;
             --mythic-b: #C77DFF;
 
-            /* -- reused header vars (unchanged from shop.html /
-                  leaderboard.html so the .hud component matches) -- */
             --panel-2: #1C1C1C;
             --line: #333333;
             --hud-ink: #EDE6DC;
@@ -54,39 +45,24 @@
             --brass-dim: #8A7245;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-        }
+        html, body { margin: 0; padding: 0; }
 
         body {
             background: var(--page);
             color: var(--ink);
-
             font-family: 'Karla', sans-serif;
-
             min-height: 100vh;
         }
 
         @media (min-width: 768px) {
-            body {
-                zoom: 0.60;
-            }
+            body { zoom: 0.60; }
         }
 
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
+        a { color: inherit; text-decoration: none; }
 
-        .display {
-            font-family: 'Fraunces', serif;
-        }
+        .display { font-family: 'Fraunces', serif; }
 
         @media (prefers-reduced-motion: reduce) {
             * {
@@ -96,37 +72,22 @@
             }
         }
 
-
-        /* ============================================================
-           HEADER — same .hud component as shop.html / leaderboard.html
-           ============================================================ */
-
         .hud {
             position: sticky;
             top: 0;
             z-index: 50;
-
             background: rgba(0, 0, 0, .92);
             backdrop-filter: blur(6px);
-
             border-bottom: 3px solid var(--line);
-
             padding: 14px 20px;
-
             display: flex;
             justify-content: space-between;
             align-items: center;
-
             flex-wrap: wrap;
             gap: 12px;
         }
 
-        .hud .brand {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0;
-        }
+        .hud .brand { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
 
         .hud .brand .mark {
             font-size: 10px;
@@ -147,10 +108,7 @@
             font-family: 'Karla', sans-serif;
         }
 
-        .hud nav {
-            display: flex;
-            gap: 4px;
-        }
+        .hud nav { display: flex; gap: 4px; }
 
         .hud .navlink {
             padding: 8px 14px;
@@ -164,31 +122,13 @@
             font-family: 'Karla', sans-serif;
         }
 
-        .hud .navlink:hover {
-            color: var(--hud-ink);
-        }
+        .hud .navlink:hover { color: var(--hud-ink); }
 
-        .hud .navlink.current {
-            background: var(--brass);
-            color: #141414;
-        }
+        .hud .navlink.current { background: var(--brass); color: #141414; }
 
-        .hud .hud-stats {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
+        .hud .hud-stats { display: flex; align-items: center; gap: 18px; }
 
-
-        /* ============================================================
-           PAGE FRAME
-           ============================================================ */
-
-        .booklet {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 40px 28px 50px;
-        }
+        .booklet { max-width: 1280px; margin: 0 auto; padding: 40px 28px 50px; }
 
         .book-heading {
             display: flex;
@@ -196,243 +136,108 @@
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 16px;
-
             margin-bottom: 22px;
-
             padding-bottom: 16px;
             border-bottom: 2px solid var(--page-edge);
         }
 
-        .book-heading h2 {
-            margin: 0;
-            font-size: 34px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            line-height: 1;
-        }
+        .book-heading h2 { margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -0.01em; line-height: 1; }
 
-        .book-heading .book-sub {
-            margin-top: 6px;
-            color: var(--ink-muted);
-            font-size: 13px;
-            max-width: 46ch;
-            line-height: 1.5;
-        }
+        .book-heading .book-sub { margin-top: 6px; color: var(--ink-muted); font-size: 13px; max-width: 46ch; line-height: 1.5; }
 
-        .book-count {
-            font-family: 'Fraunces', serif;
-            font-size: 22px;
-            font-weight: 600;
-            color: var(--ink-muted);
-            white-space: nowrap;
-        }
+        .book-count { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; color: var(--ink-muted); white-space: nowrap; }
 
-        .book-count strong {
-            color: var(--ink);
-        }
+        .book-count strong { color: var(--ink); }
 
-
-        /* ============================================================
-           FILTER STRIP — a tab, not a toolbar
-           ============================================================ */
-
-        .filter-strip {
-            display: flex;
-            gap: 8px;
-        }
+        .filter-strip { display: flex; gap: 8px; }
 
         .filter-tab {
             padding: 9px 18px;
             border: 2px solid var(--page-edge);
             background: transparent;
             color: var(--ink-muted);
-
             font-family: 'Karla', sans-serif;
             font-size: 13px;
             font-weight: 600;
-
             cursor: pointer;
             transition: background .15s ease, color .15s ease, border-color .15s ease;
         }
 
-        .filter-tab:first-child {
-            border-radius: 4px 0 0 4px;
-        }
+        .filter-tab:first-child { border-radius: 4px 0 0 4px; }
+        .filter-tab:last-child { border-radius: 0 4px 4px 0; }
+        .filter-tab + .filter-tab { border-left: none; }
+        .filter-tab.active { background: var(--brass); border-color: var(--brass); color: #141414; }
+        .filter-tab:not(.active):hover { color: var(--ink); border-color: var(--ink-faint); }
 
-        .filter-tab:last-child {
-            border-radius: 0 4px 4px 0;
-        }
+        .grid-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 
-        .filter-tab + .filter-tab {
-            border-left: none;
-        }
-
-        .filter-tab.active {
-            background: var(--brass);
-            border-color: var(--brass);
-            color: #141414;
-        }
-
-        .filter-tab:not(.active):hover {
-            color: var(--ink);
-            border-color: var(--ink-faint);
-        }
-
-
-        /* ============================================================
-           GRID — a compact picker panel
-           ============================================================ */
-
-        .grid-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-        }
-
-        .grid-heading .grid-label {
-            font-family: 'Fraunces', serif;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--ink);
-        }
+        .grid-heading .grid-label { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 600; color: var(--ink); }
 
         .page-surface {
             background: var(--page-shadow);
             border: 1px solid var(--page-edge);
             border-radius: 6px;
-
             padding: 22px 22px;
-
             max-height: 260px;
             overflow-y: auto;
-
             box-shadow: inset 0 0 0 1px rgba(255,255,255,.25);
         }
 
-        .page-surface::-webkit-scrollbar {
-            width: 8px;
-        }
+        .page-surface::-webkit-scrollbar { width: 8px; }
+        .page-surface::-webkit-scrollbar-thumb { background: var(--page-edge); border-radius: 4px; }
 
-        .page-surface::-webkit-scrollbar-thumb {
-            background: var(--page-edge);
-            border-radius: 4px;
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 16px 12px; }
 
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 16px 12px;
-        }
-
-
-        /* ---- card slot ---- */
-
-        .slot {
-            position: relative;
-            aspect-ratio: 5 / 7;
-
-            border-radius: 6px;
-            overflow: hidden;
-
-            cursor: default;
-        }
+        .slot { position: relative; aspect-ratio: 5 / 7; border-radius: 6px; overflow: hidden; cursor: default; }
 
         .slot.owned {
             cursor: pointer;
-            box-shadow:
-                0 2px 4px rgba(42,32,24,.25),
-                0 8px 18px rgba(42,32,24,.18);
+            box-shadow: 0 2px 4px rgba(42,32,24,.25), 0 8px 18px rgba(42,32,24,.18);
             transition: transform .15s ease, box-shadow .15s ease;
         }
 
-        .slot.owned:hover {
-            transform: translateY(-3px);
-            box-shadow:
-                0 4px 8px rgba(42,32,24,.3),
-                0 14px 26px rgba(42,32,24,.24);
-        }
-
-        .slot.owned:active {
-            transform: translateY(-1px) scale(.98);
-        }
-
-        .slot.owned {
-            background: #0A0A0A;
-            border: 2px solid var(--tier-a);
-        }
+        .slot.owned:hover { transform: translateY(-3px); box-shadow: 0 4px 8px rgba(42,32,24,.3), 0 14px 26px rgba(42,32,24,.24); }
+        .slot.owned:active { transform: translateY(-1px) scale(.98); }
+        .slot.owned { background: #0A0A0A; border: 2px solid var(--tier-a); }
 
         .slot-face {
             position: absolute;
             inset: 0;
-
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
-
             padding: 10px;
-
             background:
                 linear-gradient(180deg, transparent 55%, rgba(0,0,0,.7) 100%),
                 linear-gradient(180deg, transparent 70%, var(--tier-a) 220%);
         }
 
-        .slot-name {
-            font-family: 'Fraunces', serif;
-            font-size: 13px;
-            font-weight: 600;
-            color: #fff;
-            line-height: 1.15;
-
-            text-shadow: 0 1px 3px rgba(0,0,0,.5);
-        }
-
-        .slot-deck {
-            margin-top: 3px;
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: .05em;
-            color: rgba(255,255,255,.75);
-        }
+        .slot-name { font-family: 'Fraunces', serif; font-size: 13px; font-weight: 600; color: #fff; line-height: 1.15; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+        .slot-deck { margin-top: 3px; font-size: 9px; font-weight: 600; letter-spacing: .05em; color: rgba(255,255,255,.75); }
 
         .slot-tier-mark {
             position: absolute;
             top: 8px;
             right: 8px;
-
             width: 9px;
             height: 9px;
             border-radius: 50%;
-
             background: var(--tier-a);
             box-shadow: 0 0 0 2px rgba(255,255,255,.4);
         }
 
-        /* ---- missing slot: debossed silhouette ---- */
-
         .slot.missing {
             background: #0A0A0A;
             border: 1.5px dashed rgba(255,255,255,.14);
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             box-shadow: inset 0 2px 6px rgba(0,0,0,.4);
         }
 
-        .slot.missing .silhouette {
-            width: 58%;
-            height: 68%;
-            border-radius: 4px;
+        .slot.missing .silhouette { width: 58%; height: 68%; border-radius: 4px; background: var(--tier-a); opacity: .22; }
 
-            background: var(--tier-a);
-            opacity: .22;
-        }
-
-        .slot.shake {
-            animation: shake .35s ease;
-        }
+        .slot.shake { animation: shake .35s ease; }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
@@ -440,116 +245,63 @@
             75% { transform: translateX(3px); }
         }
 
-        .empty-note {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px 20px;
-            color: var(--ink-muted);
-            font-size: 14px;
-        }
+        .empty-note { grid-column: 1 / -1; text-align: center; padding: 50px 20px; color: var(--ink-muted); font-size: 14px; }
 
-        .slot.selected {
-            outline: 2px solid var(--brass);
-            outline-offset: 2px;
-        }
-
-
-        /* ============================================================
-           FOOTER
-           ============================================================ */
+        .slot.selected { outline: 2px solid var(--brass); outline-offset: 2px; }
 
         .site-footer {
             border-top: 3px solid var(--line);
             padding: 18px 20px;
-
             display: flex;
             justify-content: space-between;
             align-items: center;
-
             flex-wrap: wrap;
             gap: 10px;
-
             font-size: 11px;
             letter-spacing: .08em;
             text-transform: uppercase;
             color: var(--ink-faint);
         }
 
-
         #toast {
             position: fixed;
             bottom: 24px;
             left: 50%;
-
             transform: translateX(-50%) translateY(20px);
-
             background: var(--page-shadow);
             border: 2px solid var(--page-edge);
             color: var(--ink);
-
             padding: 12px 20px;
             border-radius: 6px;
-
             font-family: 'Karla', sans-serif;
             font-size: 13px;
-
             opacity: 0;
             pointer-events: none;
-
             transition: all .25s ease;
-
             z-index: 210;
         }
 
-        #toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-
-        /* ============================================================
-           MOBILE
-           ============================================================ */
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         @media (max-width: 640px) {
-            .booklet {
-                padding: 24px 14px 40px;
-            }
-
-            .book-heading h2 {
-                font-size: 26px;
-            }
-
-            .page-surface {
-                padding: 16px 12px;
-                max-height: 220px;
-            }
-
-            .grid {
-                grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
-                gap: 12px 8px;
-            }
+            .booklet { padding: 24px 14px 40px; }
+            .book-heading h2 { font-size: 26px; }
+            .page-surface { padding: 16px 12px; max-height: 220px; }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 12px 8px; }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- ============================================================
-         HEADER
-         ============================================================ -->
-
     <header id="hud" class="hud"></header>
-
 
     <main class="booklet">
 
         <div class="book-heading">
             <div>
                 <h2 class="display">Collection</h2>
-                <div class="book-sub">
-                    Pick a card below and it takes the pedestal.
-                </div>
+                <div class="book-sub">Pick a card below and it takes the pedestal.</div>
             </div>
 
             <div class="book-count">
@@ -557,24 +309,7 @@
             </div>
         </div>
 
-        <!-- ========================================================
-             SHOWCASE — injected from showcase.html, same pattern
-             as wallet-ledger.html
-             ======================================================== -->
-
         <div id="showcaseMount"></div>
-
-        <!-- ========================================================
-             DEBUG PANEL — shows exactly what each data step found,
-             visible on the page (no console needed). Remove once
-             the real data confirms working correctly.
-             ======================================================== -->
-
-        <div id="debugPanel" style="background:#1a0f0f; border:2px solid #a33; color:#eee; padding:14px 16px; margin-bottom:18px; font-family:monospace; font-size:12px; white-space:pre-wrap; line-height:1.5;"></div>
-
-        <!-- ========================================================
-             COLLECTION GRID — stays inline in the main page
-             ======================================================== -->
 
         <div class="grid-heading">
             <div class="grid-label">Your cards</div>
@@ -591,108 +326,53 @@
 
     </main>
 
-
-    <!-- ============================================================
-         FOOTER
-         ============================================================ -->
-
     <footer class="site-footer">
         <span>Zetsumetsu Corporation</span>
         <span>Collection</span>
     </footer>
 
-
-    <!-- ============================================================
-         BASIC STATE / HELPERS
-         ============================================================ -->
-
     <script>
         function defaultState() {
-            return {
-                collection: [],
-                firstVisit: true
-            };
+            return { collection: [], firstVisit: true };
         }
 
-        function loadState() {
-            return defaultState();
-        }
+        function loadState() { return defaultState(); }
+        function saveState(state) {}
 
-        function saveState(state) {
-            // No local save.
-            // State is handled by Supabase/sessionStorage.
-        }
-
-        function fmt(n) {
-            return Number(n).toLocaleString();
-        }
+        function fmt(n) { return Number(n).toLocaleString(); }
 
         function uid() {
-            return (
-                Date.now() +
-                "-" +
-                Math.random().toString(36).slice(2, 7)
-            );
+            return Date.now() + "-" + Math.random().toString(36).slice(2, 7);
         }
 
         function toast(message) {
             let element = document.getElementById("toast");
-
             if (!element) {
                 element = document.createElement("div");
                 element.id = "toast";
                 element.className = "toast";
                 document.body.appendChild(element);
             }
-
             element.textContent = message;
             element.classList.add("show");
-
             clearTimeout(toast._h);
-
-            toast._h = setTimeout(() => {
-                element.classList.remove("show");
-            }, 1800);
+            toast._h = setTimeout(() => { element.classList.remove("show"); }, 1800);
         }
 
         let state = loadState();
         window.state = state;
     </script>
 
-
-    <!-- ============================================================
-         HEADER RENDER — same component as shop.html / leaderboard.html
-         ============================================================ -->
-
     <script>
         function renderHud(state, currentPage) {
             const mount = document.getElementById("hud");
-
-            if (!mount) {
-                return;
-            }
+            if (!mount) return;
 
             const pages = [
-                {
-                    id: "leaderboard",
-                    href: "leaderboard.html",
-                    label: "Leaderboard"
-                },
-                {
-                    id: "start",
-                    href: "start.html",
-                    label: "Start"
-                },
-                {
-                    id: "shop",
-                    href: "shop.html",
-                    label: "Pack Shop"
-                },
-                {
-                    id: "collection",
-                    href: "collection.html",
-                    label: "Collection"
-                }
+                { id: "leaderboard", href: "leaderboard.html", label: "Leaderboard" },
+                { id: "start", href: "start.html", label: "Start" },
+                { id: "shop", href: "shop.html", label: "Pack Shop" },
+                { id: "collection", href: "collection.html", label: "Collection" }
             ];
 
             mount.innerHTML = `
@@ -703,10 +383,7 @@
 
                 <nav>
                     ${pages.map(page => `
-                        <a
-                            class="navlink ${page.id === currentPage ? "current" : ""}"
-                            href="${page.href}"
-                        >
+                        <a class="navlink ${page.id === currentPage ? "current" : ""}" href="${page.href}">
                             ${page.label}
                         </a>
                     `).join("")}
@@ -719,31 +396,18 @@
 
             if (window.walletNode) {
                 const walletMount = document.getElementById("walletMount");
-
-                if (walletMount) {
-                    walletMount.appendChild(window.walletNode);
-                }
-
-                if (typeof renderWallet === "function") {
-                    renderWallet(state);
-                }
+                if (walletMount) walletMount.appendChild(window.walletNode);
+                if (typeof renderWallet === "function") renderWallet(state);
             }
         }
 
         renderHud(state, "collection");
     </script>
 
-
-    <!-- ============================================================
-         LOAD WALLET LEDGER — same include as shop.html / leaderboard.html
-         ============================================================ -->
-
     <script>
         fetch("wallet-ledger.html")
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`wallet-ledger.html failed: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`wallet-ledger.html failed: ${response.status}`);
                 return response.text();
             })
             .then(html => {
@@ -758,24 +422,18 @@
                 }
 
                 const ledgerOverlay = parsed.getElementById("ledgerOverlay");
-                if (ledgerOverlay) {
-                    document.body.appendChild(ledgerOverlay);
-                }
+                if (ledgerOverlay) document.body.appendChild(ledgerOverlay);
 
                 const signupOverlay = parsed.getElementById("signupOverlay");
-                if (signupOverlay) {
-                    document.body.appendChild(signupOverlay);
-                }
+                if (signupOverlay) document.body.appendChild(signupOverlay);
 
                 const parsedStyle = parsed.querySelector("style");
                 if (parsedStyle) {
                     let css = parsedStyle.textContent;
-
                     css = css.replace(/:root\{[^}]*\}/, "");
                     css = css.replace(/\*\{box-sizing:border-box;\}/, "");
                     css = css.replace(/html,body\{margin:0;padding:0;\}/, "");
                     css = css.replace(/body\{[^}]*\}/, "");
-
                     const styleTag = document.createElement("style");
                     styleTag.textContent = css;
                     document.head.appendChild(styleTag);
@@ -793,34 +451,21 @@
             });
     </script>
 
-
-    <!-- ============================================================
-         LOAD SHOWCASE — same injection pattern as wallet-ledger.html
-         ============================================================ -->
-
     <script>
         fetch("showcase.html")
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(`showcase.html failed: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`showcase.html failed: ${response.status}`);
                 return response.text();
             })
             .then(html => {
                 const parsed = new DOMParser().parseFromString(html, "text/html");
 
                 const showcaseMount = document.getElementById("showcaseMount");
-
                 const showcaseDiv = parsed.getElementById("showcase");
                 const overlayDiv = parsed.getElementById("cardOverlay");
 
-                if (showcaseDiv && showcaseMount) {
-                    showcaseMount.appendChild(showcaseDiv);
-                }
-
-                if (overlayDiv) {
-                    document.body.appendChild(overlayDiv);
-                }
+                if (showcaseDiv && showcaseMount) showcaseMount.appendChild(showcaseDiv);
+                if (overlayDiv) document.body.appendChild(overlayDiv);
 
                 const parsedStyle = parsed.querySelector("style");
                 if (parsedStyle) {
@@ -836,9 +481,6 @@
                     document.body.appendChild(newScript);
                 }
 
-                // Grid may have already rendered before the showcase
-                // arrived — pick the first owned card now that
-                // window.selectCard exists.
                 if (typeof window.onShowcaseReady === "function") {
                     window.onShowcaseReady();
                 }
@@ -848,10 +490,10 @@
             });
     </script>
 
-
     <!-- ============================================================
-         REAL COLLECTION DATA — sourced from wallet_ledger (player id)
-         -> player_inventory (owned card_numbers) -> decks (display info)
+         REAL COLLECTION DATA — wallet_ledger (player id)
+         -> player_inventory (owned card numbers, keyed "card_<N>")
+         -> decks (display info), matched per exact key
          ============================================================ -->
 
     <script>
@@ -864,7 +506,6 @@
             const client = walletClient();
             const playerId = window.walletRow.id;
 
-            // 1. player_inventory — get this player's card numbers
             const { data: invRow, error: invErr } = await client
                 .from("player_inventory")
                 .select("inventory")
@@ -877,7 +518,6 @@
 
             const inventory = (invRow && invRow.inventory) || {};
 
-            // 2. decks — get the corresponding card info for the full catalog
             const { data: deckRows, error: deckErr } = await client
                 .from("decks")
                 .select("*");
@@ -887,20 +527,13 @@
                 return [];
             }
 
-            // merge: every deck card, flagged owned/quantity from inventory.
-            // decks.card_number is a plain int (1); player_inventory keys
-            // are zero-padded strings ("card_001") — bridge the two here.
+            // inventory keys are exactly "card_<cardNumber>" — card 1 is
+            // "card_1", card 2 is "card_2". No zero-padding, no digit
+            // scanning across all keys. Look each deck card up directly.
             return (deckRows || []).map((deck) => {
                 const cardNumber = deck.card_number;
-                // Match this deck card against player_inventory by the
-                // numeric card number embedded in the inventory key,
-                // whatever format that key is actually in — no assumed
-                // padding, no hardcoded prefix width.
-                const matchKey = Object.keys(inventory).find((key) => {
-                    const digits = key.replace(/\D/g, "");
-                    return digits !== "" && parseInt(digits, 10) === Number(cardNumber);
-                });
-                const entry = matchKey ? inventory[matchKey] : undefined; // [owned, quantity, active, equipped, fusion_count]
+                const key = "card_" + cardNumber;
+                const entry = inventory[key]; // [owned, quantity, active, equipped, fusion_count]
 
                 const owned = !!(entry && entry[0]);
                 const quantity = entry ? entry[1] : 0;
@@ -919,20 +552,14 @@
         }
 
         function filteredCards() {
-            if (activeFilter === "owned") {
-                return CARDS.filter(c => c.owned);
-            }
-            if (activeFilter === "missing") {
-                return CARDS.filter(c => !c.owned);
-            }
+            if (activeFilter === "owned") return CARDS.filter(c => c.owned);
+            if (activeFilter === "missing") return CARDS.filter(c => !c.owned);
             return CARDS;
         }
 
         function renderCounts() {
-            document.getElementById("ownedCount").textContent =
-                fmt(CARDS.filter(c => c.owned).length);
-            document.getElementById("totalCount").textContent =
-                fmt(CARDS.length);
+            document.getElementById("ownedCount").textContent = fmt(CARDS.filter(c => c.owned).length);
+            document.getElementById("totalCount").textContent = fmt(CARDS.length);
         }
 
         function renderGrid() {
@@ -941,11 +568,7 @@
             const tierColors = window.TIER_COLORS || {};
 
             if (!cards.length) {
-                grid.innerHTML = `
-                    <div class="empty-note">
-                        No cards in this view yet.
-                    </div>
-                `;
+                grid.innerHTML = `<div class="empty-note">No cards in this view yet.</div>`;
                 return;
             }
 
@@ -955,11 +578,7 @@
 
                 if (card.owned) {
                     return `
-                        <div
-                            class="slot owned ${isSelected ? "selected" : ""}"
-                            data-id="${card.id}"
-                            style="--tier-a:${tierA}; --tier-b:${tierB};"
-                        >
+                        <div class="slot owned ${isSelected ? "selected" : ""}" data-id="${card.id}" style="--tier-a:${tierA}; --tier-b:${tierB};">
                             <div class="slot-face">
                                 <div class="slot-name">${card.name}</div>
                                 <div class="slot-deck">${card.deck}</div>
@@ -970,11 +589,7 @@
                 }
 
                 return `
-                    <div
-                        class="slot missing"
-                        data-id="${card.id}"
-                        style="--tier-a:${tierA};"
-                    >
+                    <div class="slot missing" data-id="${card.id}" style="--tier-a:${tierA};">
                         <div class="silhouette"></div>
                     </div>
                 `;
@@ -1011,16 +626,8 @@
             renderGrid();
         });
 
-        let showcaseReadyPending = false;
-
-        // Called from the showcase-load script once window.selectCard exists.
         window.onShowcaseReady = function () {
-            if (!CARDS.length) {
-                // Cards haven't loaded yet — flag it, initCollection() will
-                // do the initial selection once the fetch resolves.
-                showcaseReadyPending = true;
-                return;
-            }
+            if (!CARDS.length) return;
             const firstOwned = CARDS.find(c => c.owned);
             if (firstOwned) {
                 currentSelectedId = firstOwned.id;
@@ -1028,26 +635,6 @@
                 renderGrid();
             }
         };
-
-        function waitForWalletRow(timeoutMs) {
-            return new Promise((resolve) => {
-                if (window.walletRow && window.walletRow.id) {
-                    resolve(window.walletRow);
-                    return;
-                }
-
-                const start = Date.now();
-                const interval = setInterval(() => {
-                    if (window.walletRow && window.walletRow.id) {
-                        clearInterval(interval);
-                        resolve(window.walletRow);
-                    } else if (Date.now() - start > timeoutMs) {
-                        clearInterval(interval);
-                        resolve(null);
-                    }
-                }, 100);
-            });
-        }
 
         function waitForWallet(timeoutMs) {
             return new Promise((resolve) => {
@@ -1080,7 +667,6 @@
             CARDS = await loadCollectionCards();
             renderCounts();
             renderGrid();
-            renderDebugPanel();
 
             if (typeof window.selectCard === "function") {
                 const firstOwned = CARDS.find(c => c.owned);
@@ -1089,11 +675,6 @@
                     window.selectCard(firstOwned);
                     renderGrid();
                 }
-            } else {
-                // showcase.html hasn't finished loading yet — its own
-                // onload handler will call window.onShowcaseReady, which
-                // now finds CARDS populated and finishes selection then.
-                showcaseReadyPending = true;
             }
         }
 
