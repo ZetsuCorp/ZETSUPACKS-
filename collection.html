@@ -842,68 +842,84 @@
 
 
     <!-- ============================================================
-         MOCK COLLECTION DATA + GRID / FILTER LOGIC
-
-         Demo only — swap MOCK_CARDS for a Supabase read against
-         `decks` (+ a per-user ownership join) when this goes live.
+         REAL COLLECTION DATA — sourced from wallet_ledger (player id)
+         -> player_inventory (owned card_numbers) -> decks (display info)
          ============================================================ -->
 
     <script>
-        const DECKS = [
-            "Ashfall Requiem",
-            "Glasswing Ledger",
-            "Neon Choir",
-            "Marrow & Marquee"
-        ];
-
-        const TIERS = ["common", "rare", "epic", "legendary", "mythic"];
-
-        function buildMockCards() {
-            const names = [
-                "Ember Warden", "Hollow Pact", "Tideglass Oracle",
-                "Riftbound Choir", "Ashen Vow", "Loam Sentinel",
-                "Static Requiem", "Marrow Lantern", "Verdigris Saint",
-                "Fracture Hymn", "Gilded Undertow", "Cindercourt Regent",
-                "Wraithlight Herald", "Copper Litany", "Duskthread Weaver",
-                "Bramble Choirmaster", "Ferrous Nocturne", "Salt Cathedral",
-                "Amberfall Sentry", "Thornbound Muse", "Glasswing Prophet",
-                "Emberline Cantor", "Nightloom Warden", "Vellum Insurgent"
-            ];
-
-            return names.map((name, i) => {
-                const tier = TIERS[i % TIERS.length];
-                const deck = DECKS[i % DECKS.length];
-
-                return {
-                    id: uid(),
-                    name,
-                    deck,
-                    tier,
-                    owned: (i % 5 !== 0 && i % 7 !== 0)
-                };
-            });
-        }
-
-        const MOCK_CARDS = buildMockCards();
+        let CARDS = [];
 
         let activeFilter = "all";
         let currentSelectedId = null;
 
+        async function loadCollectionCards() {
+            const playerId = window.walletRow && window.walletRow.id;
+
+            if (!playerId) {
+                console.error("No walletRow.id available — cannot load collection.");
+                return [];
+            }
+
+            const client = walletClient();
+
+            // 1. full deck catalog — needed to render "missing" slots too
+            const { data: deckRows, error: deckErr } = await client
+                .from("decks")
+                .select("*");
+
+            if (deckErr) {
+                console.error("Failed to load decks:", deckErr);
+                return [];
+            }
+
+            // 2. this player's inventory row (jsonb keyed by card_number)
+            const { data: invRow, error: invErr } = await client
+                .from("player_inventory")
+                .select("inventory")
+                .eq("player", playerId)
+                .maybeSingle();
+
+            if (invErr) {
+                console.error("Failed to load player_inventory:", invErr);
+            }
+
+            const inventory = (invRow && invRow.inventory) || {};
+
+            // 3. merge: every deck card, flagged owned/quantity from inventory
+            return (deckRows || []).map((deck) => {
+                const cardNumber = deck.card_number || deck.card || deck.id;
+                const entry = inventory[cardNumber]; // [owned, quantity, active, equipped, fusion_count]
+
+                const owned = !!(entry && entry[0]);
+                const quantity = entry ? entry[1] : 0;
+
+                return {
+                    id: cardNumber,
+                    card_number: cardNumber,
+                    name: deck.name || deck.card || cardNumber,
+                    deck: deck.deck,
+                    tier: (deck.current_tier || deck.tier || "common").toLowerCase(),
+                    owned,
+                    quantity
+                };
+            });
+        }
+
         function filteredCards() {
             if (activeFilter === "owned") {
-                return MOCK_CARDS.filter(c => c.owned);
+                return CARDS.filter(c => c.owned);
             }
             if (activeFilter === "missing") {
-                return MOCK_CARDS.filter(c => !c.owned);
+                return CARDS.filter(c => !c.owned);
             }
-            return MOCK_CARDS;
+            return CARDS;
         }
 
         function renderCounts() {
             document.getElementById("ownedCount").textContent =
-                fmt(MOCK_CARDS.filter(c => c.owned).length);
+                fmt(CARDS.filter(c => c.owned).length);
             document.getElementById("totalCount").textContent =
-                fmt(MOCK_CARDS.length);
+                fmt(CARDS.length);
         }
 
         function renderGrid() {
@@ -953,7 +969,7 @@
 
             grid.querySelectorAll(".slot.owned").forEach(el => {
                 el.addEventListener("click", () => {
-                    const card = MOCK_CARDS.find(c => c.id === el.dataset.id);
+                    const card = CARDS.find(c => c.id === el.dataset.id);
                     if (card && typeof window.selectCard === "function") {
                         currentSelectedId = card.id;
                         window.selectCard(card);
@@ -982,18 +998,45 @@
             renderGrid();
         });
 
-        renderCounts();
-        renderGrid();
+        let showcaseReadyPending = false;
 
         // Called from the showcase-load script once window.selectCard exists.
         window.onShowcaseReady = function () {
-            const firstOwned = MOCK_CARDS.find(c => c.owned);
+            if (!CARDS.length) {
+                // Cards haven't loaded yet — flag it, initCollection() will
+                // do the initial selection once the fetch resolves.
+                showcaseReadyPending = true;
+                return;
+            }
+            const firstOwned = CARDS.find(c => c.owned);
             if (firstOwned) {
                 currentSelectedId = firstOwned.id;
                 window.selectCard(firstOwned);
                 renderGrid();
             }
         };
+
+        async function initCollection() {
+            CARDS = await loadCollectionCards();
+            renderCounts();
+            renderGrid();
+
+            if (typeof window.selectCard === "function") {
+                const firstOwned = CARDS.find(c => c.owned);
+                if (firstOwned) {
+                    currentSelectedId = firstOwned.id;
+                    window.selectCard(firstOwned);
+                    renderGrid();
+                }
+            } else {
+                // showcase.html hasn't finished loading yet — its own
+                // onload handler will call window.onShowcaseReady, which
+                // now finds CARDS populated and finishes selection then.
+                showcaseReadyPending = true;
+            }
+        }
+
+        initCollection();
     </script>
 
 </body>
