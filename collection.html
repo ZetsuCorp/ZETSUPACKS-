@@ -1017,7 +1017,37 @@
             }
         };
 
+        function waitForWalletRow(timeoutMs) {
+            return new Promise((resolve) => {
+                if (window.walletRow && window.walletRow.id) {
+                    resolve(window.walletRow);
+                    return;
+                }
+
+                const start = Date.now();
+                const interval = setInterval(() => {
+                    if (window.walletRow && window.walletRow.id) {
+                        clearInterval(interval);
+                        resolve(window.walletRow);
+                    } else if (Date.now() - start > timeoutMs) {
+                        clearInterval(interval);
+                        resolve(null);
+                    }
+                }, 100);
+            });
+        }
+
         async function initCollection() {
+            const walletRow = await waitForWalletRow(8000);
+
+            if (!walletRow) {
+                console.error("Timed out waiting for walletRow — collection cannot load.");
+                CARDS = [];
+                renderCounts();
+                renderGrid();
+                return;
+            }
+
             CARDS = await loadCollectionCards();
             renderCounts();
             renderGrid();
