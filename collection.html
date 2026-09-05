@@ -209,6 +209,14 @@
         .slot.owned:active { transform: translateY(-1px) scale(.98); }
         .slot.owned { background: #0A0A0A; border: 2px solid var(--tier-a); }
 
+        .slot-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         .slot-face {
             position: absolute;
             inset: 0;
@@ -662,6 +670,7 @@
                 if (card.owned) {
                     return `
                         <div class="slot owned ${isSelected ? "selected" : ""}" data-id="${card.id}" style="--tier-a:${tierA}; --tier-b:${tierB};">
+                            ${card.image ? `<img class="slot-img" src="${card.image}" alt="${card.name}">` : ""}
                             <div class="slot-face">
                                 <div class="slot-name">${card.name}</div>
                                 <div class="slot-deck">${card.deck}</div>
