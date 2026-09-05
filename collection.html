@@ -492,7 +492,7 @@
 
     <!-- ============================================================
          REAL COLLECTION DATA — wallet_ledger (player id)
-         -> player_inventory (owned card numbers, keyed "card_<N>")
+         -> player_inventory (owned card numbers, keyed "card N")
          -> decks (display info), matched per exact key
          ============================================================ -->
 
@@ -527,12 +527,13 @@
                 return [];
             }
 
-            // inventory keys are exactly "card_<cardNumber>" — card 1 is
-            // "card_1", card 2 is "card_2". No zero-padding, no digit
-            // scanning across all keys. Look each deck card up directly.
+            // inventory keys are exactly "card <cardNumber>" — a space,
+            // not an underscore. Card 1 is "card 1", card 2 is "card 2".
+            // No zero-padding, no digit scanning across all keys.
+            // Look each deck card up directly.
             return (deckRows || []).map((deck) => {
                 const cardNumber = deck.card_number;
-                const key = "card_" + cardNumber;
+                const key = "card " + cardNumber;
                 const entry = inventory[key]; // [owned, quantity, active, equipped, fusion_count]
 
                 const owned = !!(entry && entry[0]);
