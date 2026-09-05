@@ -18,10 +18,6 @@
     >
 
     <style>
-        /* ============================================================
-           TOKENS — shared design variables, base reset
-           ============================================================ */
-
         :root {
             --bg: #0A0A0A;
             --panel: #141414;
@@ -41,573 +37,203 @@
             --danger: #E8636B;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-        }
+        html, body { margin: 0; padding: 0; }
 
         body {
-            background:
-                url('assets/packzbg.jpg') center / cover no-repeat,
-                var(--bg);
-
+            background: url('assets/packzbg.jpg') center / cover no-repeat, var(--bg);
             color: var(--ink);
-
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Roboto,
-                Helvetica,
-                Arial,
-                sans-serif;
-
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             min-height: 100vh;
         }
 
-        @media (min-width: 768px) {
-            body {
-                zoom: 0.60;
-            }
-        }
+        @media (min-width: 768px) { body { zoom: 0.60; } }
 
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
+        a { color: inherit; text-decoration: none; }
 
-        .mono {
-            font-family: 'Fredoka', sans-serif;
-            font-weight: 700;
-        }
-
-        .glow-num {
-            color: #FFFFFF;
-            letter-spacing: .02em;
-        }
-
-
-        /* ============================================================
-           SECTION: HEADER
-           ============================================================ */
+        .mono { font-family: 'Fredoka', sans-serif; font-weight: 700; }
+        .glow-num { color: #FFFFFF; letter-spacing: .02em; }
 
         .hud {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-
+            position: sticky; top: 0; z-index: 50;
             background: rgba(0, 0, 0, .92);
             backdrop-filter: blur(6px);
-
             border-bottom: 3px solid var(--line);
-
             padding: 14px 20px;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            flex-wrap: wrap;
-            gap: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 12px;
         }
 
-        .hud .brand {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0;
-        }
+        .hud .brand { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
 
         .hud .brand .mark {
-            font-size: 10px;
-            letter-spacing: .28em;
-            color: var(--brass);
-            text-transform: uppercase;
-            font-weight: 700;
+            font-size: 10px; letter-spacing: .28em; color: var(--brass);
+            text-transform: uppercase; font-weight: 700;
         }
 
-        .hud .brand h1 {
-            margin: 0;
-            font-size: 20px;
-            font-weight: 900;
-            letter-spacing: .02em;
-            text-transform: uppercase;
-        }
+        .hud .brand h1 { margin: 0; font-size: 20px; font-weight: 900; letter-spacing: .02em; text-transform: uppercase; }
+        .hud .brand h1 span { color: var(--brass); }
 
-        .hud .brand h1 span {
-            color: var(--brass);
-        }
-
-        .hud nav {
-            display: flex;
-            gap: 4px;
-        }
+        .hud nav { display: flex; gap: 4px; }
 
         .hud .navlink {
-            padding: 8px 14px;
-            border-radius: 3px;
-            font-size: 11px;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: var(--muted);
-            border: 3px solid transparent;
+            padding: 8px 14px; border-radius: 3px; font-size: 11px; letter-spacing: .12em;
+            text-transform: uppercase; font-weight: 700; color: var(--muted); border: 3px solid transparent;
         }
 
-        .hud .navlink:hover {
-            color: var(--ink);
-        }
+        .hud .navlink:hover { color: var(--ink); }
+        .hud .navlink.current { background: var(--brass); color: #141414; }
 
-        .hud .navlink.current {
-            background: var(--brass);
-            color: #141414;
-        }
-
-        .hud .hud-stats {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-        }
+        .hud .hud-stats { display: flex; align-items: center; gap: 18px; }
 
         .hud .packs-count {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-
-            color: var(--ink);
-
-            border: 3px solid var(--line);
-            border-radius: 20px;
-
-            padding: 6px 12px;
+            display: flex; align-items: center; gap: 6px; color: var(--ink);
+            border: 3px solid var(--line); border-radius: 20px; padding: 6px 12px;
         }
 
-        .hud .packs-count .icon {
-            font-size: 14px;
-            color: var(--brass);
-        }
+        .hud .packs-count .icon { font-size: 14px; color: var(--brass); }
+        .hud .packs-count .num { font-size: 18px; font-weight: 800; }
+        .hud .packs-count:hover { border-color: var(--brass-dim); }
 
-        .hud .packs-count .num {
-            font-size: 18px;
-            font-weight: 800;
-        }
-
-        .hud .packs-count:hover {
-            border-color: var(--brass-dim);
-        }
-
-
-        /* ============================================================
-           SHARED
-           ============================================================ */
-
-        .page {
-            max-width: 1080px;
-            margin: 0 auto;
-            padding: 28px 16px 110px;
-        }
+        .page { max-width: 1080px; margin: 0 auto; padding: 28px 16px 110px; }
 
         .btn {
-            border: none;
-            border-radius: 3px;
-
-            padding: 12px 20px;
-
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: .1em;
-            text-transform: uppercase;
-
-            cursor: pointer;
-
-            transition:
-                filter .15s ease,
-                transform .1s ease;
+            border: none; border-radius: 3px; padding: 12px 20px;
+            font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+            cursor: pointer; transition: filter .15s ease, transform .1s ease;
         }
 
-        .btn:active {
-            transform: scale(.98);
-        }
+        .btn:active { transform: scale(.98); }
+        .btn-brass { background: var(--brass); color: #141414; }
+        .btn-brass:hover { filter: brightness(1.08); }
+        .btn-brass:disabled { background: var(--line); color: var(--muted); cursor: not-allowed; }
+        .btn-ghost { background: transparent; border: 3px solid var(--line); color: var(--ink); }
+        .btn-ghost:hover { border-color: var(--brass-dim); }
 
-        .btn-brass {
-            background: var(--brass);
-            color: #141414;
-        }
-
-        .btn-brass:hover {
-            filter: brightness(1.08);
-        }
-
-        .btn-brass:disabled {
-            background: var(--line);
-            color: var(--muted);
-            cursor: not-allowed;
-        }
-
-        .btn-ghost {
-            background: transparent;
-            border: 3px solid var(--line);
-            color: var(--ink);
-        }
-
-        .btn-ghost:hover {
-            border-color: var(--brass-dim);
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--muted);
-            border: 3px dashed var(--line);
-            border-radius: 8px;
-        }
-
-        .empty-state .glyph {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); border: 3px dashed var(--line); border-radius: 8px; }
+        .empty-state .glyph { font-size: 32px; margin-bottom: 10px; }
 
         .toast {
-            position: fixed;
-            bottom: 24px;
-            left: 50%;
-
+            position: fixed; bottom: 24px; left: 50%;
             transform: translateX(-50%) translateY(20px);
-
-            background: var(--panel-2);
-            border: 3px solid var(--brass-dim);
-            color: var(--ink);
-
-            padding: 12px 20px;
-            border-radius: 6px;
-
-            font-size: 13px;
-
-            opacity: 0;
-            pointer-events: none;
-
-            transition: all .25s ease;
-
-            z-index: 100;
+            background: var(--panel-2); border: 3px solid var(--brass-dim); color: var(--ink);
+            padding: 12px 20px; border-radius: 6px; font-size: 13px;
+            opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 100;
         }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
         @media (prefers-reduced-motion: reduce) {
-            * {
-                animation-duration: .01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: .01ms !important;
-            }
+            * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
         }
 
-
-        /* ============================================================
-           INFO STRIP
-           ============================================================ */
-
-        .section-label {
-            font-size: 11px;
-            letter-spacing: .2em;
-            text-transform: uppercase;
-            color: var(--muted);
-            font-weight: 700;
-            margin: 0 0 14px;
-        }
-
-        #info {
-            margin-bottom: 6px;
-        }
+        .section-label { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); font-weight: 700; margin: 0 0 14px; }
+        #info { margin-bottom: 6px; }
 
         .info-strip {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            background: var(--panel-2);
-            border: 3px solid var(--line);
-            border-radius: 6px;
-
-            padding: 14px 18px;
-            margin-top: 4px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--panel-2); border: 3px solid var(--line); border-radius: 6px;
+            padding: 14px 18px; margin-top: 4px;
         }
 
         .info-strip .info-name {
-            font-size: 36px;
-            font-weight: 900;
-            letter-spacing: .02em;
-            text-transform: uppercase;
-            line-height: 1;
-
-            background-image: linear-gradient(
-                100deg,
-                var(--tier-a, #8C8880) 0%,
-                var(--tier-a, #8C8880) 35%,
-                #FFFFFF 48%,
-                var(--tier-c, #6E6A64) 58%,
-                var(--tier-c, #6E6A64) 100%
-            );
-
-            background-size: 250% 100%;
-            background-clip: text;
-            -webkit-background-clip: text;
-
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-
+            font-size: 36px; font-weight: 900; letter-spacing: .02em; text-transform: uppercase; line-height: 1;
+            background-image: linear-gradient(100deg, var(--tier-a, #8C8880) 0%, var(--tier-a, #8C8880) 35%, #FFFFFF 48%, var(--tier-c, #6E6A64) 58%, var(--tier-c, #6E6A64) 100%);
+            background-size: 250% 100%; background-clip: text; -webkit-background-clip: text;
+            color: transparent; -webkit-text-fill-color: transparent;
             animation: name-sheen 3s linear infinite;
         }
 
-        @keyframes name-sheen {
-            0% {
-                background-position: 200% 0;
-            }
+        @keyframes name-sheen { 0% { background-position: 200% 0; } 100% { background-position: -100% 0; } }
 
-            100% {
-                background-position: -100% 0;
-            }
-        }
+        .info-strip .info-price { font-size: 20px; font-weight: 700; }
 
-        .info-strip .info-price {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-
-        /* ============================================================
-           PACK SECTION
-           ============================================================ */
-
-        #packsSectionMount {
-            width: 100%;
-        }
-
-
-        /* ============================================================
-           BUY HUD
-           ============================================================ */
+        #packsSectionMount { width: 100%; }
 
         .buy-hud {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 60;
-
-            background: rgba(0, 0, 0, .96);
-            backdrop-filter: blur(6px);
-
-            border-top: 3px solid var(--line);
-
-            padding: 14px 20px;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-
-            gap: 16px;
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+            background: rgba(0, 0, 0, .96); backdrop-filter: blur(6px);
+            border-top: 3px solid var(--line); padding: 14px 20px;
+            display: flex; justify-content: space-between; align-items: center; gap: 16px;
         }
 
-        .buy-hud .buy-hud-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .buy-hud .buy-hud-label {
-            font-size: 9px;
-            letter-spacing: .18em;
-            text-transform: uppercase;
-            color: var(--muted);
-        }
+        .buy-hud .buy-hud-info { display: flex; flex-direction: column; gap: 2px; }
+        .buy-hud .buy-hud-label { font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
 
         .buy-hud .buy-hud-name {
-            font-size: 15px;
-            font-weight: 900;
-            text-transform: uppercase;
-
-            background-image: linear-gradient(
-                100deg,
-                var(--tier-a, #8C8880) 0%,
-                var(--tier-a, #8C8880) 35%,
-                #FFFFFF 48%,
-                var(--tier-c, #6E6A64) 58%,
-                var(--tier-c, #6E6A64) 100%
-            );
-
-            background-size: 250% 100%;
-            background-clip: text;
-            -webkit-background-clip: text;
-
-            color: transparent;
-            -webkit-text-fill-color: transparent;
-
+            font-size: 15px; font-weight: 900; text-transform: uppercase;
+            background-image: linear-gradient(100deg, var(--tier-a, #8C8880) 0%, var(--tier-a, #8C8880) 35%, #FFFFFF 48%, var(--tier-c, #6E6A64) 58%, var(--tier-c, #6E6A64) 100%);
+            background-size: 250% 100%; background-clip: text; -webkit-background-clip: text;
+            color: transparent; -webkit-text-fill-color: transparent;
             animation: name-sheen 3s linear infinite;
         }
 
-        .buy-hud .buy-hud-buy {
-            flex: none;
-            padding: 12px 22px;
-        }
-
-        .buy-hud .buy-hud-buy:not(:disabled) {
-            animation: buy-pulse 1.8s ease-in-out infinite;
-        }
+        .buy-hud .buy-hud-buy { flex: none; padding: 12px 22px; }
+        .buy-hud .buy-hud-buy:not(:disabled) { animation: buy-pulse 1.8s ease-in-out infinite; }
 
         @keyframes buy-pulse {
-            0%,
-            100% {
-                transform: scale(1);
-                box-shadow: 0 0 0 0 rgba(212, 175, 106, .55);
-            }
-
-            50% {
-                transform: scale(1.045);
-                box-shadow: 0 0 20px 5px rgba(212, 175, 106, .5);
-            }
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 175, 106, .55); }
+            50% { transform: scale(1.045); box-shadow: 0 0 20px 5px rgba(212, 175, 106, .5); }
         }
 
-        .buy-hud-num {
-            font-size: 16px;
-        }
+        .buy-hud-num { font-size: 16px; }
     </style>
 </head>
 
-
 <body>
-
-    <!-- ============================================================
-         HEADER
-         ============================================================ -->
 
     <header id="hud" class="hud"></header>
 
-
     <main class="page">
-
-        <!-- ========================================================
-             INFO
-             ======================================================== -->
-
         <section id="info">
             <div class="info-strip" id="infoStrip"></div>
         </section>
 
-
-        <!-- ========================================================
-             PACKS
-             ======================================================== -->
-
         <div id="packsSectionMount"></div>
-
     </main>
-
-
-    <!-- ============================================================
-         BUY HUD
-         ============================================================ -->
 
     <footer class="buy-hud" id="buyHud"></footer>
 
-
-    <!-- ============================================================
-         BASIC STATE / HELPERS
-         ============================================================ -->
-
     <script>
         function defaultState() {
-            return {
-                collection: [],
-                firstVisit: true
-            };
+            return { collection: [], firstVisit: true };
         }
 
+        function loadState() { return defaultState(); }
+        function saveState(state) {}
 
-        function loadState() {
-            return defaultState();
-        }
-
-
-        function saveState(state) {
-            // No local save.
-            // State is handled by Supabase/sessionStorage.
-        }
-
-
-        function fmt(n) {
-            return Number(n).toLocaleString();
-        }
-
+        function fmt(n) { return Number(n).toLocaleString(); }
 
         function uid() {
-            return (
-                Date.now() +
-                "-" +
-                Math.random().toString(36).slice(2, 7)
-            );
+            return Date.now() + "-" + Math.random().toString(36).slice(2, 7);
         }
-
 
         function toast(message) {
             let element = document.getElementById("toast");
-
             if (!element) {
                 element = document.createElement("div");
                 element.id = "toast";
                 element.className = "toast";
-
                 document.body.appendChild(element);
             }
-
             element.textContent = message;
             element.classList.add("show");
-
             clearTimeout(toast._h);
-
-            toast._h = setTimeout(() => {
-                element.classList.remove("show");
-            }, 1800);
+            toast._h = setTimeout(() => { element.classList.remove("show"); }, 1800);
         }
     </script>
-
-
-    <!-- ============================================================
-         HEADER
-         ============================================================ -->
 
     <script>
         function renderHud(state, currentPage) {
             const mount = document.getElementById("hud");
+            if (!mount) { return; }
 
-            if (!mount) {
-                return;
-            }
-
-         const pages = [
-    {
-        id: "leaderboard",
-        href: "leaderboard.html",
-        label: "Leaderboard"
-    },
-    {
-        id: "start",
-        href: "start.html",
-        label: "Start"
-    },
-    {
-        id: "shop",
-        href: "shop.html",
-        label: "Pack Shop"
-    }
-];
+            const pages = [
+                { id: "leaderboard", href: "leaderboard.html", label: "Leaderboard" },
+                { id: "start", href: "start.html", label: "Start" },
+                { id: "shop", href: "shop.html", label: "Pack Shop" }
+            ];
 
             mount.innerHTML = `
                 <a class="brand" href="start.html">
@@ -617,10 +243,7 @@
 
                 <nav>
                     ${pages.map(page => `
-                        <a
-                            class="navlink ${page.id === currentPage ? "current" : ""}"
-                            href="${page.href}"
-                        >
+                        <a class="navlink ${page.id === currentPage ? "current" : ""}" href="${page.href}">
                             ${page.label}
                         </a>
                     `).join("")}
@@ -631,72 +254,29 @@
                 </div>
             `;
 
-
-            /*
-             * wallet-ledger.html supplies this node.
-             *
-             * renderHud() rebuilds the HUD after purchases, so the
-             * existing wallet node must be moved back into the new mount.
-             */
-
             if (window.walletNode) {
-                const walletMount =
-                    document.getElementById("walletMount");
-
-                if (walletMount) {
-                    walletMount.appendChild(window.walletNode);
-                }
-
-                if (typeof renderWallet === "function") {
-                    renderWallet(state);
-                }
+                const walletMount = document.getElementById("walletMount");
+                if (walletMount) { walletMount.appendChild(window.walletNode); }
+                if (typeof renderWallet === "function") { renderWallet(state); }
             }
         }
     </script>
 
-
-    <!-- ============================================================
-         PAGE CONTROLLER
-         ============================================================ -->
-
     <script>
         let state = loadState();
-
-        /*
-         * wallet-ledger.html checks window.state.
-         */
         window.state = state;
-
         renderHud(state, "shop");
 
-
-        /* ==========================================================
-           INFO STRIP
-           ========================================================== */
-
         function renderInfoStrip() {
-            if (
-                typeof PACKS === "undefined" ||
-                typeof activePackId === "undefined"
-            ) {
-                return;
-            }
+            if (typeof PACKS === "undefined" || typeof activePackId === "undefined") { return; }
 
-            const pack = PACKS.find(
-                item => item.id === activePackId
-            );
-
-            if (!pack) {
-                return;
-            }
+            const pack = PACKS.find(item => item.id === activePackId);
+            if (!pack) { return; }
 
             const [tierA, , tierC] = pack.tierColors;
 
             document.getElementById("infoStrip").innerHTML = `
-                <span
-                    class="info-name"
-                    style="--tier-a:${tierA}; --tier-c:${tierC};"
-                >
+                <span class="info-name" style="--tier-a:${tierA}; --tier-c:${tierC};">
                     ${pack.name}
                 </span>
 
@@ -706,210 +286,96 @@
             `;
         }
 
-
-        /* ==========================================================
-           BUY HUD
-           ========================================================== */
-
         function renderBuyHud() {
-            if (
-                typeof PACKS === "undefined" ||
-                typeof activePackId === "undefined"
-            ) {
-                return;
-            }
+            if (typeof PACKS === "undefined" || typeof activePackId === "undefined") { return; }
 
-            const pack = PACKS.find(
-                item => item.id === activePackId
-            );
+            const pack = PACKS.find(item => item.id === activePackId);
+            if (!pack) { return; }
 
-            if (!pack) {
-                return;
-            }
-
-            const balance =
-                Number(window.walletRow?.balance || 0);
-
-            const affordable =
-                !!window.walletRow &&
-                balance >= Number(pack.price);
-
-            const [tierA, , tierC] =
-                pack.tierColors;
+            const balance = Number(window.walletRow?.balance || 0);
+            const affordable = !!window.walletRow && balance >= Number(pack.price);
+            const [tierA, , tierC] = pack.tierColors;
 
             document.getElementById("buyHud").innerHTML = `
                 <div class="buy-hud-info">
-                    <div class="buy-hud-label">
-                        Selected Pack
-                    </div>
-
-                    <div
-                        class="buy-hud-name"
-                        style="--tier-a:${tierA}; --tier-c:${tierC};"
-                    >
+                    <div class="buy-hud-label">Selected Pack</div>
+                    <div class="buy-hud-name" style="--tier-a:${tierA}; --tier-c:${tierC};">
                         ${pack.name}
                     </div>
                 </div>
 
-                <button
-                    class="btn btn-brass buy-hud-buy"
-                    id="buyHudBtn"
-                    ${affordable ? "" : "disabled"}
-                >
+                <button class="btn btn-brass buy-hud-buy" id="buyHudBtn" ${affordable ? "" : "disabled"}>
                     Buy for
-                    <span class="mono buy-hud-num glow-num">
-                        ${fmt(pack.price)}
-                    </span>
+                    <span class="mono buy-hud-num glow-num">${fmt(pack.price)}</span>
                     chips
                 </button>
             `;
 
-            document
-                .getElementById("buyHudBtn")
-                .addEventListener(
-                    "click",
-                    () => buyPack(activePackId)
-                );
+            document.getElementById("buyHudBtn").addEventListener("click", () => buyPack(activePackId));
         }
     </script>
 
-
-    <!-- ============================================================
-         SUPABASE / PURCHASE LOGIC
-         ============================================================ -->
-
     <script>
-        const SUPABASE_URL =
-            "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
-
-        const SUPABASE_ANON_KEY =
-            "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
-
+        const SUPABASE_URL = "https://jqvnrdjrkdjgjbmqmbbl.supabase.co";
+        const SUPABASE_ANON_KEY = "sb_publishable_jmEahTk4OssD_IrOZq_6iQ_P6QFFJr6";
 
         const COMMON_PACK_ODDS = [
-            {
-                tier: "common",
-                weight: 80
-            },
-            {
-                tier: "epic",
-                weight: 10
-            },
-            {
-                tier: "legendary",
-                weight: 8
-            },
-            {
-                tier: "mythic",
-                weight: 2
-            }
+            { tier: "common", weight: 80 },
+            { tier: "epic", weight: 10 },
+            { tier: "legendary", weight: 8 },
+            { tier: "mythic", weight: 2 }
         ];
 
-
-        /* ==========================================================
-           TIER ROLL
-           ========================================================== */
-
         function rollTier(tier) {
-            if (tier !== "common") {
-                return tier;
-            }
+            if (tier !== "common") { return tier; }
 
-            const roll =
-                Math.random() * 100;
-
+            const roll = Math.random() * 100;
             let accumulated = 0;
 
             for (const entry of COMMON_PACK_ODDS) {
                 accumulated += entry.weight;
-
-                if (roll < accumulated) {
-                    return entry.tier;
-                }
+                if (roll < accumulated) { return entry.tier; }
             }
 
             return "common";
         }
 
-
         /* ==========================================================
            DRAW ONE CARD
-           
-           IMPORTANT:
-           This function ONLY selects the card.
-
-           It does NOT write:
-           - wallet_ledger
-           - decks.sales
-           - popularity_ledger
-         ========================================================== */
+           This function ONLY selects the card. It does NOT write:
+           wallet_ledger, decks.sales, popularity_ledger
+           ========================================================== */
 
         async function fetchOneCard(client, tier) {
-            const rolledTier =
-                rollTier(tier);
+            const rolledTier = rollTier(tier);
 
             const ownResult = await client
                 .from("decks")
                 .select("*")
                 .eq("current_tier", rolledTier);
 
-
-            if (
-                !ownResult.error &&
-                ownResult.data &&
-                ownResult.data.length
-            ) {
-                return ownResult.data[
-                    Math.floor(
-                        Math.random() *
-                        ownResult.data.length
-                    )
-                ];
+            if (!ownResult.error && ownResult.data && ownResult.data.length) {
+                return ownResult.data[Math.floor(Math.random() * ownResult.data.length)];
             }
 
+            const fallbackResult = await client.from("decks").select("*");
 
-            /*
-             * Fallback:
-             * If the requested tier has no cards,
-             * choose from all decks.
-             */
-
-            const fallbackResult = await client
-                .from("decks")
-                .select("*");
-
-
-            if (
-                fallbackResult.error ||
-                !fallbackResult.data ||
-                !fallbackResult.data.length
-            ) {
-                throw (
-                    fallbackResult.error ||
-                    new Error("No cards available.")
-                );
+            if (fallbackResult.error || !fallbackResult.data || !fallbackResult.data.length) {
+                throw (fallbackResult.error || new Error("No cards available."));
             }
 
-
-            return fallbackResult.data[
-                Math.floor(
-                    Math.random() *
-                    fallbackResult.data.length
-                )
-            ];
+            return fallbackResult.data[Math.floor(Math.random() * fallbackResult.data.length)];
         }
-
 
         /* ==========================================================
            ADD DRAWN CARD TO PLAYER INVENTORY
 
-           player_inventory is now: one row per player, one real
-           column per card (card_1, card_2, ... card_555). Every
-           player row already has all 555 columns present (they
-           default to [false,0,false,false,0]), so this is always
-           an UPDATE — no insert branch needed.
+           Runs AFTER the reveal redirect has already fired — this
+           can never block or delay the purchase/reveal. Any failure
+           here only logs to console; it never surfaces to the player.
 
-           card.card_number comes from the drawn decks row.
+           player_inventory: one row per player, one real column per
+           card (card_1, card_2, ... card_555).
 
            Column value structure:
            [ owned, quantity, active, equipped, fusion_count ]
@@ -924,57 +390,24 @@
                 throw new Error("Drawn card has no card_number.");
             }
 
-            /*
-             * Card number 1 → card_1
-             * Card number 2 → card_2
-             * No zero-padding — matches the real column names.
-             */
+            const columnName = `card_${card.card_number}`;
 
-            const columnName =
-                `card_${card.card_number}`;
-
-
-            /*
-             * Read just this one card's current column value
-             * for this player.
-             */
-
-            const columnResult =
-                await client
-                    .from("player_inventory")
-                    .select(columnName)
-                    .eq("player_id", playerId)
-                    .maybeSingle();
-
+            const columnResult = await client
+                .from("player_inventory")
+                .select(columnName)
+                .eq("player_id", playerId)
+                .maybeSingle();
 
             if (columnResult.error) {
-                console.error(
-                    "player_inventory column read failed:",
-                    columnResult.error
-                );
-
+                console.error("player_inventory column read failed:", columnResult.error);
                 throw columnResult.error;
             }
 
-
-            const existing =
-                columnResult.data
-                    ? columnResult.data[columnName]
-                    : null;
-
-
-            /*
-             * Existing card:
-             *
-             * [owned, quantity, active, equipped, fusion_count]
-             *
-             * Only quantity changes when another copy is drawn.
-             */
+            const existing = columnResult.data ? columnResult.data[columnName] : null;
 
             let updatedEntry;
 
             if (Array.isArray(existing)) {
-
                 updatedEntry = [
                     true,
                     Number(existing[1] || 0) + 1,
@@ -982,817 +415,315 @@
                     Boolean(existing[3]),
                     Number(existing[4] || 0)
                 ];
-
             } else {
-
-                /*
-                 * First copy of this card.
-                 */
-
-                updatedEntry = [
-                    true,
-                    1,
-                    false,
-                    false,
-                    0
-                ];
+                updatedEntry = [true, 1, false, false, 0];
             }
 
-
-            const updateResult =
-                await client
-                    .from("player_inventory")
-                    .update({
-                        [columnName]: updatedEntry
-                    })
-                    .eq("player_id", playerId)
-                    .select()
-                    .single();
-
+            const updateResult = await client
+                .from("player_inventory")
+                .update({ [columnName]: updatedEntry })
+                .eq("player_id", playerId)
+                .select()
+                .single();
 
             if (updateResult.error) {
-                console.error(
-                    "player_inventory update failed:",
-                    updateResult.error
-                );
-
+                console.error("player_inventory update failed:", updateResult.error);
                 throw updateResult.error;
             }
-
 
             return updateResult.data;
         }
 
-
         /* ==========================================================
            RECORD THE DRAWN CARD
-           
-           Direct table operations only.
-
            1. decks.sales + 1
-           2. popularity_ledger:
-              - update existing row
-              - otherwise insert new row
-         ========================================================== */
+           2. popularity_ledger: update existing row, otherwise insert
+           ========================================================== */
 
         async function recordCardBuy(client, card) {
-            if (!card) {
-                throw new Error(
-                    "No card was drawn."
-                );
-            }
+            if (!card) { throw new Error("No card was drawn."); }
+            if (!card.id) { throw new Error("Drawn card has no decks.id."); }
+            if (!card.card || !card.deck) { throw new Error("Drawn card is missing card or deck."); }
 
+            const newDeckSales = Number(card.sales || 0) + 1;
 
-            if (!card.id) {
-                throw new Error(
-                    "Drawn card has no decks.id."
-                );
-            }
-
-
-            if (!card.card || !card.deck) {
-                throw new Error(
-                    "Drawn card is missing card or deck."
-                );
-            }
-
-
-            /* ======================================================
-               1. UPDATE DECK SALES
-               ====================================================== */
-
-            const newDeckSales =
-                Number(card.sales || 0) + 1;
-
-
-            const deckUpdate =
-                await client
-                    .from("decks")
-                    .update({
-                        sales: newDeckSales
-                    })
-                    .eq("id", card.id)
-                    .select()
-                    .single();
-
+            const deckUpdate = await client
+                .from("decks")
+                .update({ sales: newDeckSales })
+                .eq("id", card.id)
+                .select()
+                .single();
 
             if (deckUpdate.error) {
-                console.error(
-                    "decks.sales update failed:",
-                    deckUpdate.error
-                );
-
+                console.error("decks.sales update failed:", deckUpdate.error);
                 throw deckUpdate.error;
             }
 
+            if (deckUpdate.data) { Object.assign(card, deckUpdate.data); }
 
-            /*
-             * Keep the local card object synchronized with
-             * the database result.
-             */
-
-            if (deckUpdate.data) {
-                Object.assign(
-                    card,
-                    deckUpdate.data
-                );
-            }
-
-
-            /* ======================================================
-               2. FIND EXISTING POPULARITY LEDGER ROW
-               ====================================================== */
-
-            const ledgerResult =
-                await client
-                    .from("popularity_ledger")
-                    .select("*")
-                    .eq("card", card.card)
-                    .eq("deck", card.deck)
-                    .maybeSingle();
-
+            const ledgerResult = await client
+                .from("popularity_ledger")
+                .select("*")
+                .eq("card", card.card)
+                .eq("deck", card.deck)
+                .maybeSingle();
 
             if (ledgerResult.error) {
-                console.error(
-                    "popularity_ledger lookup failed:",
-                    ledgerResult.error
-                );
-
+                console.error("popularity_ledger lookup failed:", ledgerResult.error);
                 throw ledgerResult.error;
             }
 
-
-            /* ======================================================
-               3A. EXISTING ROW → INCREMENT BUYS
-               ====================================================== */
-
             if (ledgerResult.data) {
-                const ledger =
-                    ledgerResult.data;
+                const ledger = ledgerResult.data;
 
-
-                const updatedLedger =
-                    await client
-                        .from("popularity_ledger")
-                        .update({
-                            buys:
-                                Number(ledger.buys || 0) + 1,
-
-                            current_tier:
-                                card.current_tier,
-
-                            previous_tier:
-                                card.previous_tier,
-
-                            updated_at:
-                                new Date().toISOString()
-                        })
-                        .eq("id", ledger.id)
-                        .select()
-                        .single();
-
+                const updatedLedger = await client
+                    .from("popularity_ledger")
+                    .update({
+                        buys: Number(ledger.buys || 0) + 1,
+                        current_tier: card.current_tier,
+                        previous_tier: card.previous_tier,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq("id", ledger.id)
+                    .select()
+                    .single();
 
                 if (updatedLedger.error) {
-                    console.error(
-                        "popularity_ledger update failed:",
-                        updatedLedger.error
-                    );
-
+                    console.error("popularity_ledger update failed:", updatedLedger.error);
                     throw updatedLedger.error;
                 }
-
 
                 return updatedLedger.data;
             }
 
-
-            /* ======================================================
-               3B. NO ROW → CREATE LEDGER ROW
-               ====================================================== */
-
-            const newLedger =
-                await client
-                    .from("popularity_ledger")
-                    .insert({
-                        card: card.card,
-                        deck: card.deck,
-
-                        current_tier:
-                            card.current_tier,
-
-                        previous_tier:
-                            card.previous_tier,
-
-                        buys: 1,
-                        sales: 0,
-                        total_in_collections: 0,
-                        fused: 0,
-                        ascensions: 0,
-                        dissections: 0
-                    })
-                    .select()
-                    .single();
-
+            const newLedger = await client
+                .from("popularity_ledger")
+                .insert({
+                    card: card.card,
+                    deck: card.deck,
+                    current_tier: card.current_tier,
+                    previous_tier: card.previous_tier,
+                    buys: 1,
+                    sales: 0,
+                    total_in_collections: 0,
+                    fused: 0,
+                    ascensions: 0,
+                    dissections: 0
+                })
+                .select()
+                .single();
 
             if (newLedger.error) {
-                console.error(
-                    "popularity_ledger insert failed:",
-                    newLedger.error
-                );
-
+                console.error("popularity_ledger insert failed:", newLedger.error);
                 throw newLedger.error;
             }
-
 
             return newLedger.data;
         }
 
-
         /* ==========================================================
            BUY PACK
-           
-           This function ONLY:
-           - validates wallet
-           - validates balance
-           - deducts chips
-           - increments wallet buys
-           
-           The downstream card chain happens after the wallet
-           ledger changes.
-         ========================================================== */
+           This function ONLY: validates wallet, validates balance,
+           deducts chips, increments wallet buys.
+           ========================================================== */
 
         async function buyPack(packId) {
-            if (
-                !window.walletRow ||
-                window.walletRow.id_type !== "account"
-            ) {
-                requireAccount(
-                    () => buyPack(packId)
-                );
-
+            if (!window.walletRow || window.walletRow.id_type !== "account") {
+                requireAccount(() => buyPack(packId));
                 return;
             }
 
-
-            const pack =
-                PACKS.find(
-                    item => item.id === packId
-                );
-
+            const pack = PACKS.find(item => item.id === packId);
 
             if (!pack) {
                 toast("Pack not found.");
                 return;
             }
 
-
-            const balance =
-                Number(window.walletRow.balance || 0);
-
-            const price =
-                Number(pack.price);
-
+            const balance = Number(window.walletRow.balance || 0);
+            const price = Number(pack.price);
 
             if (balance < price) {
                 toast("Not enough chips.");
                 return;
             }
 
+            sessionStorage.setItem("zetsu_pending_pack", packId);
 
-            /*
-             * Remember the pack BEFORE changing the wallet.
-             *
-             * The wallet update is the purchase confirmation.
-             */
+            const client = walletClient();
 
-            sessionStorage.setItem(
-                "zetsu_pending_pack",
-                packId
-            );
+            const newBalance = balance - price;
+            const newBuys = Number(window.walletRow.buys || 0) + 1;
 
+            const walletResult = await client
+                .from("wallet_ledger")
+                .update({ balance: newBalance, buys: newBuys })
+                .eq("id", window.walletRow.id)
+                .select()
+                .single();
 
-            const client =
-                walletClient();
-
-
-            const newBalance =
-                balance - price;
-
-            const newBuys =
-                Number(window.walletRow.buys || 0) + 1;
-
-
-            const walletResult =
-                await client
-                    .from("wallet_ledger")
-                    .update({
-                        balance: newBalance,
-                        buys: newBuys
-                    })
-                    .eq("id", window.walletRow.id)
-                    .select()
-                    .single();
-
-
-            if (
-                walletResult.error ||
-                !walletResult.data
-            ) {
-                console.error(
-                    "wallet_ledger update failed:",
-                    walletResult.error
-                );
-
-                sessionStorage.removeItem(
-                    "zetsu_pending_pack"
-                );
-
-                toast(
-                    "Purchase failed — try again."
-                );
-
+            if (walletResult.error || !walletResult.data) {
+                console.error("wallet_ledger update failed:", walletResult.error);
+                sessionStorage.removeItem("zetsu_pending_pack");
                 return;
             }
 
-
-            /*
-             * Wallet purchase is confirmed.
-             */
-
-            window.walletRow =
-                walletResult.data;
-
+            window.walletRow = walletResult.data;
 
             renderWallet();
             renderBuyHud();
 
-
-            /*
-             * Continue the exact same chain using the
-             * row returned by the wallet update.
-             *
-             * The realtime listener may also see this update,
-             * but the pending-pack marker prevents a duplicate draw.
-             */
-
-            if (
-                typeof window.onWalletLedgerChanged ===
-                "function"
-            ) {
-                await window.onWalletLedgerChanged(
-                    walletResult.data
-                );
+            if (typeof window.onWalletLedgerChanged === "function") {
+                await window.onWalletLedgerChanged(walletResult.data);
             }
         }
 
-
         /* ==========================================================
-           WALLET CHANGE → CARD DRAW → BOOKKEEPING → LOADING
+           WALLET CHANGE → CARD DRAW → REVEAL → BOOKKEEPING
+
+           The reveal redirect fires immediately after the card is
+           drawn. Buying is complete at that point — nothing after
+           this (inventory write, sales/ledger bookkeeping) can
+           block, delay, or show an error for the purchase itself.
            ========================================================== */
 
-        window.onWalletLedgerChanged =
-            async function (updatedRow) {
+        window.onWalletLedgerChanged = async function (updatedRow) {
+            window.walletRow = updatedRow;
 
-                window.walletRow =
-                    updatedRow;
+            if (typeof renderWallet === "function") { renderWallet(); }
+            if (typeof renderBuyHud === "function") { renderBuyHud(); }
 
+            const pendingPackId = sessionStorage.getItem("zetsu_pending_pack");
+            if (!pendingPackId) { return; }
 
-                if (typeof renderWallet === "function") {
-                    renderWallet();
-                }
+            sessionStorage.removeItem("zetsu_pending_pack");
 
+            const pack = PACKS.find(item => item.id === pendingPackId);
 
-                if (typeof renderBuyHud === "function") {
-                    renderBuyHud();
-                }
+            if (!pack) {
+                console.error("Purchase chain failed: pack not found", pendingPackId);
+                return;
+            }
 
+            const client = walletClient();
 
-                /*
-                 * Only a wallet change carrying a pending pack
-                 * marker belongs to the pack purchase chain.
-                 */
+            let card;
 
-                const pendingPackId =
-                    sessionStorage.getItem(
-                        "zetsu_pending_pack"
-                    );
+            try {
+                card = await fetchOneCard(client, pack.id);
+                if (!card) { throw new Error("No card was drawn."); }
+            } catch (drawError) {
+                console.error("Card draw failed:", drawError);
+                return;
+            }
 
+            /*
+             * Buying is done as soon as we have a card.
+             * Reveal it immediately — nothing below this
+             * can hold up or interrupt that.
+             */
 
-                if (!pendingPackId) {
-                    return;
-                }
+            sessionStorage.setItem("zetsu_drawn_cards", JSON.stringify([card]));
 
+            window.location.href = `loading.html?pack=${encodeURIComponent(pack.id)}`;
 
-                /*
-                 * Consume immediately so realtime + direct
-                 * notification cannot both draw a card.
-                 */
+            /*
+             * Bookkeeping — runs after the redirect has already
+             * been issued. Any failure here only logs to console;
+             * it can never affect the purchase the player just made.
+             */
 
-                sessionStorage.removeItem(
-                    "zetsu_pending_pack"
-                );
-
-
-                try {
-                    const pack =
-                        PACKS.find(
-                            item =>
-                                item.id === pendingPackId
-                        );
-
-
-                    if (!pack) {
-                        throw new Error(
-                            `Pack not found: ${pendingPackId}`
-                        );
-                    }
-
-
-                    /*
-                     * 1 PACK = 1 CARD
-                     */
-
-                    const client =
-                        walletClient();
-
-
-                    /*
-                     * Draw the card.
-                     *
-                     * The drawn card is the event.
-                     */
-
-                    const card =
-                        await fetchOneCard(
-                            client,
-                            pack.id
-                        );
-
-
-                    if (!card) {
-                        throw new Error(
-                            "No card was drawn."
-                        );
-                    }
-
-
-                    /*
-                     * Add the actual drawn card to this player's
-                     * inventory.
-                     *
-                     * updatedRow.id = wallet_ledger.id = player_id
-                     * card.card_number = number of the drawn card
-                     */
-
-                    await addCardToInventory(
-                        client,
-                        updatedRow.id,
-                        card
-                    );
-
-
-                    /*
-                     * Record the actual drawn card.
-                     *
-                     * This performs:
-                     *
-                     * decks.sales + 1
-                     *
-                     * popularity_ledger UPDATE
-                     * OR
-                     * popularity_ledger INSERT
-                     */
-
-                    await recordCardBuy(
-                        client,
-                        card
-                    );
-
-
-                    /*
-                     * Only after the database bookkeeping
-                     * succeeds do we store the card that
-                     * loading.html will display.
-                     */
-
-                    sessionStorage.setItem(
-                        "zetsu_drawn_cards",
-                        JSON.stringify([card])
-                    );
-
-
-                    /*
-                     * Continue to card reveal.
-                     */
-
-                    window.location.href =
-                        `loading.html?pack=${encodeURIComponent(
-                            pack.id
-                        )}`;
-
-                } catch (error) {
-
-                    console.error(
-                        "Purchase chain failed:",
-                        error
-                    );
-
-
-                    /*
-                     * Restore the pending marker so the failed
-                     * purchase event is not silently forgotten.
-                     */
-
-                    sessionStorage.setItem(
-                        "zetsu_pending_pack",
-                        pendingPackId
-                    );
-
-
-                    toast(
-                        error.message ||
-                        "Card recording failed."
-                    );
-                }
-            };
+            try {
+                await addCardToInventory(client, updatedRow.id, card);
+                await recordCardBuy(client, card);
+            } catch (bookkeepingError) {
+                console.error("Post-purchase bookkeeping failed:", bookkeepingError);
+            }
+        };
     </script>
-
-
-    <!-- ============================================================
-         LOAD PACKS SECTION
-         ============================================================ -->
 
     <script>
         fetch("packs-section.html")
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(
-                        `packs-section.html failed: ${response.status}`
-                    );
-                }
-
+                if (!response.ok) { throw new Error(`packs-section.html failed: ${response.status}`); }
                 return response.text();
             })
             .then(html => {
+                const parsed = new DOMParser().parseFromString(html, "text/html");
 
-                const parsed =
-                    new DOMParser()
-                        .parseFromString(
-                            html,
-                            "text/html"
-                        );
+                const packsSection = parsed.getElementById("packs");
+                const mount = document.getElementById("packsSectionMount");
 
+                if (packsSection && mount) { mount.appendChild(packsSection); }
 
-                const packsSection =
-                    parsed.getElementById("packs");
-
-                const mount =
-                    document.getElementById(
-                        "packsSectionMount"
-                    );
-
-
-                if (packsSection && mount) {
-                    mount.appendChild(
-                        packsSection
-                    );
-                }
-
-
-                /*
-                 * Pull the pack section CSS while removing
-                 * standalone-page rules.
-                 */
-
-                const parsedStyle =
-                    parsed.querySelector("style");
-
-
+                const parsedStyle = parsed.querySelector("style");
                 if (parsedStyle) {
-                    let css =
-                        parsedStyle.textContent;
-
-
-                    css = css.replace(
-                        /:root\{[^}]*\}/,
-                        ""
-                    );
-
-                    css = css.replace(
-                        /\*\{box-sizing:border-box;\}/,
-                        ""
-                    );
-
-                    css = css.replace(
-                        /html,body\{margin:0;padding:0;\}/,
-                        ""
-                    );
-
-                    css = css.replace(
-                        /body\{[^}]*\}/,
-                        ""
-                    );
-
-
-                    const styleTag =
-                        document.createElement("style");
-
+                    let css = parsedStyle.textContent;
+                    css = css.replace(/:root\{[^}]*\}/, "");
+                    css = css.replace(/\*\{box-sizing:border-box;\}/, "");
+                    css = css.replace(/html,body\{margin:0;padding:0;\}/, "");
+                    css = css.replace(/body\{[^}]*\}/, "");
+                    const styleTag = document.createElement("style");
                     styleTag.textContent = css;
-
-                    document.head.appendChild(
-                        styleTag
-                    );
+                    document.head.appendChild(styleTag);
                 }
 
-
-                /*
-                 * Execute packs-section.html script.
-                 *
-                 * That script creates:
-                 * PACKS
-                 * CENTER_PACK_INDEX
-                 * activePackId
-                 */
-
-                const parsedScript =
-                    parsed.querySelector("script");
-
-
+                const parsedScript = parsed.querySelector("script");
                 if (parsedScript) {
-                    const newScript =
-                        document.createElement("script");
-
-                    newScript.textContent =
-                        parsedScript.textContent;
-
-                    document.body.appendChild(
-                        newScript
-                    );
+                    const newScript = document.createElement("script");
+                    newScript.textContent = parsedScript.textContent;
+                    document.body.appendChild(newScript);
                 }
             })
             .catch(error => {
-                console.error(
-                    "Failed to load packs-section.html:",
-                    error
-                );
+                console.error("Failed to load packs-section.html:", error);
             });
     </script>
-
-
-    <!-- ============================================================
-         LOAD WALLET LEDGER
-         ============================================================ -->
 
     <script>
         fetch("wallet-ledger.html")
             .then(response => {
-                if (!response.ok) {
-                    throw new Error(
-                        `wallet-ledger.html failed: ${response.status}`
-                    );
-                }
-
+                if (!response.ok) { throw new Error(`wallet-ledger.html failed: ${response.status}`); }
                 return response.text();
             })
             .then(html => {
+                const parsed = new DOMParser().parseFromString(html, "text/html");
 
-                const parsed =
-                    new DOMParser()
-                        .parseFromString(
-                            html,
-                            "text/html"
-                        );
-
-
-                /*
-                 * Wallet button.
-                 */
-
-                const walletDiv =
-                    parsed.getElementById(
-                        "wallet"
-                    );
-
-                const walletMount =
-                    document.getElementById(
-                        "walletMount"
-                    );
-
+                const walletDiv = parsed.getElementById("wallet");
+                const walletMount = document.getElementById("walletMount");
 
                 if (walletDiv && walletMount) {
-                    window.walletNode =
-                        walletDiv;
-
-                    walletMount.appendChild(
-                        walletDiv
-                    );
+                    window.walletNode = walletDiv;
+                    walletMount.appendChild(walletDiv);
                 }
 
+                const ledgerOverlay = parsed.getElementById("ledgerOverlay");
+                if (ledgerOverlay) { document.body.appendChild(ledgerOverlay); }
 
-                /*
-                 * Ledger overlay.
-                 */
+                const signupOverlay = parsed.getElementById("signupOverlay");
+                if (signupOverlay) { document.body.appendChild(signupOverlay); }
 
-                const ledgerOverlay =
-                    parsed.getElementById(
-                        "ledgerOverlay"
-                    );
-
-
-                if (ledgerOverlay) {
-                    document.body.appendChild(
-                        ledgerOverlay
-                    );
-                }
-
-
-                /*
-                 * Signup overlay.
-                 */
-
-                const signupOverlay =
-                    parsed.getElementById(
-                        "signupOverlay"
-                    );
-
-
-                if (signupOverlay) {
-                    document.body.appendChild(
-                        signupOverlay
-                    );
-                }
-
-
-                /*
-                 * Wallet CSS.
-                 */
-
-                const parsedStyle =
-                    parsed.querySelector("style");
-
-
+                const parsedStyle = parsed.querySelector("style");
                 if (parsedStyle) {
-                    let css =
-                        parsedStyle.textContent;
-
-
-                    css = css.replace(
-                        /:root\{[^}]*\}/,
-                        ""
-                    );
-
-                    css = css.replace(
-                        /\*\{box-sizing:border-box;\}/,
-                        ""
-                    );
-
-                    css = css.replace(
-                        /html,body\{margin:0;padding:0;\}/,
-                        ""
-                    );
-
-                    css = css.replace(
-                        /body\{[^}]*\}/,
-                        ""
-                    );
-
-
-                    const styleTag =
-                        document.createElement("style");
-
+                    let css = parsedStyle.textContent;
+                    css = css.replace(/:root\{[^}]*\}/, "");
+                    css = css.replace(/\*\{box-sizing:border-box;\}/, "");
+                    css = css.replace(/html,body\{margin:0;padding:0;\}/, "");
+                    css = css.replace(/body\{[^}]*\}/, "");
+                    const styleTag = document.createElement("style");
                     styleTag.textContent = css;
-
-                    document.head.appendChild(
-                        styleTag
-                    );
+                    document.head.appendChild(styleTag);
                 }
 
-
-                /*
-                 * Execute wallet-ledger.html script.
-                 */
-
-                const parsedScript =
-                    parsed.querySelector("script");
-
-
+                const parsedScript = parsed.querySelector("script");
                 if (parsedScript) {
-                    const newScript =
-                        document.createElement("script");
-
-                    newScript.textContent =
-                        parsedScript.textContent;
-
-                    document.body.appendChild(
-                        newScript
-                    );
+                    const newScript = document.createElement("script");
+                    newScript.textContent = parsedScript.textContent;
+                    document.body.appendChild(newScript);
                 }
             })
             .catch(error => {
-                console.error(
-                    "Failed to load wallet-ledger.html:",
-                    error
-                );
+                console.error("Failed to load wallet-ledger.html:", error);
             });
     </script>
 
