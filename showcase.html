@@ -70,6 +70,14 @@
         cursor: pointer;
     }
 
+    .showcase-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
     .showcase-face {
         position: absolute;
         inset: 0;
@@ -319,6 +327,14 @@
         background: #0A0A0A;
     }
 
+    .overlay-img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
     .overlay-face {
         position: absolute;
         inset: 0;
@@ -419,6 +435,7 @@
 
 <div class="showcase empty" id="showcase">
     <div class="showcase-card" id="showcaseCard">
+        <img class="showcase-img" id="showcaseImg" alt="" style="display:none;">
         <div class="showcase-face"></div>
     </div>
 
@@ -450,6 +467,7 @@
         <button class="overlay-close" id="overlayClose">&times;</button>
 
         <div class="overlay-card" id="overlayCard">
+            <img class="overlay-img" id="overlayImg" alt="" style="display:none;">
             <div class="overlay-face" id="overlayFace">
                 <span class="overlay-tier" id="overlayTier"></span>
                 <div class="overlay-name" id="overlayName"></div>
@@ -491,6 +509,16 @@
         document.getElementById("showcaseDeck").textContent = card.deck;
         document.getElementById("showcaseTier").textContent = card.tier;
 
+        const showcaseImg = document.getElementById("showcaseImg");
+        if (card.image) {
+            showcaseImg.src = card.image;
+            showcaseImg.alt = card.name;
+            showcaseImg.style.display = "";
+        } else {
+            showcaseImg.removeAttribute("src");
+            showcaseImg.style.display = "none";
+        }
+
         if (typeof window.onCardSelected === "function") {
             window.onCardSelected(card);
         }
@@ -511,6 +539,16 @@
         document.getElementById("overlayName").textContent = selectedCard.name;
         document.getElementById("overlayDeck").textContent = selectedCard.deck;
         document.getElementById("overlayTier").textContent = selectedCard.tier;
+
+        const overlayImg = document.getElementById("overlayImg");
+        if (selectedCard.image) {
+            overlayImg.src = selectedCard.image;
+            overlayImg.alt = selectedCard.name;
+            overlayImg.style.display = "";
+        } else {
+            overlayImg.removeAttribute("src");
+            overlayImg.style.display = "none";
+        }
 
         document.getElementById("cardOverlay").classList.add("show");
     }
