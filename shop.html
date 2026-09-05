@@ -903,10 +903,15 @@
         /* ==========================================================
            ADD DRAWN CARD TO PLAYER INVENTORY
 
-           The player receives the actual card that was drawn.
-           card.card_number comes from that drawn decks row.
+           player_inventory is now: one row per player, one real
+           column per card (card_1, card_2, ... card_555). Every
+           player row already has all 555 columns present (they
+           default to [false,0,false,false,0]), so this is always
+           an UPDATE — no insert branch needed.
 
-           Inventory structure:
+           card.card_number comes from the drawn decks row.
+
+           Column value structure:
            [ owned, quantity, active, equipped, fusion_count ]
            ========================================================== */
 
@@ -920,46 +925,42 @@
             }
 
             /*
-             * Card number 1 → card_001
-             * Card number 2 → card_002
-             * Card number 3 → card_003
+             * Card number 1 → card_1
+             * Card number 2 → card_2
+             * No zero-padding — matches the real column names.
              */
 
-            const cardKey =
-                `card_${String(card.card_number).padStart(3, "0")}`;
+            const columnName =
+                `card_${card.card_number}`;
 
 
             /*
-             * Get this player's existing inventory.
+             * Read just this one card's current column value
+             * for this player.
              */
 
-            const inventoryResult =
+            const columnResult =
                 await client
                     .from("player_inventory")
-                    .select("inventory")
+                    .select(columnName)
                     .eq("player_id", playerId)
                     .maybeSingle();
 
 
-            if (inventoryResult.error) {
+            if (columnResult.error) {
                 console.error(
-                    "player_inventory lookup failed:",
-                    inventoryResult.error
+                    "player_inventory column read failed:",
+                    columnResult.error
                 );
 
-                throw inventoryResult.error;
+                throw columnResult.error;
             }
 
 
-            /*
-             * Existing inventory or empty inventory.
-             */
-
-            const inventory =
-                inventoryResult.data?.inventory &&
-                typeof inventoryResult.data.inventory === "object"
-                    ? { ...inventoryResult.data.inventory }
-                    : {};
+            const existing =
+                columnResult.data
+                    ? columnResult.data[columnName]
+                    : null;
 
 
             /*
@@ -970,12 +971,11 @@
              * Only quantity changes when another copy is drawn.
              */
 
-            if (Array.isArray(inventory[cardKey])) {
+            let updatedEntry;
 
-                const existing =
-                    inventory[cardKey];
+            if (Array.isArray(existing)) {
 
-                inventory[cardKey] = [
+                updatedEntry = [
                     true,
                     Number(existing[1] || 0) + 1,
                     Boolean(existing[2]),
@@ -989,7 +989,7 @@
                  * First copy of this card.
                  */
 
-                inventory[cardKey] = [
+                updatedEntry = [
                     true,
                     1,
                     false,
@@ -999,63 +999,28 @@
             }
 
 
-            /*
-             * Player already has an inventory row → UPDATE.
-             */
-
-            if (inventoryResult.data) {
-
-                const updateResult =
-                    await client
-                        .from("player_inventory")
-                        .update({
-                            inventory: inventory
-                        })
-                        .eq("player_id", playerId)
-                        .select()
-                        .single();
-
-
-                if (updateResult.error) {
-                    console.error(
-                        "player_inventory update failed:",
-                        updateResult.error
-                    );
-
-                    throw updateResult.error;
-                }
-
-
-                return updateResult.data;
-            }
-
-
-            /*
-             * Player has no inventory row yet → CREATE one.
-             */
-
-            const insertResult =
+            const updateResult =
                 await client
                     .from("player_inventory")
-                    .insert({
-                        player_id: playerId,
-                        inventory: inventory
+                    .update({
+                        [columnName]: updatedEntry
                     })
+                    .eq("player_id", playerId)
                     .select()
                     .single();
 
 
-            if (insertResult.error) {
+            if (updateResult.error) {
                 console.error(
-                    "player_inventory insert failed:",
-                    insertResult.error
+                    "player_inventory update failed:",
+                    updateResult.error
                 );
 
-                throw insertResult.error;
+                throw updateResult.error;
             }
 
 
-            return insertResult.data;
+            return updateResult.data;
         }
 
 
