@@ -511,11 +511,39 @@
         let activeFilter = "all";
         let currentSelectedId = null;
 
-        // player_inventory is now: one row per player, one column per
-        // card (card_1, card_2, ... card_555). Each cell holds
-        // [owned, quantity, active, equipped, fusion_count] for that
-        // player+card pair. Read the whole row and pull each card's
-        // value straight off its own column — no JSON key lookup.
+        // player_inventory: one row per player, one column per card
+        // (card_1, card_2, ... card_555). Each column is a fixed
+        // 7-character code, always populated, never null:
+        //   position 1: Y/N   owned
+        //   positions 2-4: 3-digit quantity, zero-padded (e.g. "001")
+        //   position 5: Y/N   active
+        //   position 6: Y/N   equipped
+        //   position 7: Y/N   fused
+        // Example: "Y001YYY" = owned, qty 001, active, equipped, fused.
+        // Default/unowned value: "N000NNN".
+
+        function decodeCardCode(code) {
+            const safe = code || "N000NNN";
+
+            return {
+                owned: safe[0] === "Y",
+                quantity: parseInt(safe.slice(1, 4), 10) || 0,
+                active: safe[4] === "Y",
+                equipped: safe[5] === "Y",
+                fused: safe[6] === "Y"
+            };
+        }
+
+        function encodeCardCode({ owned, quantity, active, equipped, fused }) {
+            const ownedChar = owned ? "Y" : "N";
+            const qtyStr = String(Math.max(0, quantity || 0)).padStart(3, "0").slice(-3);
+            const activeChar = active ? "Y" : "N";
+            const equippedChar = equipped ? "Y" : "N";
+            const fusedChar = fused ? "Y" : "N";
+
+            return ownedChar + qtyStr + activeChar + equippedChar + fusedChar;
+        }
+
         async function loadCollectionCards() {
             const client = walletClient();
             const playerId = window.walletRow.id;
@@ -542,13 +570,8 @@
             return (deckRows || []).map((deck) => {
                 const cardNumber = deck.card_number;
                 const columnName = "card_" + cardNumber;
-                const entry = invRow ? invRow[columnName] : null; // [owned, quantity, active, equipped, fusion_count]
-
-                const owned = !!(entry && entry[0]);
-                const quantity = entry ? entry[1] : 0;
-                const active = entry ? !!entry[2] : false;
-                const equipped = entry ? !!entry[3] : false;
-                const fusionCount = entry ? entry[4] : 0;
+                const code = invRow ? invRow[columnName] : null;
+                const decoded = decodeCardCode(code);
 
                 return {
                     id: cardNumber,
@@ -557,20 +580,20 @@
                     deck: deck.deck,
                     image: deck.image,
                     tier: (deck.current_tier || "common").toLowerCase(),
-                    owned,
-                    quantity,
-                    active,
-                    equipped,
-                    fusion_count: fusionCount
+                    owned: decoded.owned,
+                    quantity: decoded.quantity,
+                    active: decoded.active,
+                    equipped: decoded.equipped,
+                    fused: decoded.fused
                 };
             });
         }
 
         // WRITE side — updates one card's column for this player.
         // Pass only the fields changing; anything omitted keeps its
-        // current value. Reads the current cell first so a partial
+        // current value. Reads the current code first so a partial
         // update (e.g. just toggling "equipped") doesn't clobber
-        // owned/quantity/active/fusion_count.
+        // owned/quantity/active/fused.
         async function updateCardEntry(playerId, cardNumber, updates) {
             const client = walletClient();
             const columnName = "card_" + cardNumber;
@@ -586,15 +609,15 @@
                 throw invErr;
             }
 
-            const existing = (invRow && invRow[columnName]) || [false, 0, false, false, 0];
+            const existing = decodeCardCode(invRow ? invRow[columnName] : null);
 
-            const merged = [
-                updates.owned !== undefined ? updates.owned : existing[0],
-                updates.quantity !== undefined ? updates.quantity : existing[1],
-                updates.active !== undefined ? updates.active : existing[2],
-                updates.equipped !== undefined ? updates.equipped : existing[3],
-                updates.fusion_count !== undefined ? updates.fusion_count : existing[4]
-            ];
+            const merged = encodeCardCode({
+                owned: updates.owned !== undefined ? updates.owned : existing.owned,
+                quantity: updates.quantity !== undefined ? updates.quantity : existing.quantity,
+                active: updates.active !== undefined ? updates.active : existing.active,
+                equipped: updates.equipped !== undefined ? updates.equipped : existing.equipped,
+                fused: updates.fused !== undefined ? updates.fused : existing.fused
+            });
 
             const { data, error } = await client
                 .from("player_inventory")
