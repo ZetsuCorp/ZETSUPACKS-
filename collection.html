@@ -523,7 +523,7 @@
             const { data: invRow, error: invErr } = await client
                 .from("player_inventory")
                 .select("*")
-                .eq("player", playerId)
+                .eq("player_id", playerId)
                 .maybeSingle();
 
             if (invErr) {
@@ -578,7 +578,7 @@
             const { data: invRow, error: invErr } = await client
                 .from("player_inventory")
                 .select(columnName)
-                .eq("player", playerId)
+                .eq("player_id", playerId)
                 .maybeSingle();
 
             if (invErr) {
@@ -599,7 +599,7 @@
             const { data, error } = await client
                 .from("player_inventory")
                 .update({ [columnName]: merged })
-                .eq("player", playerId)
+                .eq("player_id", playerId)
                 .select()
                 .single();
 
