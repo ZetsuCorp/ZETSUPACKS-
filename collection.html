@@ -501,8 +501,8 @@
 
     <!-- ============================================================
          REAL COLLECTION DATA — wallet_ledger (player id)
-         -> player_inventory (owned card numbers, keyed "card N")
-         -> decks (display info), matched per exact key
+         -> player_inventory (one real column per card: card_1..card_555)
+         -> decks (display info), matched by column name
          ============================================================ -->
 
     <script>
@@ -511,21 +511,24 @@
         let activeFilter = "all";
         let currentSelectedId = null;
 
+        // player_inventory is now: one row per player, one column per
+        // card (card_1, card_2, ... card_555). Each cell holds
+        // [owned, quantity, active, equipped, fusion_count] for that
+        // player+card pair. Read the whole row and pull each card's
+        // value straight off its own column — no JSON key lookup.
         async function loadCollectionCards() {
             const client = walletClient();
             const playerId = window.walletRow.id;
 
             const { data: invRow, error: invErr } = await client
                 .from("player_inventory")
-                .select("inventory")
+                .select("*")
                 .eq("player", playerId)
                 .maybeSingle();
 
             if (invErr) {
                 console.error("Failed to load player_inventory:", invErr);
             }
-
-            const inventory = (invRow && invRow.inventory) || {};
 
             const { data: deckRows, error: deckErr } = await client
                 .from("decks")
@@ -536,17 +539,16 @@
                 return [];
             }
 
-            // inventory keys are exactly "card <cardNumber>" — a space,
-            // not an underscore. Card 1 is "card 1", card 2 is "card 2".
-            // No zero-padding, no digit scanning across all keys.
-            // Look each deck card up directly.
             return (deckRows || []).map((deck) => {
                 const cardNumber = deck.card_number;
-                const key = "card " + cardNumber;
-                const entry = inventory[key]; // [owned, quantity, active, equipped, fusion_count]
+                const columnName = "card_" + cardNumber;
+                const entry = invRow ? invRow[columnName] : null; // [owned, quantity, active, equipped, fusion_count]
 
                 const owned = !!(entry && entry[0]);
                 const quantity = entry ? entry[1] : 0;
+                const active = entry ? !!entry[2] : false;
+                const equipped = entry ? !!entry[3] : false;
+                const fusionCount = entry ? entry[4] : 0;
 
                 return {
                     id: cardNumber,
@@ -556,9 +558,57 @@
                     image: deck.image,
                     tier: (deck.current_tier || "common").toLowerCase(),
                     owned,
-                    quantity
+                    quantity,
+                    active,
+                    equipped,
+                    fusion_count: fusionCount
                 };
             });
+        }
+
+        // WRITE side — updates one card's column for this player.
+        // Pass only the fields changing; anything omitted keeps its
+        // current value. Reads the current cell first so a partial
+        // update (e.g. just toggling "equipped") doesn't clobber
+        // owned/quantity/active/fusion_count.
+        async function updateCardEntry(playerId, cardNumber, updates) {
+            const client = walletClient();
+            const columnName = "card_" + cardNumber;
+
+            const { data: invRow, error: invErr } = await client
+                .from("player_inventory")
+                .select(columnName)
+                .eq("player", playerId)
+                .maybeSingle();
+
+            if (invErr) {
+                console.error("Failed to read " + columnName + ":", invErr);
+                throw invErr;
+            }
+
+            const existing = (invRow && invRow[columnName]) || [false, 0, false, false, 0];
+
+            const merged = [
+                updates.owned !== undefined ? updates.owned : existing[0],
+                updates.quantity !== undefined ? updates.quantity : existing[1],
+                updates.active !== undefined ? updates.active : existing[2],
+                updates.equipped !== undefined ? updates.equipped : existing[3],
+                updates.fusion_count !== undefined ? updates.fusion_count : existing[4]
+            ];
+
+            const { data, error } = await client
+                .from("player_inventory")
+                .update({ [columnName]: merged })
+                .eq("player", playerId)
+                .select()
+                .single();
+
+            if (error) {
+                console.error("Failed to write " + columnName + ":", error);
+                throw error;
+            }
+
+            return data;
         }
 
         function filteredCards() {
