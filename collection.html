@@ -568,7 +568,8 @@
 
             const { data: deckRows, error: deckErr } = await client
                 .from("decks")
-                .select("*");
+                .select("*")
+                .order("card_number", { ascending: true });
 
             if (deckErr) {
                 console.error("Failed to load decks:", deckErr);
