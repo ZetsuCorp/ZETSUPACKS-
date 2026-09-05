@@ -638,19 +638,11 @@
             }
 
             /*
-             * Buying is done as soon as we have a card.
-             * Reveal it immediately — nothing below this
-             * can hold up or interrupt that.
-             */
-
-            sessionStorage.setItem("zetsu_drawn_cards", JSON.stringify([card]));
-
-            window.location.href = `loading.html?pack=${encodeURIComponent(pack.id)}`;
-
-            /*
-             * Bookkeeping — runs after the redirect has already
-             * been issued. Any failure here only logs to console;
-             * it can never affect the purchase the player just made.
+             * Bookkeeping runs BEFORE the redirect. If the redirect
+             * fires first, the browser cancels any in-flight network
+             * requests still awaiting a response — which would kill
+             * these writes mid-request. Waiting for them here is what
+             * lets the leaderboard and inventory actually complete.
              */
 
             try {
@@ -659,6 +651,10 @@
             } catch (bookkeepingError) {
                 console.error("Post-purchase bookkeeping failed:", bookkeepingError);
             }
+
+            sessionStorage.setItem("zetsu_drawn_cards", JSON.stringify([card]));
+
+            window.location.href = `loading.html?pack=${encodeURIComponent(pack.id)}`;
         };
     </script>
 
