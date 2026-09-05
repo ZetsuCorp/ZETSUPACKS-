@@ -375,11 +375,37 @@
            here only logs to console; it never surfaces to the player.
 
            player_inventory: one row per player, one real column per
-           card (card_1, card_2, ... card_555).
-
-           Column value structure:
-           [ owned, quantity, active, equipped, fusion_count ]
+           card (card_1, card_2, ... card_555). Every column is a
+           fixed 7-character code, always populated:
+             position 1: Y/N   owned
+             positions 2-4: 3-digit quantity, zero-padded
+             position 5: Y/N   active
+             position 6: Y/N   equipped
+             position 7: Y/N   fused
+           Example: "Y001YYY". Default/unowned: "N000NNN".
            ========================================================== */
+
+        function decodeCardCode(code) {
+            const safe = code || "N000NNN";
+
+            return {
+                owned: safe[0] === "Y",
+                quantity: parseInt(safe.slice(1, 4), 10) || 0,
+                active: safe[4] === "Y",
+                equipped: safe[5] === "Y",
+                fused: safe[6] === "Y"
+            };
+        }
+
+        function encodeCardCode({ owned, quantity, active, equipped, fused }) {
+            const ownedChar = owned ? "Y" : "N";
+            const qtyStr = String(Math.max(0, quantity || 0)).padStart(3, "0").slice(-3);
+            const activeChar = active ? "Y" : "N";
+            const equippedChar = equipped ? "Y" : "N";
+            const fusedChar = fused ? "Y" : "N";
+
+            return ownedChar + qtyStr + activeChar + equippedChar + fusedChar;
+        }
 
         async function addCardToInventory(client, playerId, card) {
             if (!playerId) {
@@ -403,25 +429,19 @@
                 throw columnResult.error;
             }
 
-            const existing = columnResult.data ? columnResult.data[columnName] : null;
+            const existing = decodeCardCode(columnResult.data ? columnResult.data[columnName] : null);
 
-            let updatedEntry;
-
-            if (Array.isArray(existing)) {
-                updatedEntry = [
-                    true,
-                    Number(existing[1] || 0) + 1,
-                    Boolean(existing[2]),
-                    Boolean(existing[3]),
-                    Number(existing[4] || 0)
-                ];
-            } else {
-                updatedEntry = [true, 1, false, false, 0];
-            }
+            const updatedCode = encodeCardCode({
+                owned: true,
+                quantity: existing.quantity + 1,
+                active: existing.active,
+                equipped: existing.equipped,
+                fused: existing.fused
+            });
 
             const updateResult = await client
                 .from("player_inventory")
-                .update({ [columnName]: updatedEntry })
+                .update({ [columnName]: updatedCode })
                 .eq("player_id", playerId)
                 .select()
                 .single();
