@@ -43,6 +43,15 @@
             --hud-ink: #EDE6DC;
             --brass: #D4AF6A;
             --brass-dim: #8A7245;
+
+            /* Merged in from shop.html so wallet-ledger.html's
+               overlay/backdrop/close-X CSS (which references these
+               names) resolves identically on this page. */
+            --bg: #0A0A0A;
+            --panel: #141414;
+            --muted: #9A958E;
+            --mythic-c: #4FD1E5;
+            --danger: #E8636B;
         }
 
         * { box-sizing: border-box; }
@@ -376,10 +385,10 @@
             ];
 
             mount.innerHTML = `
-                <div class="brand">
+                <a class="brand" href="start.html">
                     <span class="mark">Zetsumetsu EOe</span>
                     <h1>ZETSU PACKZ</h1>
-                </div>
+                </a>
 
                 <nav>
                     ${pages.map(page => `
