@@ -307,8 +307,14 @@
         }
 
         .showcase-card[data-finish="spot"] .holo-layer.spot,
+        .showcase-card[data-finish="reverse"] .holo-layer.spot,
         .showcase-card[data-finish="reverse"] .holo-layer.reverse,
+        .showcase-card[data-finish="full"] .holo-layer.spot,
+        .showcase-card[data-finish="full"] .holo-layer.reverse,
         .showcase-card[data-finish="full"] .holo-layer.full,
+        .showcase-card[data-finish="prism"] .holo-layer.spot,
+        .showcase-card[data-finish="prism"] .holo-layer.reverse,
+        .showcase-card[data-finish="prism"] .holo-layer.full,
         .showcase-card[data-finish="prism"] .holo-layer.prism {
             opacity: 1;
         }
@@ -1314,7 +1320,7 @@
         }
 
         function maybeTriggerElectric() {
-            if (parseInt(showcase.dataset.fxLevel, 10) > 2) return;
+            if (parseInt(showcase.dataset.fxLevel, 10) > 5) return;
 
             const now = performance.now();
             if (now - lastZapTime < ZAP_THROTTLE_MS) return;
@@ -1450,7 +1456,7 @@
         function scheduleContainerFlash() {
             const nextDelay = 4000 + Math.random() * 6000; // every 4-10s
             setTimeout(() => {
-                if (parseInt(showcase.dataset.fxLevel, 10) <= 2) {
+                if (parseInt(showcase.dataset.fxLevel, 10) <= 5) {
                     containerFlash.classList.remove("flash-active");
                     void containerFlash.offsetWidth;
                     containerFlash.classList.add("flash-active");
@@ -1510,7 +1516,7 @@
         function scheduleForegroundSpark() {
             const nextDelay = 3000 + Math.random() * 4000; // every 3-7s, independent of the container flash
             setTimeout(() => {
-                if (parseInt(showcase.dataset.fxLevel, 10) <= 2) {
+                if (parseInt(showcase.dataset.fxLevel, 10) <= 5) {
                     triggerForegroundSpark();
                 }
                 scheduleForegroundSpark();
