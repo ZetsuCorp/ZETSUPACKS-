@@ -122,66 +122,56 @@
             perspective: 900px;
         }
 
-        /* JACKET EFFECT — level 3+. A swoosh shape wrapping around
-           the card's edges, split into a back layer (behind the
-           card) and a front layer (in front of it), so together
-           they read as one shape hugging the card. Hidden until
-           triggered by a strong tilt movement — not always visible,
-           so it doesn't clutter the screen. */
-        .jacket {
+        /* ============================================================
+           AFFECTS — move-triggered hit/swipe effects. NOT part of
+           the card object. One "jacket" swipe object, split into a
+           behind-half and a front-half so it visually wraps a
+           corner (same relationship as the old jacket back/front),
+           but the shape itself is now a painterly slash/streak, not
+           a geometric crescent, and it owns its own random corner
+           placement independent of the card's own tilt transform.
+           Fires as a reaction to card movement, not a static asset.
+           ============================================================ */
+
+        .affects-swipe {
             position: absolute;
-            width: 85px;
-            height: 85px;
+            width: 130px;
+            height: 130px;
+            left: var(--sx, 50%);
+            top: var(--sy, 50%);
             opacity: 0;
             pointer-events: none;
+            transform: translate(-50%, -50%) rotate(var(--srot, 0deg)) scaleX(var(--sflip, 1)) scale(0.8);
         }
 
-        .jacket svg {
+        .affects-swipe svg {
             width: 100%;
             height: 100%;
             overflow: visible;
         }
 
-        .jacket-back {
+        .affects-behind {
             z-index: 1;
-            bottom: -14px;
-            left: -18px;
-            transform: rotate(20deg);
+            width: 220px;
+            height: 220px;
         }
 
-        .jacket-front {
+        .affects-front {
             z-index: 3;
-            top: -14px;
-            right: -18px;
-            transform: rotate(200deg);
         }
 
-        #cardStage:not(.jacket-enabled) .jacket {
+        #cardStage:not(.jacket-enabled) .affects-swipe {
             display: none;
         }
 
-        .jacket.jacket-swoosh {
-            animation: jacket-swoosh-anim 0.5s ease-out;
+        .affects-swipe.swipe-fire {
+            animation: affects-swipe-anim 0.55s ease-out;
         }
 
-        .jacket-back.jacket-swoosh {
-            animation-name: jacket-swoosh-anim-back;
-        }
-
-        .jacket-front.jacket-swoosh {
-            animation-name: jacket-swoosh-anim-front;
-        }
-
-        @keyframes jacket-swoosh-anim-back {
-            0%   { opacity: 0; transform: rotate(20deg) scale(0.8); }
-            35%  { opacity: 1; transform: rotate(20deg) scale(1.1); }
-            100% { opacity: 0; transform: rotate(20deg) scale(1.2); }
-        }
-
-        @keyframes jacket-swoosh-anim-front {
-            0%   { opacity: 0; transform: rotate(200deg) scale(0.8); }
-            35%  { opacity: 1; transform: rotate(200deg) scale(1.1); }
-            100% { opacity: 0; transform: rotate(200deg) scale(1.2); }
+        @keyframes affects-swipe-anim {
+            0%   { opacity: 0;   transform: translate(-50%, -50%) rotate(var(--srot, 0deg)) scaleX(var(--sflip, 1)) scale(0.72); }
+            30%  { opacity: 1;   transform: translate(-50%, -50%) rotate(var(--srot, 0deg)) scaleX(var(--sflip, 1)) scale(1.02); }
+            100% { opacity: 0;   transform: translate(-50%, -50%) rotate(var(--srot, 0deg)) scaleX(var(--sflip, 1)) scale(1.3); }
         }
 
         /* Fusion level badge — sits OUTSIDE the card's top-right
@@ -221,6 +211,7 @@
 
         .showcase-card {
             position: relative;
+            z-index: 2;
             width: 100%;
             height: 100%;
 
@@ -704,25 +695,39 @@
         <div class="showcase" id="showcase" data-fx-level="3">
             <div class="card-stage" id="cardStage">
 
-                <!-- JACKET EFFECT — behind layer. A small crescent
-                     slash near a corner, behind the card. Fires on
-                     strong tilt movement, not constantly visible. -->
-                <div class="jacket jacket-back" id="jacketBack">
-                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- AFFECTS — behind half. Same object as the front
+                     half below (see Affects module); rendered here
+                     purely so it paints behind the card art. Shape
+                     and position are set entirely by JS at fire
+                     time, not hardcoded here. -->
+                <div class="affects-swipe affects-behind" id="affectsBehind">
+                    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <linearGradient id="jacketGradBack" x1="0%" y1="100%" x2="100%" y2="0%">
+                            <filter id="swipeBlurBehind" x="-80%" y="-80%" width="260%" height="260%">
+                                <feGaussianBlur stdDeviation="3.5" />
+                            </filter>
+                            <linearGradient id="swipeCoreGradBehind" x1="0%" y1="100%" x2="100%" y2="0%">
                                 <stop offset="0%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
-                                <stop offset="45%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0.9" />
-                                <stop offset="70%" stop-color="#FFFFFF" stop-opacity="0.95" />
+                                <stop offset="35%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0.85" />
+                                <stop offset="65%" stop-color="#FFFFFF" stop-opacity="0.95" />
                                 <stop offset="100%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
                             </linearGradient>
+                            <linearGradient id="swipeFadeMaskBehind" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#000" />
+                                <stop offset="15%" stop-color="#FFF" />
+                                <stop offset="85%" stop-color="#FFF" />
+                                <stop offset="100%" stop-color="#000" />
+                            </linearGradient>
+                            <mask id="swipeFadeBehind">
+                                <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" stroke="url(#swipeFadeMaskBehind)" stroke-width="34" fill="none" stroke-linecap="round" />
+                            </mask>
                         </defs>
-                        <!-- classic crescent-moon shape: outer arc minus
-                             an offset inner arc, tapering to two points -->
-                        <path
-                            d="M 15 85 A 55 55 0 1 1 85 15 A 46 46 0 1 0 15 85 Z"
-                            fill="url(#jacketGradBack)"
-                        />
+                        <g mask="url(#swipeFadeBehind)">
+                            <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" filter="url(#swipeBlurBehind)" stroke="var(--tier-a, var(--brass))" stroke-width="18" opacity="0.4" fill="none" stroke-linecap="round" />
+                            <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" stroke="url(#swipeCoreGradBehind)" stroke-width="7" fill="none" stroke-linecap="round" />
+                            <path d="M 20 92 Q 12 52 40 24" stroke="#FFFFFF" stroke-width="1.4" opacity="0.5" fill="none" stroke-linecap="round" />
+                            <path d="M 30 30 Q 60 10 98 22" stroke="#FFFFFF" stroke-width="1" opacity="0.35" fill="none" stroke-linecap="round" />
+                        </g>
                     </svg>
                 </div>
 
@@ -808,24 +813,36 @@
                     </div>
                 </div>
 
-                <!-- JACKET EFFECT — front layer. A small crescent
-                     slash near the opposite corner, in front of the
-                     card, so the two accents sit diagonally across
-                     from each other. -->
-                <div class="jacket jacket-front" id="jacketFront">
-                    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- AFFECTS — front half. Same object as the behind
+                     half above; paints in front of the card art. -->
+                <div class="affects-swipe affects-front" id="affectsFront">
+                    <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <linearGradient id="jacketGradFront" x1="100%" y1="0%" x2="0%" y2="100%">
+                            <filter id="swipeBlurFront" x="-80%" y="-80%" width="260%" height="260%">
+                                <feGaussianBlur stdDeviation="3.5" />
+                            </filter>
+                            <linearGradient id="swipeCoreGradFront" x1="0%" y1="100%" x2="100%" y2="0%">
                                 <stop offset="0%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
-                                <stop offset="45%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0.9" />
-                                <stop offset="70%" stop-color="#FFFFFF" stop-opacity="0.95" />
+                                <stop offset="35%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0.85" />
+                                <stop offset="65%" stop-color="#FFFFFF" stop-opacity="0.95" />
                                 <stop offset="100%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
                             </linearGradient>
+                            <linearGradient id="swipeFadeMaskFront" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#000" />
+                                <stop offset="15%" stop-color="#FFF" />
+                                <stop offset="85%" stop-color="#FFF" />
+                                <stop offset="100%" stop-color="#000" />
+                            </linearGradient>
+                            <mask id="swipeFadeFront">
+                                <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" stroke="url(#swipeFadeMaskFront)" stroke-width="34" fill="none" stroke-linecap="round" />
+                            </mask>
                         </defs>
-                        <path
-                            d="M 15 85 A 55 55 0 1 1 85 15 A 46 46 0 1 0 15 85 Z"
-                            fill="url(#jacketGradFront)"
-                        />
+                        <g mask="url(#swipeFadeFront)">
+                            <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" filter="url(#swipeBlurFront)" stroke="var(--tier-a, var(--brass))" stroke-width="18" opacity="0.4" fill="none" stroke-linecap="round" />
+                            <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" stroke="url(#swipeCoreGradFront)" stroke-width="7" fill="none" stroke-linecap="round" />
+                            <path d="M 20 92 Q 12 52 40 24" stroke="#FFFFFF" stroke-width="1.4" opacity="0.5" fill="none" stroke-linecap="round" />
+                            <path d="M 30 30 Q 60 10 98 22" stroke="#FFFFFF" stroke-width="1" opacity="0.35" fill="none" stroke-linecap="round" />
+                        </g>
                     </svg>
                 </div>
             </div>
@@ -974,10 +991,55 @@
         const showcase = document.getElementById("showcase");
         const cardStage = document.getElementById("cardStage");
         const showcaseCard = document.getElementById("showcaseCard");
-        const jacketBack = document.getElementById("jacketBack");
-        const jacketFront = document.getElementById("jacketFront");
         const showcaseTier = document.getElementById("showcaseTier");
         const electricLayer = showcaseCard.querySelector(".holo-layer.electric");
+    </script>
+
+    <!-- ============================================================
+         AFFECTS — standalone move-triggered hit/swipe system.
+         Deliberately separate from the tilt/pointer code below:
+         this module owns nothing about the card's own transform.
+         It only reacts to a movement signal fed in from outside
+         and picks its own random corner/orientation each time.
+         ============================================================ -->
+
+    <script>
+        const Affects = (() => {
+            const behindEl = document.getElementById("affectsBehind");
+            const frontEl = document.getElementById("affectsFront");
+
+            // Corners the swipe object can wrap around. rot is tuned
+            // per corner so the slash shape reads correctly against
+            // that corner instead of pointing off into empty space.
+            const CORNERS = [
+                { x: 8,  y: 12, rot: 0 },
+                { x: 92, y: 12, rot: 90 },
+                { x: 8,  y: 88, rot: -90 },
+                { x: 92, y: 88, rot: 180 }
+            ];
+
+            function fire() {
+                const corner = CORNERS[Math.floor(Math.random() * CORNERS.length)];
+                const flip = Math.random() < 0.5 ? 1 : -1;
+
+                // Both halves anchor to the SAME corner/orientation —
+                // one object wrapping that corner. Behind is just a
+                // bigger element (see CSS), so more of it clears the
+                // card's opaque body from the same anchor point.
+                [behindEl, frontEl].forEach((el) => {
+                    el.style.setProperty("--sx", corner.x + "%");
+                    el.style.setProperty("--sy", corner.y + "%");
+                    el.style.setProperty("--srot", corner.rot + "deg");
+                    el.style.setProperty("--sflip", flip);
+
+                    el.classList.remove("swipe-fire");
+                    void el.offsetWidth;
+                    el.classList.add("swipe-fire");
+                });
+            }
+
+            return { fire };
+        })();
     </script>
 
     <!-- ============================================================
@@ -1268,30 +1330,34 @@
             }
         }
 
-        let lastJacketRx = 0;
-        let lastJacketRy = 0;
-        let lastJacketSwooshTime = 0;
-        const JACKET_SWOOSH_THROTTLE_MS = 500;
-        const JACKET_MOVE_THRESHOLD_DEG = 6;
+        // Duration-based, not delta-based: fires repeatedly for as
+        // long as the pointer keeps moving, stops shortly after it
+        // stops. A single per-event delta check only ever catches
+        // the initial jump into the card, not ongoing motion.
+        let affectsFireInterval = null;
+        let affectsIdleTimer = null;
+        const AFFECTS_IDLE_MS = 150;         // no movement for this long = considered stopped
+        const AFFECTS_FIRE_INTERVAL_MS = 420; // how often it re-fires WHILE still moving
 
-        function maybeTriggerJacketSwoosh(rx, ry) {
+        function markCardMovingForAffects() {
             if (!cardStage.classList.contains("jacket-enabled")) return;
 
-            const delta = Math.abs(rx - lastJacketRx) + Math.abs(ry - lastJacketRy);
-            lastJacketRx = rx;
-            lastJacketRy = ry;
+            if (!affectsFireInterval) {
+                Affects.fire();
+                affectsFireInterval = setInterval(() => Affects.fire(), AFFECTS_FIRE_INTERVAL_MS);
+            }
 
-            if (delta < JACKET_MOVE_THRESHOLD_DEG) return;
+            clearTimeout(affectsIdleTimer);
+            affectsIdleTimer = setTimeout(() => {
+                clearInterval(affectsFireInterval);
+                affectsFireInterval = null;
+            }, AFFECTS_IDLE_MS);
+        }
 
-            const now = performance.now();
-            if (now - lastJacketSwooshTime < JACKET_SWOOSH_THROTTLE_MS) return;
-            lastJacketSwooshTime = now;
-
-            [jacketBack, jacketFront].forEach((el) => {
-                el.classList.remove("jacket-swoosh");
-                void el.offsetWidth;
-                el.classList.add("jacket-swoosh");
-            });
+        function stopAffectsMovement() {
+            clearTimeout(affectsIdleTimer);
+            clearInterval(affectsFireInterval);
+            affectsFireInterval = null;
         }
 
         function updateFromPointer(clientX, clientY) {
@@ -1317,10 +1383,11 @@
             showcaseCard.style.setProperty("--card-scale", "1.03");
 
             maybeTriggerElectric();
-            maybeTriggerJacketSwoosh(rx, ry);
+            markCardMovingForAffects();
         }
 
         function resetTilt() {
+            stopAffectsMovement();
             showcaseCard.classList.add("settling");
             showcaseCard.style.setProperty("--px", "15%");
             showcaseCard.style.setProperty("--py", "20%");
