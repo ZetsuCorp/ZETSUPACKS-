@@ -311,11 +311,7 @@
         .showcase-card[data-finish="reverse"] .holo-layer.reverse,
         .showcase-card[data-finish="full"] .holo-layer.spot,
         .showcase-card[data-finish="full"] .holo-layer.reverse,
-        .showcase-card[data-finish="full"] .holo-layer.full,
-        .showcase-card[data-finish="prism"] .holo-layer.spot,
-        .showcase-card[data-finish="prism"] .holo-layer.reverse,
-        .showcase-card[data-finish="prism"] .holo-layer.full,
-        .showcase-card[data-finish="prism"] .holo-layer.prism {
+        .showcase-card[data-finish="full"] .holo-layer.full {
             opacity: 1;
         }
 
@@ -391,25 +387,6 @@
             background-position: var(--px, 50%) var(--py, 50%);
         }
 
-        /* Layer 4 — Prism / Refractor: hard diagonal bands, faster shift, sharper edges */
-        .holo-layer.prism {
-            background:
-                repeating-linear-gradient(
-                    115deg,
-                    rgba(255,80,180,.9) 0%,
-                    rgba(255,80,180,.9) 6%,
-                    rgba(255,210,80,.9) 6%,
-                    rgba(255,210,80,.9) 12%,
-                    rgba(110,255,180,.9) 12%,
-                    rgba(110,255,180,.9) 18%,
-                    rgba(100,170,255,.9) 18%,
-                    rgba(100,170,255,.9) 24%
-                );
-            background-size: 220% 220%;
-            background-position: var(--px, 50%) var(--py, 50%);
-            mix-blend-mode: hard-light;
-        }
-
         /* Base level (no fusion yet) — a calculated electric formation:
            one path travels from a defined anchor (an edge or center)
            to another, with sharp jagged spark kinks along the way,
@@ -432,14 +409,64 @@
             z-index: 10;
         }
 
-        .holo-layer.foreground-spark svg {
-            width: 180%;
-            height: 180%;
-            overflow: visible;
-        }
-
         .arc-path {
             opacity: 0;
+        }
+
+        /* ============================================================
+           RIPPLE FIELD — level 5's own effect. Dense field of tightly
+           packed concentric rings (repeating-radial-gradient, not
+           separate ring elements) with a light/tier-color/dark cycle
+           per ring to fake the embossed grooved look from reference.
+           Reveals from the CENTER outward via an animated mask —
+           the ring pattern itself is static, what animates is a
+           growing circular reveal, so it reads as originating at
+           center and expanding, not appearing all at once.
+           Own object, lives behind the card, tied to movement duration.
+           ============================================================ */
+
+        @property --reveal-radius {
+            syntax: '<length>';
+            inherits: false;
+            initial-value: 0px;
+        }
+
+        .ripple-field {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 480px;
+            height: 480px;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            pointer-events: none;
+            border-radius: 50%;
+            background: repeating-radial-gradient(
+                circle at center,
+                rgba(255,255,255,0.30) 0px,
+                var(--tier-a, var(--brass)) 5px,
+                rgba(0,0,0,0.35) 10px,
+                rgba(255,255,255,0.30) 15px
+            );
+            -webkit-mask-image: radial-gradient(circle at center, #000 var(--reveal-radius, 0px), transparent calc(var(--reveal-radius, 0px) + 60px));
+            mask-image: radial-gradient(circle at center, #000 var(--reveal-radius, 0px), transparent calc(var(--reveal-radius, 0px) + 60px));
+            --reveal-radius: 0px;
+            opacity: 0;
+        }
+
+        .ripple-field:not(.ripple-enabled) {
+            display: none;
+        }
+
+        .ripple-field.rippling {
+            animation: ripple-reveal 2.2s cubic-bezier(0.25, 0.1, 0.25, 1) infinite alternate;
+        }
+
+        @keyframes ripple-reveal {
+            0%   { --reveal-radius: 0px;   opacity: 0; }
+            25%  { opacity: 0.5; }
+            75%  { opacity: 0.4; }
+            100% { --reveal-radius: 260px; opacity: 0; }
         }
 
         .showcase-platform {
@@ -701,6 +728,9 @@
         <div class="showcase" id="showcase" data-fx-level="3">
             <div class="card-stage" id="cardStage">
 
+                <!-- RIPPLE FIELD — level 5's own object, behind the card -->
+                <div class="ripple-field" id="rippleField"></div>
+
                 <!-- AFFECTS — behind half. Same object as the front
                      half below (see Affects module); rendered here
                      purely so it paints behind the card art. Shape
@@ -748,7 +778,6 @@
                     </div>
                     <div class="holo-layer reverse"></div>
                     <div class="holo-layer full"></div>
-                    <div class="holo-layer prism"></div>
                     <div class="holo-layer electric" id="electricLayer">
                         <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
                             <defs>
@@ -962,7 +991,7 @@
                 <button class="level-btn" data-level="2">2 · Spot Holo</button>
                 <button class="level-btn" data-level="3">3 · Reverse Holo</button>
                 <button class="level-btn" data-level="4">4 · Full Holo</button>
-                <button class="level-btn" data-level="5">5 · Prism</button>
+                <button class="level-btn" data-level="5">5</button>
             </div>
 
             <button class="stop-btn" id="stopBtn">Stop Fuse Effect</button>
@@ -991,13 +1020,14 @@
             "2": "spot",
             "3": "reverse",
             "4": "full",
-            "5": "prism"
+            "5": "full"
         };
 
         const showcase = document.getElementById("showcase");
         const cardStage = document.getElementById("cardStage");
         const showcaseCard = document.getElementById("showcaseCard");
         const showcaseTier = document.getElementById("showcaseTier");
+        const rippleField = document.getElementById("rippleField");
         const electricLayer = showcaseCard.querySelector(".holo-layer.electric");
     </script>
 
@@ -1066,6 +1096,7 @@
             showcase.dataset.fxLevel = level;
             showcaseCard.dataset.finish = LEVEL_FINISH[level];
             cardStage.classList.toggle("jacket-enabled", parseInt(level, 10) >= 3);
+            rippleField.classList.toggle("ripple-enabled", parseInt(level, 10) >= 5);
 
             const badgeNum = document.getElementById("fusionBadgeNum");
             if (badgeNum) badgeNum.textContent = level;
@@ -1366,6 +1397,25 @@
             affectsFireInterval = null;
         }
 
+        // RIPPLE FIELD — separate object, separate module.
+        let rippleIdleTimer = null;
+
+        function markCardMovingForRipple() {
+            if (!rippleField.classList.contains("ripple-enabled")) return;
+
+            rippleField.classList.add("rippling");
+
+            clearTimeout(rippleIdleTimer);
+            rippleIdleTimer = setTimeout(() => {
+                rippleField.classList.remove("rippling");
+            }, AFFECTS_IDLE_MS);
+        }
+
+        function stopRippleMovement() {
+            clearTimeout(rippleIdleTimer);
+            rippleField.classList.remove("rippling");
+        }
+
         function updateFromPointer(clientX, clientY) {
             const rect = showcaseCard.getBoundingClientRect();
 
@@ -1390,10 +1440,12 @@
 
             maybeTriggerElectric();
             markCardMovingForAffects();
+            markCardMovingForRipple();
         }
 
         function resetTilt() {
             stopAffectsMovement();
+            stopRippleMovement();
             showcaseCard.classList.add("settling");
             showcaseCard.style.setProperty("--px", "15%");
             showcaseCard.style.setProperty("--py", "20%");
