@@ -1,6 +1,6 @@
 <style>
     /* ============================================================
-       SHOWCASE — the pedestal display for the selected card.
+       SHOWCASE — pedestal + reactive card stage (fusion version)
        ============================================================ */
 
     .showcase {
@@ -43,15 +43,126 @@
         background: radial-gradient(ellipse 55% 50% at 50% 38%, var(--tier-a), transparent 72%);
         opacity: .22;
 
-        transition: background .3s ease;
+        transition: background .3s ease, opacity .3s ease;
     }
 
-    .showcase-card {
+    /* ---- empty state (restored from old showcase) ---- */
+
+    .showcase.empty .card-stage,
+    .showcase.empty .showcase-platform,
+    .showcase.empty .showcase-fuse-btn,
+    .showcase.empty .fusion-badge {
+        display: none;
+    }
+
+    .showcase-empty-note {
+        position: relative;
+        z-index: 2;
+        display: none;
+        color: var(--ink-muted);
+        font-size: 13px;
+        padding: 30px 0;
+    }
+
+    .showcase.empty .showcase-empty-note {
+        display: block;
+    }
+
+    /* ============================================================
+       CARD STAGE — perspective wrapper for the 3D tilt
+       ============================================================ */
+
+    .card-stage {
         position: relative;
         z-index: 2;
 
         width: 190px;
         aspect-ratio: 5 / 7;
+
+        margin-bottom: -30px;
+
+        perspective: 900px;
+    }
+
+    /* ============================================================
+       AFFECTS — move-triggered swipe effects
+       ============================================================ */
+
+    .affects-swipe {
+        position: absolute;
+        width: 130px;
+        height: 130px;
+        left: var(--sx, 50%);
+        top: var(--sy, 50%);
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, -50%) rotate(var(--srot, 0deg)) scaleX(var(--sflip, 1)) scale(0.8);
+    }
+
+    .affects-swipe svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+
+    .affects-behind {
+        z-index: 1;
+        width: 220px;
+        height: 220px;
+    }
+
+    .affects-front {
+        z-index: 3;
+    }
+
+    #cardStage:not(.jacket-enabled) .affects-swipe {
+        display: none;
+    }
+
+    .affects-swipe.swipe-fire {
+        animation: affects-swipe-anim 0.55s ease-out;
+    }
+
+    @keyframes affects-swipe-anim {
+        0%   { opacity: 0;   transform: translate(-50%, -50%) rotate(var(--srot, 0deg)) scaleX(var(--sflip, 1)) scale(0.72); }
+        30%  { opacity: 1;   transform: translate(-50%, -50%) rotate(var(--srot, 0deg)) scaleX(var(--sflip, 1)) scale(1.02); }
+        100% { opacity: 0;   transform: translate(-50%, -50%) rotate(var(--srot, 0deg)) scaleX(var(--sflip, 1)) scale(1.3); }
+    }
+
+    .fusion-badge {
+        position: absolute;
+        top: 150px;
+        right: 75px;
+        z-index: 10;
+        pointer-events: none;
+    }
+
+    .fusion-badge-svg {
+        width: 74px;
+        height: 37px;
+        filter: drop-shadow(0 0 3px rgba(0,0,0,.6));
+    }
+
+    .fusion-badge-infinity {
+        stroke: #FFFFFF;
+        stroke-width: 6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .fusion-badge-text {
+        font-family: 'Karla', sans-serif;
+        font-size: 13px;
+        font-weight: 800;
+        fill: var(--ink);
+        text-anchor: middle;
+    }
+
+    .showcase-card {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
 
         border-radius: 10px;
         overflow: hidden;
@@ -61,16 +172,21 @@
             0 0 46px -6px var(--tier-a),
             0 22px 40px rgba(0,0,0,.6);
 
-        margin-bottom: -30px;
-
         background: #0A0A0A;
 
-        transition: border-color .3s ease, box-shadow .3s ease;
-
         cursor: pointer;
+
+        transform-style: preserve-3d;
+        transform: rotateX(var(--ry, 0deg)) rotateY(var(--rx, 0deg)) scale(var(--card-scale, 1));
+
+        transition: transform .12s ease-out, box-shadow .3s ease, border-color .3s ease;
     }
 
-    .showcase-img {
+    .showcase-card.settling {
+        transition: transform .5s cubic-bezier(.22, 1, .36, 1), box-shadow .3s ease, border-color .3s ease;
+    }
+
+    .card-art {
         position: absolute;
         inset: 0;
         width: 100%;
@@ -81,48 +197,216 @@
     .showcase-face {
         position: absolute;
         inset: 0;
-
+        display: flex;
+        align-items: center;
+        justify-content: center;
         background:
             linear-gradient(180deg, transparent 55%, rgba(0,0,0,.7) 100%),
             linear-gradient(180deg, transparent 70%, var(--tier-a) 220%);
     }
 
+    .container-flash {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+        background: #E8F3FF;
+        opacity: 0;
+        mix-blend-mode: screen;
+    }
+
+    .container-flash.flash-active {
+        animation: container-flash-pulse .35s ease-out;
+    }
+
+    @keyframes container-flash-pulse {
+        0%   { opacity: 0; }
+        30%  { opacity: .22; }
+        55%  { opacity: .05; }
+        75%  { opacity: .14; }
+        100% { opacity: 0; }
+    }
+
+    /* ============================================================
+       HOLO LAYERS
+       ============================================================ */
+
+    .holo-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        opacity: 0;
+        mix-blend-mode: color-dodge;
+        transition: opacity .25s ease;
+    }
+
+    .showcase-card[data-finish="spot"] .holo-layer.spot,
+    .showcase-card[data-finish="reverse"] .holo-layer.spot,
+    .showcase-card[data-finish="reverse"] .holo-layer.reverse,
+    .showcase-card[data-finish="full"] .holo-layer.spot,
+    .showcase-card[data-finish="full"] .holo-layer.reverse,
+    .showcase-card[data-finish="full"] .holo-layer.full {
+        opacity: 1;
+    }
+
+    .holo-layer.spot {
+        -webkit-mask-image: radial-gradient(ellipse 55% 42% at 50% 46%, #000 60%, transparent 100%);
+        mask-image: radial-gradient(ellipse 55% 42% at 50% 46%, #000 60%, transparent 100%);
+        filter: hue-rotate(calc(var(--px, 50) * 2.4deg));
+    }
+
+    .spot-shine-mask {
+        position: absolute;
+        inset: 0;
+        -webkit-mask-image: linear-gradient(
+            115deg,
+            transparent calc(var(--px, 50%) - 22%),
+            #000 var(--px, 50%),
+            transparent calc(var(--px, 50%) + 22%)
+        );
+        mask-image: linear-gradient(
+            115deg,
+            transparent calc(var(--px, 50%) - 22%),
+            #000 var(--px, 50%),
+            transparent calc(var(--px, 50%) + 22%)
+        );
+    }
+
+    .spot-diamond-tiles {
+        position: absolute;
+        inset: -40%;
+        background-image:
+            linear-gradient(45deg, rgba(255,255,255,.7) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(255,255,255,.7) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(255,255,255,.7) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.7) 75%);
+        background-size: 132px 132px;
+        background-position: 33px 33px, 33px 99px, 99px -33px, -33px 33px;
+        transform: rotate(45deg);
+    }
+
+    .holo-layer.reverse {
+        background: linear-gradient(
+            115deg,
+            transparent calc(var(--px, 50%) - 26%),
+            rgba(255,255,255,.8) var(--px, 50%),
+            transparent calc(var(--px, 50%) + 26%)
+        );
+        -webkit-mask-image: radial-gradient(ellipse 55% 42% at 50% 46%, transparent 60%, #000 100%);
+        mask-image: radial-gradient(ellipse 55% 42% at 50% 46%, transparent 60%, #000 100%);
+        filter: hue-rotate(calc(var(--px, 50) * 2.4deg));
+    }
+
+    .holo-layer.full {
+        background:
+            repeating-linear-gradient(
+                45deg,
+                rgba(255,120,200,.16) 0%,
+                rgba(255,220,120,.16) 12%,
+                rgba(120,255,200,.16) 24%,
+                rgba(120,180,255,.16) 36%,
+                rgba(255,120,200,.16) 48%
+            );
+        background-size: 300% 300%;
+        background-position: var(--px, 50%) var(--py, 50%);
+    }
+
+    .holo-layer.electric {
+        opacity: 1;
+        mix-blend-mode: screen;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .holo-layer.electric svg {
+        width: 140%;
+        height: 140%;
+        overflow: visible;
+    }
+
+    .holo-layer.foreground-spark {
+        z-index: 10;
+    }
+
+    .arc-path {
+        opacity: 0;
+    }
+
+    /* ============================================================
+       RIPPLE FIELD — level 5
+       ============================================================ */
+
+    @property --reveal-radius {
+        syntax: '<length>';
+        inherits: false;
+        initial-value: 0px;
+    }
+
+    .ripple-field {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 480px;
+        height: 480px;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        pointer-events: none;
+        border-radius: 50%;
+        background: repeating-radial-gradient(
+            circle at center,
+            rgba(255,255,255,0.30) 0px,
+            var(--tier-a, var(--brass)) 5px,
+            rgba(0,0,0,0.35) 10px,
+            rgba(255,255,255,0.30) 15px
+        );
+        -webkit-mask-image: radial-gradient(circle at center, #000 var(--reveal-radius, 0px), transparent calc(var(--reveal-radius, 0px) + 60px));
+        mask-image: radial-gradient(circle at center, #000 var(--reveal-radius, 0px), transparent calc(var(--reveal-radius, 0px) + 60px));
+        --reveal-radius: 0px;
+        opacity: 0;
+    }
+
+    .ripple-field:not(.ripple-enabled) {
+        display: none;
+    }
+
+    .ripple-field.rippling {
+        animation: ripple-reveal 2.2s cubic-bezier(0.25, 0.1, 0.25, 1) infinite alternate;
+    }
+
+    @keyframes ripple-reveal {
+        0%   { --reveal-radius: 0px;   opacity: 0; }
+        25%  { opacity: 0.5; }
+        75%  { opacity: 0.4; }
+        100% { --reveal-radius: 260px; opacity: 0; }
+    }
+
     .showcase-platform {
         position: relative;
         z-index: 1;
-
-        width: 250px;
-        height: 60px;
+        width: 280px;
+        height: 140px;
+        margin-top: -20px;
     }
 
-    .showcase-platform .ring {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        border-radius: 50%;
+    .pedestal-svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
     }
 
-    .showcase-platform .ring-outer {
-        width: 250px;
-        height: 60px;
-        border: 2px solid var(--tier-a);
-        opacity: .55;
-        box-shadow: 0 0 34px var(--tier-a);
+    .showcase.fusing .pedestal-svg {
+        animation: pedestal-pulse 0.9s ease-in-out infinite;
     }
 
-    .showcase-platform .ring-inner {
-        width: 180px;
-        height: 40px;
-        background: radial-gradient(ellipse at center, var(--tier-a), transparent 72%);
-        opacity: .4;
-        filter: blur(1px);
+    @keyframes pedestal-pulse {
+        0%, 100% { filter: brightness(1); }
+        50% { filter: brightness(1.4); }
     }
 
     .showcase-plaque {
         position: relative;
         z-index: 2;
-
         margin-top: 18px;
         text-align: center;
     }
@@ -147,7 +431,6 @@
         padding: 3px 11px;
         border-radius: 20px;
         border: 1px solid var(--tier-a);
-
         font-family: 'Karla', sans-serif;
         font-size: 10px;
         font-weight: 700;
@@ -161,52 +444,26 @@
         color: var(--ink-muted);
     }
 
-    .showcase.empty .showcase-card,
-    .showcase.empty .showcase-platform,
-    .showcase.empty .showcase-fuse-btn {
-        display: none;
-    }
-
-    .showcase-empty-note {
-        position: relative;
-        z-index: 2;
-
-        display: none;
-        color: var(--ink-muted);
-        font-size: 13px;
-        padding: 30px 0;
-    }
-
-    .showcase.empty .showcase-empty-note {
-        display: block;
-    }
-
     .showcase-fuse-btn {
         position: absolute;
         left: 14px;
         bottom: 14px;
         z-index: 3;
-
         display: flex;
         align-items: center;
         gap: 6px;
-
         padding: 8px 14px;
         border-radius: 20px;
-
         background: rgba(0,0,0,.5);
         border: 1px solid var(--tier-a, var(--brass));
         color: var(--ink);
-
         font-family: 'Karla', sans-serif;
         font-size: 11px;
         font-weight: 700;
         letter-spacing: .08em;
         text-transform: uppercase;
-
         cursor: pointer;
         backdrop-filter: blur(3px);
-
         transition: background .15s ease, transform .1s ease;
     }
 
@@ -218,54 +475,55 @@
         transform: scale(.97);
     }
 
+    .showcase-fuse-btn:disabled {
+        opacity: .4;
+        cursor: default;
+    }
+
     .showcase-fuse-btn .fuse-icon {
         color: var(--tier-a, var(--brass));
         font-size: 13px;
         line-height: 1;
     }
 
-    @media (max-width: 640px) {
-        .showcase {
-            padding: 40px 14px 24px;
-        }
-
-        .showcase-card {
-            width: 150px;
-        }
-
-        .showcase-platform {
-            width: 190px;
-            height: 48px;
-        }
-
-        .showcase-platform .ring-outer {
-            width: 190px;
-            height: 48px;
-        }
-
-        .showcase-platform .ring-inner {
-            width: 140px;
-            height: 32px;
-        }
+    .showcase.fusing .card-stage {
+        animation: fuse-pulse-card 0.9s ease-in-out infinite;
     }
 
+    .showcase.fusing::after {
+        opacity: .5;
+    }
+
+    @keyframes fuse-pulse-card {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.035); }
+    }
+
+    .showcase[data-fx-level="1"].fusing::after { opacity: .35; }
+    .showcase[data-fx-level="2"].fusing::after { opacity: .5; }
+    .showcase[data-fx-level="3"].fusing::after { opacity: .68; }
+    .showcase[data-fx-level="4"].fusing::after { opacity: .85; }
+    .showcase[data-fx-level="5"].fusing::after { opacity: 1; }
+
+    .showcase[data-fx-level="1"].fusing .card-stage { animation-duration: 1.3s; }
+    .showcase[data-fx-level="2"].fusing .card-stage { animation-duration: 1.0s; }
+    .showcase[data-fx-level="3"].fusing .card-stage { animation-duration: 0.75s; }
+    .showcase[data-fx-level="4"].fusing .card-stage { animation-duration: 0.5s; }
+    .showcase[data-fx-level="5"].fusing .card-stage { animation-duration: 0.32s; }
 
     /* ============================================================
-       CARD OVERLAY — opened from the showcase pedestal
+       CARD OVERLAY — restored from old showcase (Save/Sell)
        ============================================================ */
 
     .card-overlay {
         position: fixed;
         inset: 0;
         z-index: 200;
-
         background: rgba(5, 4, 3, .78);
         backdrop-filter: blur(4px);
-
         display: none;
         align-items: center;
         justify-content: center;
-
         padding: 30px;
     }
 
@@ -275,11 +533,9 @@
 
     .overlay-panel {
         width: min(360px, 90vw);
-
         display: flex;
         flex-direction: column;
         align-items: center;
-
         position: relative;
     }
 
@@ -288,22 +544,17 @@
         top: -14px;
         right: -14px;
         z-index: 3;
-
         width: 34px;
         height: 34px;
         border-radius: 50%;
-
         border: none;
         background: var(--page-shadow);
         color: var(--ink);
-
         font-size: 16px;
         cursor: pointer;
-
         display: flex;
         align-items: center;
         justify-content: center;
-
         box-shadow: 0 4px 10px rgba(0,0,0,.5);
     }
 
@@ -314,16 +565,13 @@
     .overlay-card {
         width: 100%;
         aspect-ratio: 5 / 7;
-
         border-radius: 12px;
         overflow: hidden;
         position: relative;
-
         border: 3px solid var(--tier-a, var(--brass));
         box-shadow:
             0 0 50px -6px var(--tier-a, var(--brass)),
             0 24px 50px rgba(0,0,0,.6);
-
         background: #0A0A0A;
     }
 
@@ -338,13 +586,10 @@
     .overlay-face {
         position: absolute;
         inset: 0;
-
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-
         padding: 22px;
-
         background:
             linear-gradient(180deg, transparent 55%, rgba(0,0,0,.7) 100%),
             linear-gradient(180deg, transparent 70%, var(--tier-a, var(--brass)) 220%);
@@ -353,12 +598,9 @@
     .overlay-tier {
         align-self: flex-start;
         margin-bottom: auto;
-
         padding: 4px 10px;
         border-radius: 20px;
-
         background: rgba(0,0,0,.3);
-
         font-family: 'Karla', sans-serif;
         font-size: 10px;
         font-weight: 700;
@@ -373,7 +615,6 @@
         font-weight: 600;
         color: #fff;
         line-height: 1.1;
-
         text-shadow: 0 2px 6px rgba(0,0,0,.5);
     }
 
@@ -388,23 +629,19 @@
         width: 100%;
         display: flex;
         gap: 10px;
-
         margin-top: 18px;
     }
 
     .overlay-btn {
         flex: 1;
-
         padding: 13px 16px;
         border-radius: 6px;
         border: none;
-
         font-family: 'Karla', sans-serif;
         font-size: 13px;
         font-weight: 700;
         letter-spacing: .04em;
         text-transform: uppercase;
-
         cursor: pointer;
         transition: filter .15s ease, transform .1s ease;
     }
@@ -431,17 +668,175 @@
     .overlay-btn.sell:hover {
         border-color: var(--ink-faint);
     }
+
+    @media (max-width: 640px) {
+        .card-stage {
+            width: 150px;
+        }
+        .showcase-platform {
+            width: 220px;
+            height: 110px;
+        }
+    }
 </style>
 
-<div class="showcase empty" id="showcase">
-    <div class="showcase-card" id="showcaseCard">
-        <img class="showcase-img" id="showcaseImg" alt="" style="display:none;">
-        <div class="showcase-face"></div>
+<div class="showcase empty" id="showcase" data-fx-level="1">
+
+    <div class="card-stage" id="cardStage">
+
+        <div class="ripple-field" id="rippleField"></div>
+
+        <div class="affects-swipe affects-behind" id="affectsBehind">
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="swipeBlurBehind" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="3.5" />
+                    </filter>
+                    <linearGradient id="swipeCoreGradBehind" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
+                        <stop offset="35%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0.85" />
+                        <stop offset="65%" stop-color="#FFFFFF" stop-opacity="0.95" />
+                        <stop offset="100%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient id="swipeFadeMaskBehind" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#000" />
+                        <stop offset="15%" stop-color="#FFF" />
+                        <stop offset="85%" stop-color="#FFF" />
+                        <stop offset="100%" stop-color="#000" />
+                    </linearGradient>
+                    <mask id="swipeFadeBehind">
+                        <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" stroke="url(#swipeFadeMaskBehind)" stroke-width="34" fill="none" stroke-linecap="round" />
+                    </mask>
+                </defs>
+                <g mask="url(#swipeFadeBehind)">
+                    <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" filter="url(#swipeBlurBehind)" stroke="var(--tier-a, var(--brass))" stroke-width="18" opacity="0.4" fill="none" stroke-linecap="round" />
+                    <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" stroke="url(#swipeCoreGradBehind)" stroke-width="7" fill="none" stroke-linecap="round" />
+                    <path d="M 20 92 Q 12 52 40 24" stroke="#FFFFFF" stroke-width="1.4" opacity="1" fill="none" stroke-linecap="round" />
+                    <path d="M 30 30 Q 60 10 98 22" stroke="#FFFFFF" stroke-width="1" opacity="0.35" fill="none" stroke-linecap="round" />
+                </g>
+            </svg>
+        </div>
+
+        <div class="showcase-card" id="showcaseCard" data-finish="none">
+            <img class="card-art" id="showcaseImg" alt="" style="display:none;">
+            <div class="showcase-face"></div>
+            <div class="container-flash" id="containerFlash"></div>
+            <div class="holo-layer spot">
+                <div class="spot-shine-mask">
+                    <div class="spot-diamond-tiles"></div>
+                </div>
+            </div>
+            <div class="holo-layer reverse"></div>
+            <div class="holo-layer full"></div>
+            <div class="holo-layer electric" id="electricLayer">
+                <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <filter id="arcDistort" x="-100%" y="-100%" width="300%" height="300%">
+                            <feTurbulence id="arcTurbulence" type="turbulence" baseFrequency="0.02 0.03" numOctaves="1" seed="3" result="noise" />
+                            <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G" />
+                        </filter>
+                        <filter id="arcGlow" x="-200%" y="-200%" width="500%" height="500%">
+                            <feGaussianBlur stdDeviation="2.2" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <g filter="url(#arcDistort)" stroke-linecap="round" fill="none">
+                        <path id="arcGlowPath0" class="arc-path" filter="url(#arcGlow)" stroke="#9B6BD6" stroke-width="1.2" opacity="0.28" />
+                        <path id="arcCorePath0" class="arc-path" stroke="#F1E6FF" stroke-width="0.35" opacity="0.6" />
+                        <path id="arcBluePath0" class="arc-path" stroke="#BFE6FF" stroke-width="0.3" opacity="0.55" />
+                        <path id="arcWhitePath0" class="arc-path" stroke="#FFFFFF" stroke-width="0.3" opacity="1" />
+                        <g id="branchGroup0"></g>
+                        <path id="arcGlowPath1" class="arc-path" filter="url(#arcGlow)" stroke="#9B6BD6" stroke-width="1.2" opacity="0.28" />
+                        <path id="arcCorePath1" class="arc-path" stroke="#F1E6FF" stroke-width="0.35" opacity="0.6" />
+                        <path id="arcBluePath1" class="arc-path" stroke="#BFE6FF" stroke-width="0.3" opacity="0.55" />
+                        <path id="arcWhitePath1" class="arc-path" stroke="#FFFFFF" stroke-width="0.3" opacity="1" />
+                        <g id="branchGroup1"></g>
+                        <path id="arcGlowPath2" class="arc-path" filter="url(#arcGlow)" stroke="#9B6BD6" stroke-width="1.2" opacity="0.28" />
+                        <path id="arcCorePath2" class="arc-path" stroke="#F1E6FF" stroke-width="0.35" opacity="0.6" />
+                        <path id="arcBluePath2" class="arc-path" stroke="#BFE6FF" stroke-width="0.3" opacity="0.55" />
+                        <path id="arcWhitePath2" class="arc-path" stroke="#FFFFFF" stroke-width="0.3" opacity="1" />
+                        <g id="branchGroup2"></g>
+                    </g>
+                </svg>
+            </div>
+
+            <div class="holo-layer foreground-spark" id="foregroundSparkLayer">
+                <svg viewBox="0 0 200 280" xmlns="http://www.w3.org/2000/svg">
+                    <g filter="url(#arcDistort)" stroke-linecap="round" fill="none">
+                        <path id="fgSparkGlow" filter="url(#arcGlow)" stroke="#BFE6FF" stroke-width="3.2" opacity="0.85" />
+                        <path id="fgSparkCore" stroke="#FFFFFF" stroke-width="1" opacity="1" />
+                    </g>
+                </svg>
+            </div>
+        </div>
+
+        <div class="affects-swipe affects-front" id="affectsFront">
+            <svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <filter id="swipeBlurFront" x="-80%" y="-80%" width="260%" height="260%">
+                        <feGaussianBlur stdDeviation="3.5" />
+                    </filter>
+                    <linearGradient id="swipeCoreGradFront" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
+                        <stop offset="35%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0.85" />
+                        <stop offset="65%" stop-color="#FFFFFF" stop-opacity="0.95" />
+                        <stop offset="100%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient id="swipeFadeMaskFront" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#000" />
+                        <stop offset="15%" stop-color="#FFF" />
+                        <stop offset="85%" stop-color="#FFF" />
+                        <stop offset="100%" stop-color="#000" />
+                    </linearGradient>
+                    <mask id="swipeFadeFront">
+                        <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" stroke="url(#swipeFadeMaskFront)" stroke-width="34" fill="none" stroke-linecap="round" />
+                    </mask>
+                </defs>
+                <g mask="url(#swipeFadeFront)">
+                    <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" filter="url(#swipeBlurFront)" stroke="var(--tier-a, var(--brass))" stroke-width="18" opacity="0.4" fill="none" stroke-linecap="round" />
+                    <path d="M 12 100 Q 5 55 35 25 Q 65 3 105 18" stroke="url(#swipeCoreGradFront)" stroke-width="7" fill="none" stroke-linecap="round" />
+                    <path d="M 20 92 Q 12 52 40 24" stroke="#FFFFFF" stroke-width="1.4" opacity="1" fill="none" stroke-linecap="round" />
+                    <path d="M 30 30 Q 60 10 98 22" stroke="#FFFFFF" stroke-width="1" opacity="0.35" fill="none" stroke-linecap="round" />
+                </g>
+            </svg>
+        </div>
     </div>
 
     <div class="showcase-platform">
-        <div class="ring ring-outer"></div>
-        <div class="ring ring-inner"></div>
+        <svg class="pedestal-svg" viewBox="0 0 260 150" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <radialGradient id="pedestalGlow" cx="50%" cy="30%" r="65%">
+                    <stop offset="0%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0.55" />
+                    <stop offset="100%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
+                </radialGradient>
+                <linearGradient id="pedestalBody" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#2a2a2a" />
+                    <stop offset="55%" stop-color="#151515" />
+                    <stop offset="100%" stop-color="#050505" />
+                </linearGradient>
+                <linearGradient id="pedestalTop" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#3a3a3a" />
+                    <stop offset="100%" stop-color="#161616" />
+                </linearGradient>
+                <linearGradient id="lightBeam" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0.32" />
+                    <stop offset="100%" stop-color="var(--tier-a, var(--brass))" stop-opacity="0" />
+                </linearGradient>
+            </defs>
+            <ellipse cx="130" cy="70" rx="130" ry="60" fill="url(#pedestalGlow)" />
+            <polygon points="90,55 170,55 205,0 55,0" fill="url(#lightBeam)" />
+            <ellipse cx="130" cy="128" rx="88" ry="14" fill="#000" opacity="0.5" />
+            <path d="M 55 62 L 75 122 A 55 11 0 0 0 185 122 L 205 62 Z" fill="url(#pedestalBody)" />
+            <path d="M 55 62 L 75 122" stroke="var(--tier-a, var(--brass))" stroke-width="1.5" opacity="0.5" fill="none" />
+            <path d="M 205 62 L 185 122" stroke="var(--tier-a, var(--brass))" stroke-width="1.5" opacity="0.5" fill="none" />
+            <ellipse cx="130" cy="62" rx="75" ry="16" fill="url(#pedestalTop)" stroke="var(--tier-a, var(--brass))" stroke-width="2" opacity="0.95" />
+            <ellipse cx="130" cy="60" rx="75" ry="16" fill="none" stroke="var(--tier-a, var(--brass))" stroke-width="1" opacity="0.35" />
+            <ellipse cx="130" cy="122" rx="55" ry="11" fill="none" stroke="var(--tier-a, var(--brass))" stroke-width="1.5" opacity="0.6" />
+        </svg>
     </div>
 
     <div class="showcase-plaque">
@@ -460,12 +855,21 @@
         <span class="fuse-icon">&#10022;</span>
         Fuse
     </button>
+
+    <div class="fusion-badge" id="fusionBadge">
+        <svg class="fusion-badge-svg" viewBox="0 0 80 40" xmlns="http://www.w3.org/2000/svg">
+            <path class="fusion-badge-infinity"
+                d="M 10 20 C 10 5, 35 5, 40 20 C 45 35, 70 35, 70 20 C 70 5, 45 5, 40 20 C 35 35, 10 35, 10 20 Z"
+                fill="none" />
+            <text x="19" y="24" class="fusion-badge-text">F</text>
+            <text x="61" y="24" class="fusion-badge-text" id="fusionBadgeNum">1</text>
+        </svg>
+    </div>
 </div>
 
 <div class="card-overlay" id="cardOverlay">
     <div class="overlay-panel">
         <button class="overlay-close" id="overlayClose">&times;</button>
-
         <div class="overlay-card" id="overlayCard">
             <img class="overlay-img" id="overlayImg" alt="" style="display:none;">
             <div class="overlay-face" id="overlayFace">
@@ -474,7 +878,6 @@
                 <div class="overlay-deck" id="overlayDeck"></div>
             </div>
         </div>
-
         <div class="overlay-actions">
             <button class="overlay-btn sell" id="overlaySell">Sell</button>
             <button class="overlay-btn save" id="overlaySave">Save</button>
@@ -483,6 +886,10 @@
 </div>
 
 <script>
+    /* ============================================================
+       CONFIG / STATE
+       ============================================================ */
+
     const TIER_COLORS = {
         common:    ["#8C8880", "#6E6A64"],
         rare:      ["#4FB6A8", "#2F8078"],
@@ -491,25 +898,73 @@
         mythic:    ["#FF6B9D", "#C77DFF"]
     };
 
+    // Fusion changes the card graphic. Level -> finish, 1:1, nothing else.
+    const LEVEL_FINISH = {
+        1: "none",
+        2: "spot",
+        3: "reverse",
+        4: "full",
+        5: "full"
+    };
+
+    const MAX_FUSION_LEVEL = 5;
+    const FUSE_ANIM_MS = 1600; // how long .fusing stays on after a Fuse click
+
+    const showcase = document.getElementById("showcase");
+    const cardStage = document.getElementById("cardStage");
+    const showcaseCard = document.getElementById("showcaseCard");
+    const showcaseTier = document.getElementById("showcaseTier");
+    const showcaseName = document.getElementById("showcaseName");
+    const showcaseDeck = document.getElementById("showcaseDeck");
+    const showcaseImg = document.getElementById("showcaseImg");
+    const rippleField = document.getElementById("rippleField");
+    const fuseBtn = document.getElementById("fuseBtn");
+    const fusionBadgeNum = document.getElementById("fusionBadgeNum");
+
     let selectedId = null;
-    let selectedCard = null;
+    let selectedCard = null; // { id, name, deck, tier, image, fusionLevel }
+
+    /* ============================================================
+       TIER + LEVEL — visual setters, no side effects beyond DOM
+       ============================================================ */
+
+    function applyTier(tier) {
+        const [tierA, tierB] = TIER_COLORS[tier];
+        showcase.style.setProperty("--tier-a", tierA);
+        showcase.style.setProperty("--tier-b", tierB);
+        showcaseTier.textContent = tier;
+    }
+
+    function setLevel(level) {
+        showcase.dataset.fxLevel = level;
+        showcaseCard.dataset.finish = LEVEL_FINISH[level];
+        cardStage.classList.toggle("jacket-enabled", level >= 3);
+        rippleField.classList.toggle("ripple-enabled", level >= 5);
+        fusionBadgeNum.textContent = level;
+    }
+
+    function startFuse() {
+        showcase.classList.add("fusing");
+    }
+
+    function stopFuse() {
+        showcase.classList.remove("fusing");
+    }
+
+    /* ============================================================
+       SELECT CARD — data-driven, restored from old showcase
+       ============================================================ */
 
     function selectCard(card) {
         selectedId = card.id;
         selectedCard = card;
 
-        const [tierA, tierB] = TIER_COLORS[card.tier];
+        applyTier(card.tier);
+        setLevel(card.fusionLevel || 1);
 
-        const showcase = document.getElementById("showcase");
-        showcase.style.setProperty("--tier-a", tierA);
-        showcase.style.setProperty("--tier-b", tierB);
-        showcase.classList.remove("empty");
+        showcaseName.textContent = card.name;
+        showcaseDeck.textContent = card.deck;
 
-        document.getElementById("showcaseName").textContent = card.name;
-        document.getElementById("showcaseDeck").textContent = card.deck;
-        document.getElementById("showcaseTier").textContent = card.tier;
-
-        const showcaseImg = document.getElementById("showcaseImg");
         if (card.image) {
             showcaseImg.src = card.image;
             showcaseImg.alt = card.name;
@@ -519,6 +974,8 @@
             showcaseImg.style.display = "none";
         }
 
+        showcase.classList.remove("empty");
+
         if (typeof window.onCardSelected === "function") {
             window.onCardSelected(card);
         }
@@ -527,15 +984,50 @@
     window.selectCard = selectCard;
     window.TIER_COLORS = TIER_COLORS;
 
-    function openCardOverlay() {
-        if (!selectedCard) {
+    /* ============================================================
+       FUSE BUTTON — the controller now. Advances state on click.
+       No fusion table exists yet, so this only updates the
+       in-memory card object and replays the visual. Persisting
+       this to player_inventory / a fusion table is not wired up.
+       ============================================================ */
+
+    function handleFuseClick(e) {
+        e.stopPropagation();
+        if (!selectedCard) return;
+
+        const current = selectedCard.fusionLevel || 1;
+        if (current >= MAX_FUSION_LEVEL) {
+            toast(`${selectedCard.name} is already at max fusion.`);
             return;
         }
 
-        const [tierA, tierB] = TIER_COLORS[selectedCard.tier];
+        const next = current + 1;
+        selectedCard.fusionLevel = next;
 
-        document.getElementById("overlayCard").style.setProperty("--tier-a", tierA);
-        document.getElementById("overlayCard").style.setProperty("--tier-b", tierB);
+        setLevel(next);
+        startFuse();
+
+        setTimeout(() => {
+            stopFuse();
+            toast(`${selectedCard.name} fused to level ${next}.`);
+            // TODO: persist fusionLevel once the fusion table exists.
+        }, FUSE_ANIM_MS);
+    }
+
+    fuseBtn.addEventListener("click", handleFuseClick);
+
+    /* ============================================================
+       CARD OVERLAY — Save/Sell, restored from old showcase
+       ============================================================ */
+
+    function openCardOverlay() {
+        if (!selectedCard) return;
+
+        const [tierA, tierB] = TIER_COLORS[selectedCard.tier];
+        const overlayCard = document.getElementById("overlayCard");
+        overlayCard.style.setProperty("--tier-a", tierA);
+        overlayCard.style.setProperty("--tier-b", tierB);
+
         document.getElementById("overlayName").textContent = selectedCard.name;
         document.getElementById("overlayDeck").textContent = selectedCard.deck;
         document.getElementById("overlayTier").textContent = selectedCard.tier;
@@ -557,14 +1049,10 @@
         document.getElementById("cardOverlay").classList.remove("show");
     }
 
-    document.getElementById("showcaseCard").addEventListener("click", openCardOverlay);
-
+    showcaseCard.addEventListener("click", openCardOverlay);
     document.getElementById("overlayClose").addEventListener("click", closeCardOverlay);
-
     document.getElementById("cardOverlay").addEventListener("click", (e) => {
-        if (e.target.id === "cardOverlay") {
-            closeCardOverlay();
-        }
+        if (e.target.id === "cardOverlay") closeCardOverlay();
     });
 
     document.getElementById("overlaySave").addEventListener("click", () => {
@@ -578,10 +1066,434 @@
         toast(`${selectedCard.name} sold.`);
         closeCardOverlay();
     });
+</script>
 
-    document.getElementById("fuseBtn").addEventListener("click", (e) => {
-        e.stopPropagation();
-        if (!selectedCard) return;
-        toast(`Fuse ${selectedCard.name} — coming soon.`);
+<!-- ============================================================
+     AFFECTS — standalone move-triggered swipe system
+     ============================================================ -->
+
+<script>
+    const Affects = (() => {
+        const behindEl = document.getElementById("affectsBehind");
+        const frontEl = document.getElementById("affectsFront");
+
+        const CORNERS = [
+            { x: 8,  y: 12, rot: 0 },
+            { x: 92, y: 12, rot: 90 },
+            { x: 8,  y: 88, rot: -90 },
+            { x: 92, y: 88, rot: 180 }
+        ];
+
+        function fire() {
+            const corner = CORNERS[Math.floor(Math.random() * CORNERS.length)];
+            const flip = Math.random() < 0.5 ? 1 : -1;
+
+            [behindEl, frontEl].forEach((el) => {
+                el.style.setProperty("--sx", corner.x + "%");
+                el.style.setProperty("--sy", corner.y + "%");
+                el.style.setProperty("--srot", corner.rot + "deg");
+                el.style.setProperty("--sflip", flip);
+
+                el.classList.remove("swipe-fire");
+                void el.offsetWidth;
+                el.classList.add("swipe-fire");
+            });
+        }
+
+        return { fire };
+    })();
+</script>
+
+<!-- ============================================================
+     POINTER-REACTIVE TILT + HOLO TRACKING
+     ============================================================ -->
+
+<script>
+    const MAX_TILT_DEG = 14;
+    let lastZapTime = 0;
+    const ZAP_THROTTLE_MS = 450;
+
+    const ANCHORS = {
+        top:         { x: 100, y: 15 },
+        bottom:      { x: 100, y: 265 },
+        left:        { x: 12,  y: 140 },
+        right:       { x: 188, y: 140 },
+        topLeft:     { x: 22,  y: 30 },
+        topRight:    { x: 178, y: 30 },
+        bottomLeft:  { x: 22,  y: 250 },
+        bottomRight: { x: 178, y: 250 },
+        center:      { x: 100, y: 140 }
+    };
+
+    const ANCHOR_KEYS = Object.keys(ANCHORS);
+    const ANCHOR_ROUTES = [];
+    for (let i = 0; i < ANCHOR_KEYS.length; i++) {
+        for (let j = i + 1; j < ANCHOR_KEYS.length; j++) {
+            ANCHOR_ROUTES.push([ANCHOR_KEYS[i], ANCHOR_KEYS[j]]);
+        }
+    }
+
+    function buildWavePoints(a, b, waves, amplitude, pointCount) {
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const nx = -dy / dist;
+        const ny = dx / dist;
+        const phase = Math.random() * Math.PI * 2;
+
+        const points = [];
+        for (let i = 0; i <= pointCount; i++) {
+            const t = i / pointCount;
+            const baseX = a.x + dx * t;
+            const baseY = a.y + dy * t;
+            const envelope = Math.sin(t * Math.PI);
+            const offset = Math.sin(t * waves * Math.PI * 2 + phase) * amplitude * envelope;
+            const jitter = (Math.random() - 0.5) * amplitude * 0.5 * envelope;
+            points.push({ x: baseX + nx * (offset + jitter), y: baseY + ny * (offset + jitter) });
+        }
+        return points;
+    }
+
+    function insertSpark(points, atIndex, size) {
+        const p = points[atIndex];
+        const prev = points[Math.max(0, atIndex - 1)];
+        const dx = p.x - prev.x;
+        const dy = p.y - prev.y;
+        const len = Math.sqrt(dx * dx + dy * dy) || 1;
+        const nx = -dy / len;
+        const ny = dx / len;
+
+        const sparkPoints = [
+            { x: p.x + nx * size, y: p.y + ny * size },
+            { x: p.x - nx * size * 0.7, y: p.y - ny * size * 0.7 },
+            { x: p.x + nx * size * 0.4, y: p.y + ny * size * 0.4 }
+        ];
+
+        points.splice(atIndex, 0, ...sparkPoints);
+    }
+
+    function pointsToSmoothPath(points) {
+        if (points.length < 2) return "";
+        let d = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+        for (let i = 1; i < points.length; i++) {
+            d += ` L ${points[i].x.toFixed(1)} ${points[i].y.toFixed(1)}`;
+        }
+        return d;
+    }
+
+    function buildElectricFormation() {
+        const [startKey, endKey] = ANCHOR_ROUTES[Math.floor(Math.random() * ANCHOR_ROUTES.length)];
+        const start = ANCHORS[startKey];
+        const end = ANCHORS[endKey];
+
+        const points = buildWavePoints(start, end, 2.5, 14, 16);
+
+        const sparkCount = 1 + Math.floor(Math.random() * 2);
+        const usedIndexes = [];
+        for (let i = 0; i < sparkCount; i++) {
+            let idx;
+            do {
+                idx = 5 + Math.floor(Math.random() * 8);
+            } while (usedIndexes.includes(idx));
+            usedIndexes.push(idx);
+        }
+        usedIndexes.sort((a, b) => b - a).forEach((idx) => {
+            insertSpark(points, idx, 6 + Math.random() * 4);
+        });
+
+        return { d: pointsToSmoothPath(points), points };
+    }
+
+    function buildBranchSpecs(parentPoints, parentSpawnT, depth) {
+        if (depth > 2 || parentPoints.length < 3) return [];
+
+        const specs = [];
+        const skipEdge = Math.min(2, Math.floor(parentPoints.length / 4));
+
+        for (let i = skipEdge; i < parentPoints.length - skipEdge; i++) {
+            const branchChance = depth === 1 ? 0.3 : 0.4;
+            if (Math.random() >= branchChance) continue;
+
+            const p = parentPoints[i];
+            const prev = parentPoints[Math.max(0, i - 1)];
+            const dirAngle = Math.atan2(p.y - prev.y, p.x - prev.x);
+            const side = Math.random() < 0.5 ? 1 : -1;
+            const branchAngle = dirAngle + side * (0.55 + Math.random() * 0.7);
+
+            const length = (22 + Math.random() * 20) / depth;
+            const segments = 3;
+            const segLen = length / segments;
+
+            const branchPoints = [{ x: p.x, y: p.y }];
+            let cx = p.x;
+            let cy = p.y;
+            for (let s = 0; s < segments; s++) {
+                const ang = branchAngle + (Math.random() - 0.5) * 0.5;
+                cx += Math.cos(ang) * segLen;
+                cy += Math.sin(ang) * segLen;
+                branchPoints.push({ x: cx, y: cy });
+            }
+
+            const spawnT = Math.min(1, parentSpawnT + (i / parentPoints.length) * 0.15);
+
+            specs.push({
+                d: pointsToSmoothPath(branchPoints),
+                spawnT,
+                strokeWidth: 0.32 / depth,
+                peakOpacity: 0.5 / depth
+            });
+
+            if (depth === 1) {
+                specs.push(...buildBranchSpecs(branchPoints, spawnT, depth + 1));
+            }
+        }
+
+        return specs;
+    }
+
+    function renderBranches(branchGroupEl, specs, mainDurationMs) {
+        const ns = "http://www.w3.org/2000/svg";
+        branchGroupEl.innerHTML = "";
+
+        specs.forEach((spec) => {
+            const path = document.createElementNS(ns, "path");
+            path.setAttribute("d", spec.d);
+            path.setAttribute("stroke", "#BFE6FF");
+            path.setAttribute("stroke-width", spec.strokeWidth.toFixed(2));
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-linecap", "round");
+            path.setAttribute("opacity", "0");
+            branchGroupEl.appendChild(path);
+
+            const length = path.getTotalLength();
+            const delay = spec.spawnT * mainDurationMs;
+
+            path.animate(
+                [
+                    { strokeDasharray: `${length}`, strokeDashoffset: length, opacity: 0 },
+                    { strokeDasharray: `${length}`, strokeDashoffset: 0, opacity: spec.peakOpacity, offset: 0.4 },
+                    { strokeDasharray: `${length}`, strokeDashoffset: 0, opacity: 0, offset: 1 }
+                ],
+                { duration: 260, delay, easing: "ease-out", fill: "forwards" }
+            );
+        });
+    }
+
+    const STRAND_DURATION_MS = 650;
+
+    function animateStrand(paths, branchGroupEl, delayMs) {
+        const { d, points } = buildElectricFormation();
+
+        paths.forEach((path) => {
+            path.setAttribute("d", d);
+            const length = path.getTotalLength();
+            const peakOpacity = parseFloat(path.getAttribute("opacity")) || 1;
+
+            path.getAnimations().forEach(anim => anim.cancel());
+
+            path.animate(
+                [
+                    { strokeDasharray: `${length}`, strokeDashoffset: length, opacity: peakOpacity },
+                    { strokeDasharray: `${length}`, strokeDashoffset: 0, opacity: peakOpacity, offset: 0.55 },
+                    { strokeDasharray: `${length}`, strokeDashoffset: -length * 0.12, opacity: 0, offset: 1 }
+                ],
+                { duration: STRAND_DURATION_MS, delay: delayMs, easing: "ease-in-out", fill: "forwards" }
+            );
+        });
+
+        const branchSpecs = buildBranchSpecs(points, 0, 1);
+        renderBranches(branchGroupEl, branchSpecs, STRAND_DURATION_MS);
+    }
+
+    function maybeTriggerElectric() {
+        if (parseInt(showcase.dataset.fxLevel, 10) > 5) return;
+
+        const now = performance.now();
+        if (now - lastZapTime < ZAP_THROTTLE_MS) return;
+        lastZapTime = now;
+
+        for (let i = 0; i < 3; i++) {
+            const glowPath = document.getElementById(`arcGlowPath${i}`);
+            const corePath = document.getElementById(`arcCorePath${i}`);
+            const bluePath = document.getElementById(`arcBluePath${i}`);
+            const whitePath = document.getElementById(`arcWhitePath${i}`);
+            const branchGroupEl = document.getElementById(`branchGroup${i}`);
+            animateStrand([glowPath, corePath, bluePath, whitePath], branchGroupEl, i * 40);
+        }
+    }
+
+    let affectsFireInterval = null;
+    let affectsIdleTimer = null;
+    const AFFECTS_IDLE_MS = 150;
+    const AFFECTS_FIRE_INTERVAL_MS = 420;
+
+    function markCardMovingForAffects() {
+        if (!cardStage.classList.contains("jacket-enabled")) return;
+
+        if (!affectsFireInterval) {
+            Affects.fire();
+            affectsFireInterval = setInterval(() => Affects.fire(), AFFECTS_FIRE_INTERVAL_MS);
+        }
+
+        clearTimeout(affectsIdleTimer);
+        affectsIdleTimer = setTimeout(() => {
+            clearInterval(affectsFireInterval);
+            affectsFireInterval = null;
+        }, AFFECTS_IDLE_MS);
+    }
+
+    function stopAffectsMovement() {
+        clearTimeout(affectsIdleTimer);
+        clearInterval(affectsFireInterval);
+        affectsFireInterval = null;
+    }
+
+    let rippleIdleTimer = null;
+
+    function markCardMovingForRipple() {
+        if (!rippleField.classList.contains("ripple-enabled")) return;
+
+        rippleField.classList.add("rippling");
+
+        clearTimeout(rippleIdleTimer);
+        rippleIdleTimer = setTimeout(() => {
+            rippleField.classList.remove("rippling");
+        }, AFFECTS_IDLE_MS);
+    }
+
+    function stopRippleMovement() {
+        clearTimeout(rippleIdleTimer);
+        rippleField.classList.remove("rippling");
+    }
+
+    function updateFromPointer(clientX, clientY) {
+        const rect = showcaseCard.getBoundingClientRect();
+
+        const relX = (clientX - rect.left) / rect.width;
+        const relY = (clientY - rect.top) / rect.height;
+
+        const clampedX = Math.min(1, Math.max(0, relX));
+        const clampedY = Math.min(1, Math.max(0, relY));
+
+        const px = clampedX * 100;
+        const py = clampedY * 100;
+
+        const rx = (clampedX - 0.5) * 2 * MAX_TILT_DEG;
+        const ry = (0.5 - clampedY) * 2 * MAX_TILT_DEG;
+
+        showcaseCard.classList.remove("settling");
+        showcaseCard.style.setProperty("--px", px + "%");
+        showcaseCard.style.setProperty("--py", py + "%");
+        showcaseCard.style.setProperty("--rx", rx + "deg");
+        showcaseCard.style.setProperty("--ry", ry + "deg");
+        showcaseCard.style.setProperty("--card-scale", "1.03");
+
+        maybeTriggerElectric();
+        markCardMovingForAffects();
+        markCardMovingForRipple();
+    }
+
+    function resetTilt() {
+        stopAffectsMovement();
+        stopRippleMovement();
+        showcaseCard.classList.add("settling");
+        showcaseCard.style.setProperty("--px", "15%");
+        showcaseCard.style.setProperty("--py", "20%");
+        showcaseCard.style.setProperty("--rx", "0deg");
+        showcaseCard.style.setProperty("--ry", "0deg");
+        showcaseCard.style.setProperty("--card-scale", "1");
+    }
+
+    cardStage.addEventListener("mousemove", (e) => {
+        updateFromPointer(e.clientX, e.clientY);
     });
+
+    cardStage.addEventListener("mouseleave", resetTilt);
+
+    cardStage.addEventListener("touchmove", (e) => {
+        if (e.touches && e.touches.length) {
+            updateFromPointer(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    cardStage.addEventListener("touchend", resetTilt);
+
+    resetTilt();
+</script>
+
+<!-- ============================================================
+     AMBIENT EFFECTS — container flash + foreground spark, both
+     self-contained and level-gated, run unconditionally
+     ============================================================ -->
+
+<script>
+    const containerFlash = document.getElementById("containerFlash");
+
+    function scheduleContainerFlash() {
+        const nextDelay = 4000 + Math.random() * 6000;
+        setTimeout(() => {
+            if (parseInt(showcase.dataset.fxLevel, 10) <= 5) {
+                containerFlash.classList.remove("flash-active");
+                void containerFlash.offsetWidth;
+                containerFlash.classList.add("flash-active");
+            }
+            scheduleContainerFlash();
+        }, nextDelay);
+    }
+
+    function buildFreeFloatingSpark() {
+        const marginX = 30;
+        const marginY = 40;
+
+        const start = {
+            x: -marginX + Math.random() * (200 + marginX * 2),
+            y: -marginY + Math.random() * (280 + marginY * 2)
+        };
+
+        const angle = Math.random() * Math.PI * 2;
+        const length = 55 + Math.random() * 85;
+        const end = {
+            x: start.x + Math.cos(angle) * length,
+            y: start.y + Math.sin(angle) * length
+        };
+
+        const points = buildWavePoints(start, end, 1.5, 7, 9);
+        return pointsToSmoothPath(points);
+    }
+
+    function triggerForegroundSpark() {
+        const d = buildFreeFloatingSpark();
+        const glow = document.getElementById("fgSparkGlow");
+        const core = document.getElementById("fgSparkCore");
+
+        [glow, core].forEach((path) => {
+            path.setAttribute("d", d);
+            const length = path.getTotalLength();
+            const peakOpacity = parseFloat(path.getAttribute("opacity")) || 1;
+
+            path.getAnimations().forEach(anim => anim.cancel());
+
+            path.animate(
+                [
+                    { strokeDasharray: `${length}`, strokeDashoffset: length, opacity: peakOpacity },
+                    { strokeDasharray: `${length}`, strokeDashoffset: 0, opacity: peakOpacity, offset: 0.5 },
+                    { strokeDasharray: `${length}`, strokeDashoffset: -length * 0.15, opacity: 0, offset: 1 }
+                ],
+                { duration: 420, easing: "ease-in-out", fill: "forwards" }
+            );
+        });
+    }
+
+    function scheduleForegroundSpark() {
+        const nextDelay = 3000 + Math.random() * 4000;
+        setTimeout(() => {
+            if (parseInt(showcase.dataset.fxLevel, 10) <= 5) {
+                triggerForegroundSpark();
+            }
+            scheduleForegroundSpark();
+        }, nextDelay);
+    }
+
+    scheduleContainerFlash();
+    scheduleForegroundSpark();
 </script>
