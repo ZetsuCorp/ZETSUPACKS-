@@ -997,7 +997,6 @@
 
         const current = selectedCard.fusionLevel || 1;
         if (current >= MAX_FUSION_LEVEL) {
-            toast(`${selectedCard.name} is already at max fusion.`);
             return;
         }
 
@@ -1009,7 +1008,6 @@
 
         setTimeout(() => {
             stopFuse();
-            toast(`${selectedCard.name} fused to level ${next}.`);
             // TODO: persist fusionLevel once the fusion table exists.
         }, FUSE_ANIM_MS);
     }
@@ -1057,13 +1055,11 @@
 
     document.getElementById("overlaySave").addEventListener("click", () => {
         if (!selectedCard) return;
-        toast(`${selectedCard.name} saved to collection.`);
         closeCardOverlay();
     });
 
     document.getElementById("overlaySell").addEventListener("click", () => {
         if (!selectedCard) return;
-        toast(`${selectedCard.name} sold.`);
         closeCardOverlay();
     });
 </script>
