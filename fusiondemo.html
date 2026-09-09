@@ -607,109 +607,6 @@
         .showcase[data-fx-level="4"].fusing .card-stage { animation-duration: 0.5s; }
         .showcase[data-fx-level="5"].fusing .card-stage { animation-duration: 0.32s; }
 
-        /* ============================================================
-           TEST CONTROLS — not part of the real UI, demo-only
-           ============================================================ */
-
-        .controls {
-            background: var(--page-shadow);
-            border: 1px solid var(--page-edge);
-            border-radius: 8px;
-            padding: 18px;
-        }
-
-        .controls h2 {
-            font-family: 'Fraunces', serif;
-            font-size: 14px;
-            font-weight: 600;
-            margin: 0 0 12px;
-            color: var(--ink-muted);
-            text-transform: uppercase;
-            letter-spacing: .08em;
-        }
-
-        .controls h2:not(:first-child) {
-            margin-top: 18px;
-        }
-
-        .control-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .control-row label {
-            font-size: 12px;
-            color: var(--ink-muted);
-        }
-
-        .tier-select {
-            background: var(--page);
-            border: 1px solid var(--page-edge);
-            color: var(--ink);
-            border-radius: 4px;
-            padding: 6px 10px;
-            font-family: 'Karla', sans-serif;
-            font-size: 12px;
-        }
-
-        .level-buttons, .finish-buttons {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .level-btn, .finish-btn {
-            padding: 6px 10px;
-            border-radius: 4px;
-            border: 1px solid var(--page-edge);
-            background: var(--page);
-            color: var(--ink-muted);
-            font-family: 'Karla', sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .level-btn {
-            padding: 6px 10px;
-            text-align: center;
-        }
-
-        .level-btn.active, .finish-btn.active {
-            background: var(--brass);
-            border-color: var(--brass);
-            color: #141414;
-        }
-
-        .stop-btn {
-            margin-top: 4px;
-            width: 100%;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid var(--page-edge);
-            background: transparent;
-            color: var(--ink);
-            font-family: 'Karla', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: .05em;
-            text-transform: uppercase;
-            cursor: pointer;
-        }
-
-        .stop-btn:hover {
-            border-color: var(--ink-faint);
-        }
-
-        .hint {
-            font-size: 11px;
-            color: var(--ink-faint);
-            margin-top: -4px;
-            margin-bottom: 14px;
-        }
     </style>
 </head>
 
@@ -961,43 +858,6 @@
         </div>
 
         <!-- end SHOWCASE -->
-
-        <!-- ============================================================
-             TEST CONTROLS — demo-only, NOT part of the real fusion UI.
-             Do not carry this block over when moving SHOWCASE into
-             collection.html / showcase.html.
-             ============================================================ -->
-
-        <div class="controls">
-            <h2>Card &amp; Tier</h2>
-
-            <div class="control-row">
-                <label for="tierSelect">Card tier</label>
-                <select class="tier-select" id="tierSelect">
-                    <option value="common">Common</option>
-                    <option value="rare">Rare</option>
-                    <option value="epic">Epic</option>
-                    <option value="legendary">Legendary</option>
-                    <option value="mythic" selected>Mythic</option>
-                </select>
-            </div>
-
-            <div class="hint">Move your mouse (or finger) over the card — the tilt and shine track the pointer, like a real holo card.</div>
-
-            <h2>Fusion Level</h2>
-
-            <div class="level-buttons" id="levelButtons" style="margin-bottom: 14px;">
-                <button class="level-btn active" data-level="1">1 · Base</button>
-                <button class="level-btn" data-level="2">2 · Spot Holo</button>
-                <button class="level-btn" data-level="3">3 · Reverse Holo</button>
-                <button class="level-btn" data-level="4">4 · Full Holo</button>
-                <button class="level-btn" data-level="5">5</button>
-            </div>
-
-            <button class="stop-btn" id="stopBtn">Stop Fuse Effect</button>
-        </div>
-
-        <!-- end TEST CONTROLS -->
 
     </div>
 
@@ -1480,26 +1340,25 @@
          ============================================================ -->
 
     <script>
-        const tierSelect = document.getElementById("tierSelect");
-        const levelButtons = document.querySelectorAll(".level-btn");
         const fuseBtn = document.getElementById("fuseBtn");
-        const stopBtn = document.getElementById("stopBtn");
 
-        tierSelect.addEventListener("change", (e) => applyTier(e.target.value));
-
-        levelButtons.forEach(btn => {
-            btn.addEventListener("click", () => {
-                setLevel(btn.dataset.level);
-                levelButtons.forEach(b => b.classList.toggle("active", b === btn));
-            });
-        });
+        const MAX_FUSION_LEVEL = 5;
+        const FUSE_ANIM_MS = 1600;
+        let currentFusionLevel = 1;
 
         fuseBtn.addEventListener("click", (e) => {
             e.stopPropagation();
-            startFuse();
-        });
 
-        stopBtn.addEventListener("click", stopFuse);
+            if (currentFusionLevel >= MAX_FUSION_LEVEL) return;
+
+            currentFusionLevel += 1;
+            setLevel(currentFusionLevel);
+            startFuse();
+
+            setTimeout(() => {
+                stopFuse();
+            }, FUSE_ANIM_MS);
+        });
 
         // Ambient container flash — independent of pointer/tilt,
         // fires on its own random interval every so often.
